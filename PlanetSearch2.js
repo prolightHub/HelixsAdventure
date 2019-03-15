@@ -67,7 +67,7 @@ var sketch = function(processing) /*Wrapper*/
 /**   Hybrid Game Engine (Planet Search 2)  **/
 /**
     @Author Prolight
-    @Version 0.8.2 beta (82% complete)
+    @Version 0.8.3 beta (83% complete)
 
         64+ gameObjects!
 
@@ -632,6 +632,8 @@ var sketch = function(processing) /*Wrapper*/
         We now have wiggling falling ice.
         The Voxelizer is now in the game!
 
+    * 0.8.3
+
     Next :
         v0.8.1 ->
             Do something about the underwater level. It doesn't make sense for the player to not have the oxygen bar.
@@ -697,7 +699,7 @@ var game = {
     fps : 60, 
     loadFps : 140,
     gameState : "start", //Default = "start"
-    version : "v0.8.2 beta",
+    version : "v0.8.3 beta",
     fpsType : "manual", //Default = "manual"
     debugMode : true, //Turn this to true to see the fps
     showDebugPhysics : false,
