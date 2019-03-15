@@ -635,7 +635,7 @@ var sketch = function(processing) /*Wrapper*/
     * 0.8.3
 
     Next :   
-        v0.8.7 -> 
+        v0.8.6 -> 
             Do something about the underwater level. It doesn't make sense for the player to not have the oxygen bar.
             Fix the bubble shields. Maybe make bubble shield allows you to go underwater?
 
