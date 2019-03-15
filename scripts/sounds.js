@@ -104,4 +104,3 @@ sounds.addSound("coin.mp3");
 sounds.addSound("dooropen.mp3");
 sounds.addSound("quickBoom.wav");
 sounds.addSound("zoom1.wav");
-sounds.addSound("annoy.wav");
