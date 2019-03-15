@@ -634,12 +634,11 @@ var sketch = function(processing) /*Wrapper*/
 
     * 0.8.3
 
-    Next :
-        v0.8.1 ->
+    Next :   
+        v0.8.6 -> 
             Do something about the underwater level. It doesn't make sense for the player to not have the oxygen bar.
             Fix the bubble shields. Maybe make bubble shield allows you to go underwater?
 
-        v0.8.6 -> 
             Need to optimize game saving.
             Like make a section when when it loads from a save the right after the game has loaded make it load the settings.
 
