@@ -665,8 +665,7 @@ var sketch = function(processing) /*Wrapper*/
     ===========================================================================================================================================================================
 
     Ideas:
-        Test the game.
-
+        
     TODO:
         -Star pillars you can travel to
         Still need to make star pillars that you can travel to by selecting which level in an inventory
