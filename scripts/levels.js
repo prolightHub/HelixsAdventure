@@ -2111,8 +2111,8 @@ var levels = {
             "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
             "                                                                               ",
             "                                                                               ",
-            "b                 ccc             ccc              ccc                        a",
-            "D  f  QQ                                                                      D",
+            "b          ccc    ccc   ccc       ccc     ccc      ccc     ccc                a",
+            "D  f  QQ           E  2        E           2       2              E  E        D",
             "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
             "IIIIIIIIIII                                                      iiiiiiiiiiiiii",
             "IIIIIIIII                                                           iiiiiiiiiii",
@@ -2144,6 +2144,31 @@ var levels = {
                 symbol : 'b',
             },
         },
+        itemChests : {
+            'a' : {
+                items : [{
+                    contains : "energy",
+                }, {
+                    contains : "energy",
+                }, {
+                    contains : "energy",
+                }, {
+                    contains : "energy",
+                }, {
+                    contains : "energy",
+                }, {
+                    contains : "energy",
+                }, {
+
+                }, {
+
+                }, {
+
+                }, {
+                    
+                }],
+            }
+        },
         plan : [
             "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
             "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
@@ -2152,18 +2177,19 @@ var levels = {
             "iiV   VV  ii        V         i       V     Vi    Vi",
             "ii        VV                  V              V     i",
             "ii                                                 i",
-            "ii               7                                  ",
+            "ii                7                                 ",
             "ii                                   7              ",
             "ii             FFFF                        FFF      ",
             "ii                         FFF                      ",
             "ii                                                  ",
-            "ii     FFF                 7          FFFF          ",
+            "ii     FFF            7               FFFF          ",
             "ii                   FFF                            ",
-            "ii                                                 a",
-            "ii                                                 D",
-            "iii   iiiiiiiiiiiiiii   b  iiiiiiiii     iiiiiiiiiii",
-            "iiiiiiiiiiiiiiiiiiiiii bbbiiiiiiiiiiiiiiiiiiiiiiiiii",
-            "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
+            "ii           a                                     a",
+            "ii           ]                                     D",
+            "iii   iiiiiiiiiiiiiii   i  iiiiiiiii     iiiiiiiiiii",
+            "iiiiiiiiiiiiiiiiiiiiii iiii11111iiiiiiiii11111iiiiii",
+            "iiii1111111111iiiiiiiiii1111iiii11111111iiiii111iiii",
+            "iiiiiiiii11111111iii11ii1iii1111iii11111111111111111"
         ],
     },
     "ice_way" : {
@@ -2399,7 +2425,7 @@ var levels = {
         chests : {
             'a' : {
                 drops : [{
-                    contains : "bubbleShield",
+                    contains : "ninjaStarShooter",
                     total : true,
                 }],
             },
@@ -2425,13 +2451,15 @@ var levels = {
             "                                               ",
             "                                               ",
             "                                          wwwww",
-            "    a                                     wwwww",
-            "    D   p  ee        ``~~99              wwwwww",
+            "    a         a                           wwwww",
+            "    D   p  ee [      ``~~99              wwwwww",
             "gggggggggggggggg   gggggggggggggggggggggggggggg",
             "bbbbbbbbbbbbbbbb   bbbbbbbbbbbbbbbbbbbbbbbbbbbb",
         ],
     },
     "test2" : {
+        theme : "other",
+        background : "underground",
         doors : {
             'a' : {
                 level : "test",
@@ -2449,6 +2477,14 @@ var levels = {
                 symbol : 'b',
             }
         },
+        chests : {
+            'a' : {
+                drops : [{
+                    contains : "iceSplicer",
+                    total : true,
+                }],
+            },
+        },
         plan : [
             "                                               ",
             "                                               ",
@@ -2460,8 +2496,9 @@ var levels = {
             "                                               ",
             "                                               ",
             "                                               ",
-            "                          a                    ",
-            "      f                            sp  D       ",
+            "                                               ",
+            "                          a    a       a       ",
+            "      f                   D    [ f sp  D       ",
             "ggggggggggggggggggggggggggggggggggggggggggggggg",
         ],
     },

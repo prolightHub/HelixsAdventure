@@ -633,6 +633,13 @@ var sketch = function(processing) /*Wrapper*/
         The Voxelizer is now in the game!
 
     * 0.8.3
+        Fixed the cutscene zoom in bug.
+        Added the cutscene to get the energy item.
+        Fixed spike falling bug.
+        Fixed water does not appear bug.
+        Fixed another cutscene bug.
+        Fixed the door/sign entrance bug.
+        Fixed the 30fps mode can't see gameObjects when loading sometimes.
 
     Next :   
         v0.8.6 -> 
@@ -1585,8 +1592,10 @@ var TextBox = function(xPos, yPos, width, height, colorVal, secondColorValue, te
         if(this.isMouseInside())
         {
             cursor("text");
+            game.cursor = "text";
         }else{
             cursor("default");
+            game.cursor = "default";
         }
     };
 
@@ -4317,7 +4326,7 @@ var storedImages = {
     }),
     "dirtyBlock" : pixelFuncs.createPixelImage({
        replace : true,
-       pixelSize : 3, 
+       pixelSize : 6, 
        pixels : [
            "bbbccbbb",
            "bdbedddc",
@@ -5054,7 +5063,7 @@ var debugTool = {
     {
         try{
             var s = "gameObjects, game, keys, screenUtils, loader, inventoryMenu, debugTool, physics, observer, buttons, cam";
-            var a = [window.processing, gameObjects, game, keys, screenUtils, loader, inventoryMenu, physics, observer, buttons, cam];
+            var a = [window.processing, gameObjects, game, keys, screenUtils, loader, inventoryMenu, physics, observer, buttons, window.cam];
             var func = ("return function any(p," + s +")\n{\n" + input.toString() + "\n};");
             return new Function(func)().apply(_this, a);
         }
@@ -5134,8 +5143,7 @@ var screenUtils = {
             {
                 cameraGrid.draw();
                 cursor(CROSS);
-            }else{
-                cursor(ARROW);
+                game.cursor = CROSS;
             }
         },
         update : function()
@@ -5887,6 +5895,19 @@ var screenUtils = {
         this.debugCameraGrid.update();
         this.loadingScreen();
         fpsCatcher.update();
+
+        if(game.noCursor)
+        {
+            noCursor();
+            return;
+        }
+
+        if(game.cursor)
+        {
+            cursor(game.cursor);
+        }else{
+            cursor(ARROW);
+        }
     },
 };
 
@@ -6968,11 +6989,14 @@ var Camera = function(xPos, yPos, width, height)
 
         if(this.scale <= 0 || this.scale >= this.maxScale)
         {
-            if(object.controls && object.controls.zoom && object.controls.zoom())
+            if(object.controls && object.controls.zoom)
             {
-                this.scaleVel = -abs(this.scaleVel);
-            }else{
-                this.scaleVel = abs(this.scaleVel);
+                if(object.controls.zoom())
+                {
+                    this.scaleVel = -abs(this.scaleVel);
+                }else{
+                    this.scaleVel = abs(this.scaleVel);
+                }
             }
         }
 
@@ -7042,6 +7066,7 @@ var Camera = function(xPos, yPos, width, height)
     };
 };
 var cam = new Camera(0, 0, width, height); //Use this as the default
+window.cam = cam;
 
 /*Production createArray*/
 var createArray = function(object, inArray)
@@ -7647,7 +7672,7 @@ gameObjects.update = function()
 
     gameObjects.apply(messageHandler.active);
 
-    if(game.fps === 30)
+    if(game.fps === 30 && game.gameState !== "load")
     {
         gameObjects.apply(messageHandler.active);
     }
@@ -10288,6 +10313,7 @@ var Door = function(xPos, yPos, width, height, colorValue)
                 object.goto.travelType = "door";
 
                 loader.startLoadLevel(this.goto.level, "door", this.index);
+                talkHandler.end();
 
                 sounds.playSound("dooropen.mp3");
 
@@ -10879,6 +10905,25 @@ var ItemChest = function(xPos, yPos, width, height)
     {
         if(this.goto.hidden)
         {
+            var mTime = millis() - this.goto.unHideTimer;
+
+            if(this.goto.unHideTime && (mTime < this.goto.unHideTime))
+            {
+                eX = mTime * width / this.goto.unHideTime;
+                eY = mTime * height / this.goto.unHideTime;
+                pX = this.xPos - eX / 2 + this.halfWidth;
+                pY = this.yPos - eY / 2 + this.halfHeight;
+
+                fill(0, 0, 0, 50);
+                rect(pX, this.yPos - eY * 10, eX, eY * 20, 10);
+                rect(this.xPos - eX * 10, pY, eX * 20, eY, 10);
+
+                image(storedImages[this.img], pX, pY, eX, eY);
+
+                fill(0, 0, 0, 60);
+                rect(this.xPos + random(-this.halfWidth, this.halfWidth) + this.halfWidth, this.yPos + random(-this.halfHeight, this.halfHeight) + this.halfHeight, this.width * 0.2, this.height * 0.2);
+            }
+
             return;
         }
 
@@ -11095,6 +11140,11 @@ var ItemChest = function(xPos, yPos, width, height)
     var _lastUpdate = this.update;
     this.update = function()
     {
+        if(this.goto.unHideTime && (millis() - this.goto.unHideTimer >= this.goto.unHideTime))
+        {
+            this.goto.hidden = false;
+        }
+
         this.goto.items.length = min(this.goto.items.length, this.maxItems);
 
         return _lastUpdate.apply(this, arguments);
@@ -11518,6 +11568,14 @@ var Spike = function(xPos, yPos, width, height, colorValue, upSideDown)
         }else{
             this.shakePos = 0;
 
+            var slopes = gameObjects.getObject("slope");
+            this.slopes.forEach(function(element, index, array) 
+            {
+                var slope = slopes[element];
+
+                slope.physics.solidObject = false;
+            });
+
             var ice = new Ice(this.xPos, this.yPos, this.width, this.height, this.color);
             this.shatter = ice.shatter;
             this.shapes = ice.shapes;
@@ -11647,18 +11705,22 @@ var Spike = function(xPos, yPos, width, height, colorValue, upSideDown)
 
     this.onCollide = function(object)
     {
-        if(this.startedShakeAndFall && object.arrayName !== "slope" && object.arrayName !== "fallingBlock" && 
-          (object.physics.solidObject && object.physics.movement === "static") || object.arrayName === "player")
+        if(this.falls)
         {
-            this.shatter(4, 4, 300);
-
-            if(object.isLifeForm && !object.invincibleToLifeForm && !this.doneDamage)
+            if(this.startedShakeAndFall && object.arrayName !== "slope" && object.arrayName !== "fallingBlock" && 
+              (object.physics.solidObject && object.physics.movement === "static") || object.arrayName === "player")
             {
-                object.takeDamage(this);
+                this.shatter(4, 4, 300);
 
-                this.doneDamage = true;
+                if(object.isLifeForm && !object.invincibleToLifeForm && !this.doneDamage)
+                {
+                    object.takeDamage(this);
+
+                    this.doneDamage = true;
+                }
+
+                return;
             }
-            return;
         }
 
         if(object.type === "lifeform" && object.arrayName !== "ninja" && object.arrayName !== "voxelizer" && 
@@ -15459,11 +15521,11 @@ var Player = function(xPos, yPos, width, height, colorValue)
             halfHeight : this.halfHeight,
         };
     };
-
++
     this.setFixture();
 
     this.xFire = (random(0, 1) < 0.5) ? -1 : 1;
-    this.backwards = false;
+    this.backwards = true;
 
     this.controls = {
         left : function()
@@ -16685,8 +16747,8 @@ var Voxelizer = function(xPos, yPos, width, height, colorValue)
                 var a = atan2(physics.getMiddleYPos(this.target) - this.middleYPos, 
                               physics.getMiddleXPos(this.target) - this.middleXPos);
 
-                this.xVel = cos(a) * 3.64;
-                this.yVel = sin(a) * 3.64;
+                this.xVel = cos(a) * 3.7;
+                this.yVel = sin(a) * 3.7;
                 break;
 
             case 1 :
@@ -19231,9 +19293,27 @@ var levelScripts = {
             this.water.updateBoundingBox();
 
             this.water.update();
+
+            cameraGrid.addReference(this.water);
         }
     },
     "locked_In" : {
+        afterLoad : function()
+        {
+            var chest = gameObjects.getObject("chest").getLast();
+
+            if(chest.goto.isOpen || !chest.goto.hidden)
+            {
+                gameObjects.getObject("iceBeaker").forEach(function(element, index, array) 
+                {
+                    element.remove();
+                    array.applyObject(index);
+                });
+                chest.goto.hidden = false;
+
+                this.stop = true;
+            }
+        },
         apply : function()
         {
             var chest = gameObjects.getObject("chest").getLast();
@@ -19402,6 +19482,284 @@ var levelScripts = {
             });
         }
     },
+    /*"entry" : {
+        openLoad : function()
+        {
+            if(levels[levelInfo.level].save.secretUnlocked)
+            {
+                this.afterSecret();
+                this.containsItem = true;
+                this.offX = -600;
+            }else{
+                levels[levelInfo.level].save.secretUnlocked = false;
+                this.offX = 0;
+            }
+
+            this.overrideDraw = true;
+        },
+        afterLoad : function()
+        {
+            var chest = gameObjects.getObject("itemChest").last();
+            var lastDraw = chest.draw;
+            chest.draw = function()
+            {
+                lastDraw.apply(this, arguments);
+
+                if(chest.goto.open)
+                {
+                    return;
+                }
+
+                var vw = this.width * 0.46, vh = this.height * 0.46;
+                var px = (cam.focusXPos - cam.halfWidth) + mouseX, py = (cam.focusYPos - cam.halfHeight) + mouseY;
+
+                textSize(12);
+                textAlign(CENTER, CENTER);
+                fill(255, 255, 255);
+                text('?', this.xPos + vw / 2, this.yPos + vh / 2);
+
+                fill(levels[levelInfo.level].save.secretUnlocked ? color(10, 200, 0, 178) : color(10, 0, 200, 178));
+                rect(this.xPos, this.yPos, vw, vh, 8);
+
+                if(observer.collisionTypes.pointrect.colliding({
+                    xPos : px,
+                    yPos : py
+                }, {
+                    xPos : this.xPos,
+                    yPos : this.yPos,
+                    width : vw,
+                    height : vh
+                }, 3, 3))
+                {
+                    fill(255, 255, 255, 255);
+                    textSize(9);
+                    textAlign(LEFT, CENTER);
+                    text(window.bombEmoji || '*', px - 2, py);
+                    game.noCursor = true;
+                }
+            };
+        },
+        apply : function()
+        {
+            var chest = gameObjects.getObject("itemChest").last();
+
+            if(!this.containsItem)
+            {
+                chest.goto.items.forEach(item => {
+                    if(item.contains === "energy")
+                    {
+                        this.containsItem = true;
+                    }
+                });
+
+                if(gameObjects.getObject("ice").length > 110)
+                {
+                    levels[levelInfo.level].save.secretUnlocked = false;
+                }
+            }else{
+                if(!this._notFirst && gameObjects.getObject("ice").length > 110)
+                {
+                    levels[levelInfo.level].save.secretUnlocked = false;
+                    this.containsItem = false;
+                    this._notFirst = true;
+                }else{
+                    this.stop = true;
+                    return;
+                }
+            }
+
+            if(this.containsItem)
+            {
+                var self = this;
+                self.lastShatterTime = 0;
+                self.shatterIndex = 0;
+
+                var endFunc = function()
+                {
+                    game.cutScening = false;
+                    delete self.shatterIndex;
+                    delete self.lastShatterTime;
+
+                    self.afterSecret(chest);
+                };
+
+                cam.attach(function()
+                {
+                    try{
+                        var object = gameObjects.getObject("ice")[self.shatterIndex];
+
+                        if(!self.lastShatterTime || millis() - self.lastShatterTime >= 300)
+                        {
+                            if(object.shatter && !object.shattered)
+                            {
+                                object.shatter();
+                            }
+
+                            self.lastShatterTime = millis();
+                            self.shatterIndex++;
+                        }
+
+                        var ices = gameObjects.getObject("ice");
+                        var vObject = ices[self.shatterIndex];
+
+                        var i = self.shatterIndex;
+                        var k = 0;
+                        while(true)
+                        {
+                            k++;
+
+                            if(k > 2000)
+                            {
+                                break;
+                            }
+
+                            if(!vObject || vObject.fake)
+                            {
+                                i++;
+                                vObject = ices[i];
+
+                                if(i >= ices.length)
+                                {
+                                    return false;
+                                }
+
+                                continue;
+                            }else{
+                                break;
+                            }
+                        }
+
+                        self.shatterIndex = (typeof i === "number") ? i : self.shatterIndex;
+
+                        if(vObject.index >= 28)
+                        {
+                            return false;
+                        }
+
+                        game.cutScening = true;
+
+                        return vObject;
+                    }
+                    catch(e)
+                    {
+                        console.log(e);
+                        this.time = -0;
+
+                        endFunc();
+                        cam.attach(function()
+                        {
+                            return gameObjects.getObject("player")[0];
+                        });
+
+                        return gameObjects.getObject("player")[0];
+                    }
+                }, false, 7500, endFunc);
+
+                this.stop = true;
+            }
+        },
+        draw : function()
+        {
+            var self = levelScripts.entry;
+            var isGreen = (self.containsItem || levels[levelInfo.level].save.secretUnlocked);
+
+            if(isGreen && !game.cutScening)
+            {
+                self.offX = Math.max(self.offX - 4, -600);
+            }
+
+            stroke(isGreen ? color(10, 200, 170, 160) : color(10, 20, 200, 160));
+            strokeWeight(4);
+            line(1543, 338, 2275 + self.offX, 338);
+
+            textSize(12);
+            textAlign(CENTER, CENTER);
+            fill(255, 255, 255);
+            text('?', 2275 + 6.9 + self.offX, 338);
+
+            noStroke();
+            fill(isGreen ? color(10, 200, 170, 160) : color(10, 20, 200, 160));
+            rect(2275 + self.offX, 338 - 6.9, 13.8, 13.8);
+
+            var px = (cam.focusXPos - cam.halfWidth) + mouseX, py = (cam.focusYPos - cam.halfHeight) + mouseY;
+            if(observer.collisionTypes.pointrect.colliding({
+                xPos : px,
+                yPos : py
+            }, {
+                xPos : 2275 + self.offX,
+                yPos : 338 - 6.9,
+                width : 13.8,
+                height : 13.8
+            }, 3, 3))
+            {
+                fill(255, 255, 255, 255);
+                textSize(9);
+                textAlign(LEFT, CENTER);
+                text(window.bombEmoji || '*', px - 2, py);
+                game.noCursor = true;
+            } 
+        },
+        afterSecret : function(chest)
+        {
+            chest = chest || gameObjects.getObject("itemChest").last();
+            levels[levelInfo.level].save.secretUnlocked = true;
+            chest.goto.items.forEach((item, index, items) => {
+                if(item.contains === "energy")
+                {
+                    chest.goto.items[index] = {};
+                }
+            });
+        }
+    },*/
+    "icyPuzzles2" : {
+        afterLoad : function()
+        {
+            var level = levels[levelInfo.level];
+            level.itemChests.a.hidden = !level.save.roomDefeated;
+
+            if(level.save.roomDefeated)
+            {
+                gameObjects.getObject("voxelizer").forEach(element => element.remove());
+                this.stop = true;
+            }
+        },
+        apply : function()
+        {
+            var enemiesDefeated = 0;
+
+            var voxelizers = gameObjects.getObject("voxelizer");
+            voxelizers.forEach((element, index, array) => {
+                if(element.fake)
+                {
+                    enemiesDefeated++;
+                }
+            });
+
+            if(enemiesDefeated === voxelizers.length)
+            {
+                cam.attach(function()
+                {
+                    var chest = gameObjects.getObject("itemChest")[0];
+                    
+                    if(!game.cutScening)
+                    {
+                        chest.goto.unHideTimer = millis();
+                        chest.goto.unHideTime = 1000;
+                    }
+
+                    game.cutScening = true;
+
+                    return chest;
+                },
+                false, 2000, function()
+                {
+                    game.cutScening = false;
+                    levels[levelInfo.level].save.roomDefeated = true;
+                });
+                this.stop = true;
+            }
+        },
+    },
     "IceDragon" : {
         apply : function()
         {
@@ -19546,7 +19904,7 @@ levelScripts.draw = function()
 {
     if(this[levelInfo.level] !== undefined && 
     typeof this[levelInfo.level].draw === "function" && 
-    !this[levelInfo.level].stop)
+    (this[levelInfo.level].overrideDraw || !this[levelInfo.level].stop))
     {
         this[levelInfo.level].apply();
         (this[levelInfo.level].draw || function(){})();
@@ -20465,7 +20823,7 @@ loader.startLoadLevel(levelInfo.level);
 
 game.tryShowNewArea = function()
 {
-    if(configs[levelInfo.theme] !== "undefined" && !configs[levelInfo.theme].shownName &&
+    if(typeof configs[levelInfo.theme] !== "undefined" && !configs[levelInfo.theme].shownName &&
     levelInfo.theme === levels[levelInfo.level].theme && configs[levelInfo.theme].name !== undefined && !configs[levelInfo.theme].hidden)
     {
         screenUtils.createMessage(configs[levelInfo.theme].name, 200, 180, 150, 30, {
@@ -21485,6 +21843,7 @@ game.pauseMenu = function()
     fill(0, 0, 0, 60);
     rect(75, 0, width - 75 * 2, height);
     cursor(ARROW);
+    game.cursor = ARROW;
     
     buttons.back.draw();
     this.switchGameState((buttons.back.clicked() || keys[80]) && !ENTER_KEY, "play");
@@ -21569,7 +21928,7 @@ game.inventoryMenu.mousePressed = function()
     {
         inventoryMenu.tryToClose(function() 
         {
-            return mouseButton === RIGHT;
+            return mouseButton === LEFT;
         });
     }
 };
@@ -21699,8 +22058,15 @@ game.play.keyReleased = function()
     talkHandler.keyReleased();
 };
 
+game.doCursor = function()
+{
+    game.cursor = false;
+    game.noCursor = false;
+};
+
 var draw = function()
 {
+    game.doCursor();
     backgrounds.drawBackground();
     game[game.gameState]();
     screenUtils.update();
@@ -22001,3 +22367,11 @@ document.addEventListener('keyup', function()
         event.preventDefault();
     }
 });
+
+try{
+    window.bombEmoji = '💣';
+}
+catch(e) 
+{
+    console.log(e);
+}

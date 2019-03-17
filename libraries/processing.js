@@ -18336,8 +18336,7 @@ module.exports = function setupParser(Processing, options) {
 
       if(p.chrome)
       {
-          // canvasData.context.globalCompositeOperation = 'source-in';
-          canvasData.context.globalCompositeOperation = "destination-in";
+          canvasData.context.globalCompositeOperation = 'source-in';//"destination-in"
       }
 
       canvasDataCache.push(canvasData);
@@ -18825,11 +18824,11 @@ module.exports = function setupParser(Processing, options) {
           canvas = document.createElement('canvas'),
           ctx = canvas.getContext('2d');
           
-        if(p.chrome)
-        {
-            // canvasData.context.globalCompositeOperation = 'source-in';
-            ctx.globalCompositeOperation = "destination-in";
-        }
+        // if(p.chrome)
+        // {
+        //     // canvasData.context.globalCompositeOperation = 'source-in';
+        //     ctx.globalCompositeOperation = "destination-in";
+        // }
 
         this.width = canvas.width = w;
         this.height = canvas.height = h;
