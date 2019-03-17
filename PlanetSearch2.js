@@ -666,6 +666,7 @@ var sketch = function(processing) /*Wrapper*/
 
     Ideas:
         Test the game.
+        Check something else.
 
     TODO:
         -Star pillars you can travel to
