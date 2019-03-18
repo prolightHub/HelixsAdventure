@@ -2087,12 +2087,17 @@ var levels = {
                 symbol : 'a',
             }
         },
+        signs : {
+            'a' : {
+                message : "Be careful!"
+            }
+        },
         plan : [
             "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
             "                                                                               ",
             "                                                                               ",
-            "b          ccc    ccc   ccc       ccc     ccc      ccc     ccc                a",
-            "D  f  QQ                                                                      D",
+            "b          ccc    ccc   ccc       ccc     ccc      ccc     ccc     a          a",
+            "D  f  QQ                                                           S          D",
             "bbbbbbbbbbbbbbbbb   m  bb   bb   m   bb    m  bb   m  bb   m   bbbbbbbbbbbbbbbb",
             "IIIIIIIIIII                                                      iiiiiiiiiiiiii",
             "IIIIIIIII                                                           iiiiiiiiiii",

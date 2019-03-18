@@ -5406,7 +5406,7 @@ var screenUtils = {
 
             textAlign(LEFT, CENTER);
 
-            if(player.goto !== undefined && player.goto.keysHolding !== undefined)
+            if(!game.hideKeys && player.goto !== undefined && player.goto.keysHolding !== undefined)
             {
                 this.keysYPos += this.keysYVel;
 
@@ -21925,6 +21925,11 @@ game.play.keyPressed = function()
     else if(keys[F6])
     {
         screenUtils.infoBar.showBottomHud = !screenUtils.infoBar.showBottomHud;
+    }
+
+    if(keys[F7])
+    {
+        game.hideKeys = !game.hideKeys;
     }
 
     game.switchGameState(inventoryMenu.tryToOpen(), "inventoryMenu", true); 
