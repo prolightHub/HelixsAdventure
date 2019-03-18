@@ -1874,9 +1874,9 @@ var levels = {
             "                    s                          U                                                                                                                                                                                                                                                                                                                                                                                                                                                    C                      C                                              b",
             "                    C                                                                                                                                                                                                                                                                                                                                                                                           >                                                                                                                                                      f  D",
             "                                                                                                 s                                                                                                                                                                                                                                                                                                              >                                                                                                                                        T        pr gggggg",
-            "a                                                                                                C                                                                                                                                                                                                                                                                oo                                            >                                                        <                                                                     T  T r gggggggggggggdddddddd",
+            "a                                                                                                C                                                                                                                                                                                                                                                                oo                                            >                                                                                                                              T  T r gggggggggggggdddddddd",
             "D____                   ccc          s                                                                       s                                                                                                                                                                                                                                                                                                  >                                                        <     f                                                          r ggggggggddbbbbbbbbbbbbbbbbbbbbb",
-            "bbbbb_____                           C                  s               s                                    C                                              s              s                                                f                      O                                                                                          b                                                        b        b      bU   iii                                             bbbbbb                                                   Tr ggddbbbbbbbbbb111111111111111111111",
+            "bbbbb_____                           C                  s               s                                    C                                              s              s                                                f                      O                                                                                          b                                                        b        b      bU   iii                                          <  bbbbbb                                                   Tr ggddbbbbbbbbbb111111111111111111111",
             "iiiibbbbbb____                                          C               C              E   2          c                       2                             C       s      C        s    s                               3333333333333                                                                           A                            b            ooo                                         b    b   b   b  bU             iiii   FF   FFF                        iiiibbbbb __  ____                                 __r ggddbbbbb111111111111111111111111111111",
             "iiiiiiiiibbbbb_____                          1111                                     bbbbbbbb           c                  PPPPPPPP                                C               C    C                              3bbbbbbbbbbbb333    O                                                                   AbA                           b     oo                 i              i i i i i i      b    b   b   b  bU                                  ^^^^^^^^^^^        iiiiiiiibbbbbbgggggg_____T____________T_____T___r ggddbbbbbiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
             "iiiiiiiiiiiiibbbbbb____                 E                      2                                   c                                                    5                    5                                        33bbiiiiiii  Vb3bb              iii                                              A        bbb                           b                         i                              b    b   b   b  bU                                                     Viiiiiiiiiiiibbbbbbbggggggggggggggggggggggggggggbbbbbbbiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
@@ -2003,6 +2003,10 @@ var levels = {
             'd' : {
                 level : "icyTracks_3",
                 symbol : 'a',
+            },
+            'f' : {
+                level : "ice_way",
+                symbol : 'd'
             }
         },
         itemChests : {
@@ -2056,30 +2060,30 @@ var levels = {
         },
         plan : [
             "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
-            "                       UU                                                                                          ",
-            "                       UU                                                                                          ",
-            "d                      UU                                                                                          ",
-            "D                      UU         E     2       E                      EE                                          ",
-            "bbbbbbbbbbbbbbbbbbbbbb^UU^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^11                      ",
-            "iiiiiiiiiiiiiiiiiiiiib UU                                                                  1s1                     ",
-            "iiiiiiiiiiiiiiiiiiiiib UU                                                                  1ss1                    ",
-            "iiiiiiiiiiiiiiiiiiiiib UU                                                                  1sss1                   ",
-            "iiiiiiiiiiiiiiiiiiiiib UU                                                                  1ssss1                  ",
-            "bbbbbbbbbbbbbbbbbbbbbb UU                                                                  1sssss1                c",
+            "            3      3   UU                                                                              V     VV    ",
+            "            3      3   UU                                                                                          ",
+            "d           3      3   UU                                                                                          ",
+            "D           3      3   UU         E     2       E                      EE                                          ",
+            "bbbbbbbbbbbbbbbbbbbbbb^II^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^11                      ",
+            "iiiiiiiiiiiiiiiiiiiiib UU                                          iii                     1s1                     ",
+            "iiiiiiiiiiiiiiiiiiiiib UU                                           VV                     1ss1                    ",
+            "iiiiiiiiiiiiiiiiiiiiib UU                       iiii                                       1sss1                   ",
+            "iiiiiiiiiiiiiiiiiiiiib UU         iiii            VV                                       1ssss1                  ",
+            "bbbbbbbbbbbbbbbbbbbbbb UU          V V                                                     1sssss1                c",
             "                       UU                                        8                         1ssssss1               D",
             "                       UU                                  bbbbbbbbbbbbl                   1sssssbbbbbbbbbbbbbbUUbb",
             "                       UU                               bbbiiiiiiiiiiiiiil                 1ssssssssiiiiiiiiiiiUUii",
             "a              a    b  UU                            bbb1111iii      V   iil               1ssssssssssssssssssiUUis",
-            "D pf           ]    ]  UU    8          A    A    bbb11111111 V            iil           r iisssssssssssssssssiUUis",
+            "D pf           ]    ]  UU    8          8    A    bbb11111111 V            iil           r iisssssssssssssssssiUUis",
             "bbbbbiiiiiiiiiiiiiiiiibbbbbbbbbbbbbbbbbbbbbbbbbbbb11111111iii              V iil       r iisssssssssssssssssssiUUis",
             "1111bwwwwwwwwwwwwwwwwwb11111111111111111111111111111111111111i                 iil   r iisssssssssssssssssssssiUUis",
             "1111bwwwwwwwwwwwwwwwwwb1111111111111111111111ii111111111iiii V                  iiivviiissssssssssssssssssssssiUUis",
             "1111bwwwwwwwwwwwwwwwwwb1111111iiii11111111111iii1111111111 V                    i      issssssssssssssssssssssiUUis",
             "1111bwwwwwwwwwwwwwwwwwb11111111iiii1111111111iii111111111                  bbbbbb      bbbbbbbssssssssssssssssiUUis",
-            "1111biiiiiiiiiiiiiiiiib111111111111iii11111111111111111 V                  b    V      V    bbvvvvvvvvvvvvvvvvi  iv",
+            "1111biiiiiiiiiiiiiiiiib111111111111iii11111111111111111 V                  b    V      V    bbvvvvvvvvvvvvvvvvv  vv",
             "111111111111111111111111111111111111111111111111111111                     b                 I                     ",
-            "1111111111111111111111111111111111111111111111111111 V                     b                 I                     ",
-            "1111111111111111111111111111111111111111111111111111                       b       bb        I                     ",
+            "1111111111111111111111111111111111111111111111111111 V                     b                 I                    f",
+            "1111111111111111111111111111111111111111111111111111                       b       bb        I                    D",
             "1111111111111111111111111111111111111111111111111111                       b f QQ  DD  QQ   bb^^^^^^^^^^^^^^^^^^^^^",
             "1111111111111111111111b111111111111111111111111111111                      bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
             "                                                                            bbbbbbbbbbbbbbbbb                      ",
@@ -2204,6 +2208,14 @@ var levels = {
                 level : "entry",
                 symbol : 'a',
                 locked : true,
+            }, 
+            'c' : {
+                level : "entry",
+                symbol : 'c'
+            },
+            'd' : {
+                level : "icyPuzzles",
+                door : 'f',
             }
         },
         plan : [
@@ -2216,11 +2228,23 @@ var levels = {
             "                                                    b",
             "                                                    D",
             "                  r bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
-            "           r 1111111wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww",
-            "         r 111wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww",
-            "a      r 111wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww",
-            "D    r 111wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww",
-            "bbbb1111111111111111111111111111111111111111111111111",
+            "           r 1111111wwwwwwwwwwwwwwwwwwwwwwwWWwwwwwwww",
+            "         r 111wwwwwwwwwwwwwwwwwwwwwwwwwwWWWWWWWWWwwww",
+            "a      r 111wwwWWWWWWWWWWWWWWWWWWWWWWWWWWWWWwWwwWWWWw",
+            "D    r 111wwwWWWWWWWWWWWWWWWWWwWWWWWWWWWWWWwwwwWWWWww",
+            "bbbb111111111WW11111111111111111111111111111111111wW1",
+            "bbbbbbbbbbbb1WWdd111111111111111111111111111bbbbwwWWw",
+            "bbbbbbbbbbbbbWWdbbb11111111111bbbbbbbbbbbbbbbbbbwwWWW",
+            "bbbbbbbbbbbb1WW+       i111111bbbbbbbbbbbbbbbbbbwwWWw",
+            "bbbbbbbbbbbb1WW+       ib11111bbbbbbbbbbbbbbbbbbwWWWc",
+            "bbbbbbbbbbbb111111111dUbb11111bbbbbbbbbbbbbbbbbbwWWWD",
+            "bbbbbbbbbbbb111111111dUbb11111bbbbbbbbbbbbbbbbbbbbbbb",
+            "bbbbbbbbbbbb111bbb111dUbb111dddbbbbbbbbbbbbbbbbbbbbbb",
+            "vvvvvvvvvvvvvvvvvvvvvdUbb11111bbbbbbbbbbbbbbbbbbbbbbb",
+            "d                     Ubb1111ddbbbbbbbbbbbbbbbbbbbbbb",
+            "D                     Ubb11111bbbbbbbbbbbbbbbbbbbbbbb",
+            "^^^^^^^^^^^^^^^^^^^^^dUbb11111bbbbbbbbbbbbbbbbbbbbbbb",
+            "bbbbbbbbbbbb111111111dUbb11111bbbbbbbbbbbbbbbbbbbbbbb",
         ],
     },
     "entry" : {
@@ -2234,6 +2258,10 @@ var levels = {
             'b' : {
                 level : "fold",
                 symbol : 'a',
+            }, 
+            'c' : {
+                level : "ice_way",
+                symbol : 'c'
             }
         },
         itemChests : {
@@ -2280,11 +2308,16 @@ var levels = {
             "a  p  hhh                                      PWWWWWWWP                    iiiiiii_    b",
             "D  f  hhh                r iiiiiiiiiiiiissiiiiiPWWWWWWWP                  iiiiiiiiii  f D",
             "iiiiiiiiiiiiiiiiiiiiiiiiiii11111111111111111111iPPPPPPPiiiissiiiiiiiiiiiiiiiiiiiiiiiiiiii",
-            "wwwwwwwwwwwwwwwww111111111111111111111111111111111111111111111111111111111111111111111111",        
-            "wwwwwwwwwwwwww111111111111111111111111111111111111111111111111111111111111111111111111111",
-            "wwwwwwwwwww111111111111111111111111111111111111111111111111111111111111111111111111111111",
-            "wwwwwwwwwwwwww111111111111111111111111111111111111111111111111111111111111111111111111111",
-            "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111"
+            "wwwwwwwwwwwwwWWWWWW1111111111111111111111111111111111111111111111111111111111111111111111",        
+            "wwwwwwwwwWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWiiii1111111111111111111111111111111111111111111111",
+            "wwwwwwwwwWWW111111WWWWWWWWWWWWWWWWWWWWWiiiii111111111111111111111111111111111111111111111",
+            "wwwwwwwwWWWWww111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "1111111WWWw111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "1111111wwWW111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "1111cwwwwWW111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "1111DwwwwWW111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "1111bbbbbbbb11111111111111111111111111111111111111111111111111111111111111111111111111111"
+
         ]
     },
     "fold" : {
@@ -2299,6 +2332,10 @@ var levels = {
         plan : [
             "                                                                   ",
             "                                                                   ",
+            "      s                                      s                     ",
+            "      C                          s           C             s       ",
+            "                        s        C                         C       ",
+            "                        C                                          ",
             "                                                                   ",
             "                                                                   ",
             "                                                                   ",
@@ -2306,13 +2343,15 @@ var levels = {
             "                                                                   ",
             "                                                                   ",
             "a                                                                  ",
-            "D                                                                  ",
-            "iiiiiiiiiiiiiiiiiiiiii                                             ",
-            "wwwwwwwwwwwwwww1111111111iiiiiiiiii111iii1111iiiiiiiiiiiiiiiiiii   ",
-            "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww11111",
-            "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwiiiiiiii",
-            "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwiii111bbb",
-            "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwiii1bbbbb",
+            "D     __ ____ ________    8 ____________ ___8______  _QQ__________ ",
+            "``9````````````9````````````9````````````9```````````9````````````9",
+            "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
+            "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww",
+            "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww",
+            "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww",
+            "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww",
+            "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww",
+            "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
         ]
     },
     "locked_In" : {
