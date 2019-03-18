@@ -19387,7 +19387,7 @@ var levelScripts = {
         },
         afterLoad : function()
         {
-            var chest = gameObjects.getObject("itemChest").last();
+            var chest = gameObjects.getObject("itemChest").input(0);
             var lastDraw = chest.draw;
             chest.draw = function()
             {
@@ -19475,7 +19475,7 @@ var levelScripts = {
                 return;
             }
 
-            var chest = gameObjects.getObject("itemChest").last();
+            var chest = gameObjects.getObject("itemChest").input(0);
 
             if(!this.containsItem)
             {
@@ -19573,7 +19573,7 @@ var levelScripts = {
         },
         afterSecret : function(chest)
         {
-            chest = chest || gameObjects.getObject("itemChest").last();
+            chest = chest || gameObjects.getObject("itemChest").input(0);
             levels[levelInfo.level].save.secretUnlocked = true;
 
             if(this.hadShattered)
