@@ -640,6 +640,8 @@ var sketch = function(processing) /*Wrapper*/
         Fixed another cutscene bug.
         Fixed the door/sign entrance bug.
         Fixed the 30fps mode can't see gameObjects when loading sometimes.
+        Fixed the disappearance bug on cutscenes.
+        Added more to the existing levels in the ice place.
 
     Next :   
         v0.8.6 -> 
@@ -19435,6 +19437,11 @@ var levelScripts = {
             if(isGreen && !game.cutScening)
             {
                 self.offX = Math.max(self.offX - 4, -570);
+            }
+            
+            if(isNaN(self.offX) || self.offX === undefined)
+            {
+                self.offX = 0;
             }
 
             stroke(isGreen ? color(10, 200, 170, 160) : color(10, 20, 200, 160));
