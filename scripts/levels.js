@@ -2016,65 +2016,41 @@ var levels = {
                 }, {
                     
                 }, {
-                    
+                    contains : "meal",
                 }, {
                     contains : "meal",
                 }, {
-                    
+                    contains : "Jar"
                 }, {
 
                 }, {
 
                 }, {
 
-                }, {
-
-                }, {
-                    
-                }],
-            },
-            'b' : {
-                items : [{
-                    contains : "Jar",
-                }, {
-                    
-                }, {
-                    
-                }, {
-                    
-                }, {
-                    
                 }, {
                     contains : "ball",
                 }, {
-                    contains : "goldbar",
-                    amount : 3,
-                }, {
-                    contains : "bubbleShield",
-                }, {
-
-                }, {
-
+                    
                 }],
             },
         },
         plan : [
             "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
             "            3      3   UU                                                                              V     VV    ",
-            "            3      3   UU                                                                                          ",
-            "d           3      3   UU                                                                                          ",
-            "D           3      3   UU         E     2       E                      EE                                          ",
+            "            3      3   UU        hhh        ccc      hh          ccc          hhh                                  ",
+            "d           3      3   UU                                                                     hh                   ",
+            "D           3      3   UU         E     2       E         E E          EE          222                             ",
             "bbbbbbbbbbbbbbbbbbbbbb^II^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^11                      ",
-            "iiiiiiiiiiiiiiiiiiiiib UU                                          iii                     1s1                     ",
+            "iiiiiiiiiiiiiiiiiiiiib UU                                          iii                     1s1    hh               ",
             "iiiiiiiiiiiiiiiiiiiiib UU                                           VV                     1ss1                    ",
             "iiiiiiiiiiiiiiiiiiiiib UU                       iiii                                       1sss1                   ",
-            "iiiiiiiiiiiiiiiiiiiiib UU         iiii            VV                                       1ssss1                  ",
+            "iiiiiiiiiiiiiiiiiiiiib UU         iiii            VV                                       1ssss1    hh            ",
             "bbbbbbbbbbbbbbbbbbbbbb UU          V V                                                     1sssss1                c",
             "                       UU                                        8                         1ssssss1               D",
             "                       UU                                  bbbbbbbbbbbbl                   1sssssbbbbbbbbbbbbbbUUbb",
             "                       UU                               bbbiiiiiiiiiiiiiil                 1ssssssssiiiiiiiiiiiUUii",
-            "a              a    b  UU                            bbb1111iii      V   iil               1ssssssssssssssssssiUUis",
-            "D pf           ]    ]  UU    8          8    A    bbb11111111 V            iil           r iisssssssssssssssssiUUis",
+            "a         a            UU                            bbb1111iii      V   iil               1ssssssssssssssssssiUUis",
+            "D p f     ]            UU    8          8    A    bbb11111111 V            iil           r iisssssssssssssssssiUUis",
             "bbbbbiiiiiiiiiiiiiiiiibbbbbbbbbbbbbbbbbbbbbbbbbbbb11111111iii              V iil       r iisssssssssssssssssssiUUis",
             "1111bwwwwwwwwwwwwwwwwwb11111111111111111111111111111111111111i                 iil   r iisssssssssssssssssssssiUUis",
             "1111bwwwwwwwwwwwwwwwwwb1111111111111111111111ii111111111iiii V                  iiivviiissssssssssssssssssssssiUUis",
@@ -2116,8 +2092,8 @@ var levels = {
             "                                                                               ",
             "                                                                               ",
             "b          ccc    ccc   ccc       ccc     ccc      ccc     ccc                a",
-            "D  f  QQ           E  2        E           2       2              E  E        D",
-            "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "D  f  QQ                                                                      D",
+            "bbbbbbbbbbbbbbbbb   m  bb   bb   m   bb    m  bb   m  bb   m   bbbbbbbbbbbbbbbb",
             "IIIIIIIIIII                                                      iiiiiiiiiiiiii",
             "IIIIIIIII                                                           iiiiiiiiiii",
             "IIIIIIII                                                              iiiiiiiii",
@@ -2235,14 +2211,14 @@ var levels = {
             "bbbb111111111WW11111111111111111111111111111111111wW1",
             "bbbbbbbbbbbb1WWdd111111111111111111111111111bbbbwwWWw",
             "bbbbbbbbbbbbbWWdbbb11111111111bbbbbbbbbbbbbbbbbbwwWWW",
-            "bbbbbbbbbbbb1WW+       i111111bbbbbbbbbbbbbbbbbbwwWWw",
-            "bbbbbbbbbbbb1WW+       ib11111bbbbbbbbbbbbbbbbbbwWWWc",
+            "bbbbbbbbbbbb1WW+   cc  i111111bbbbbbbbbbbbbbbbbbwwWWw",
+            "bbbbbbbbbbbb1WW+   cc  ib11111bbbbbbbbbbbbbbbbbbwWWWc",
             "bbbbbbbbbbbb111111111dUbb11111bbbbbbbbbbbbbbbbbbwWWWD",
             "bbbbbbbbbbbb111111111dUbb11111bbbbbbbbbbbbbbbbbbbbbbb",
             "bbbbbbbbbbbb111bbb111dUbb111dddbbbbbbbbbbbbbbbbbbbbbb",
             "vvvvvvvvvvvvvvvvvvvvvdUbb11111bbbbbbbbbbbbbbbbbbbbbbb",
-            "d                     Ubb1111ddbbbbbbbbbbbbbbbbbbbbbb",
-            "D                     Ubb11111bbbbbbbbbbbbbbbbbbbbbbb",
+            "d    hh    cc         Ubb1111ddbbbbbbbbbbbbbbbbbbbbbb",
+            "D    hh    cc         Ubb11111bbbbbbbbbbbbbbbbbbbbbbb",
             "^^^^^^^^^^^^^^^^^^^^^dUbb11111bbbbbbbbbbbbbbbbbbbbbbb",
             "bbbbbbbbbbbb111111111dUbb11111bbbbbbbbbbbbbbbbbbbbbbb",
         ],
@@ -2287,6 +2263,30 @@ var levels = {
                 }, {
 
                 }]
+            },
+            'z' : {
+                items : [{
+                    contains : "goldbar",
+                    amount : 3,
+                }, {
+                    contains : "bubbleShield",
+                }, {
+
+                }, {
+
+                }, {
+
+                }, {
+
+                }, {
+
+                }, {
+
+                }, {
+
+                }, {
+
+                }]
             }
         },
         plan : [
@@ -2308,14 +2308,14 @@ var levels = {
             "a  p  hhh                                      PWWWWWWWP                    iiiiiii_    b",
             "D  f  hhh                r iiiiiiiiiiiiissiiiiiPWWWWWWWP                  iiiiiiiiii  f D",
             "iiiiiiiiiiiiiiiiiiiiiiiiiii11111111111111111111iPPPPPPPiiiissiiiiiiiiiiiiiiiiiiiiiiiiiiii",
-            "wwwwwwwwwwwwwWWWWWW1111111111111111111111111111111111111111111111111111111111111111111111",        
+            "wwwwwwwwwwwwwWWWWWWww1111www1111111111111111111111111111111111111111111111111111111111111",        
             "wwwwwwwwwWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWiiii1111111111111111111111111111111111111111111111",
-            "wwwwwwwwwWWW111111WWWWWWWWWWWWWWWWWWWWWiiiii111111111111111111111111111111111111111111111",
-            "wwwwwwwwWWWWww111111111111111111111111111111111111111111111111111111111111111111111111111",
-            "1111111WWWw111111111111111111111111111111111111111111111111111111111111111111111111111111",
-            "1111111wwWW111111111111111111111111111111111111111111111111111111111111111111111111111111",
-            "1111cwwwwWW111111111111111111111111111111111111111111111111111111111111111111111111111111",
-            "1111DwwwwWW111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "wwwwwwwwwWWW11111WWWWWWWWWWWWWWWWWWWWWWiiiii1111Wwww1111111111111111111111111111111111111",
+            "wwwwwwwwWWWWww111111111111111111111WWWWWWWWWWwwwW1111111111111111111111111111111111111111",
+            "1111111WWWw111111111111111111111111WWW1111111111WWW11111111111111111111111111111111111111",
+            "1111111wwWW1111111111111111111111111     111111111111111111111111111111111111111111111111",
+            "1111cwwwwWW1111111111111111111111111         z 111111111111111111111111111111111111111111",
+            "1111DwwwwWW11111111111111111111111111111     ] 111111111111111111111111111111111111111111",
             "1111bbbbbbbb11111111111111111111111111111111111111111111111111111111111111111111111111111"
 
         ]
