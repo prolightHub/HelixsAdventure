@@ -642,6 +642,8 @@ var sketch = function(processing) /*Wrapper*/
         Fixed the 30fps mode can't see gameObjects when loading sometimes.
         Fixed the disappearance bug on cutscenes.
         Added more to the existing levels in the ice place.
+        Changed the text on the scoring system to fit.
+        Made a special chest harder to get to.
 
     Next :   
         v0.8.6 -> 
@@ -1312,7 +1314,7 @@ var saveDataHandler = {
 
             fill(0, 0, 0, 100);
             textSize((sfn === this.saveFileName) ? 12 : 9);
-            text("Coins " + ((data[input].player || {}).coins || 0) + " Score " + ((data[input].player || {}).score || 0), 
+            text("Coins " + ((data[input].player || {}).coins || 0) + "\nScore " + ((data[input].player || {}).score || 0), 
                  this.xPos + this.halfWidth, this.yPos + this.height * 0.8);
         };
         btn.lastWidth = btn.width;
@@ -5292,7 +5294,22 @@ var screenUtils = {
             fill(0, 12, 12, 150);
             rect(125, 0, 140, screenUtils.infoBar.height, 10);
             fill(230, 230, 230, 100);
-            text("Coins " + (player.coins || 0) + "    Score " + (player.score || 0), 130, screenUtils.infoBar.height - 8);
+
+            var sp = "    ";
+
+            if(player.coins)
+            {
+                if(player.coins > 999)
+                {
+                    sp = sp.slice(0, -1);
+                }
+                else if(player.coins > 9999)
+                {
+                    sp = sp.slice(0, -2);
+                }
+            }
+
+            text("Coins " + (player.coins || 0) + sp + "Score " + (player.score || 0), 130, screenUtils.infoBar.height - 8);
             
             var lvl = screenUtils.filterLevel(levelInfo.level);
 
@@ -11521,7 +11538,8 @@ var Spike = function(xPos, yPos, width, height, colorValue, upSideDown)
     this.draw = ((upSideDown) ? function()
     {
         fill(red(this.color), green(this.color), blue(this.color), this.hp * 255 / this.maxHp);
-        triangle(this.xPos + this.halfWidth + this.shakePos, this.yPos + this.height, this.xPos, this.yPos, this.xPos + this.width, this.yPos);
+        triangle(this.xPos + this.halfWidth + this.shakePos, this.yPos + this.height, this.xPos + this.shakePos, 
+                 this.yPos, this.xPos + this.width + this.shakePos, this.yPos);
 
         if(!this.winter)
         {
@@ -15533,7 +15551,7 @@ var Player = function(xPos, yPos, width, height, colorValue)
     this.setFixture();
 
     this.xFire = (random(0, 1) < 0.5) ? -1 : 1;
-    this.backwards = false;
+    this.backwards = true;
 
     this.controls = {
         left : function()
@@ -15542,10 +15560,12 @@ var Player = function(xPos, yPos, width, height, colorValue)
             if(left)
             {
                 self.xFire = -1;
+                self.throwInversed = false;
             }
             if(self.backwards && keys[" "])
             {
                 self.xFire = 1;
+                self.throwInversed = true;
             }
             return left;
         },
@@ -15555,10 +15575,12 @@ var Player = function(xPos, yPos, width, height, colorValue)
             if(right)
             {
                 self.xFire = 1;
+                self.throwInversed = false;
             }
             if(self.backwards && keys[" "])
             {
                 self.xFire = -1;
+                self.throwInversed = true;
             }
             return right;
         },
@@ -18255,9 +18277,14 @@ var NinjaStarShooter = function(xPos, yPos, diameter)
             xStar.outerXVel2 = (object.xFire < 0) ? -4 : 4;
             xStar.outerYVel2 = 0;
 
-            if(object.controls.zoom() && object.xFire < 0 === object.xVel < 0)
+            if(object.controls.zoom())
             {
                 xStar.outerXVel2 = (object.xFire < 0) ? -5 : 5;
+
+                if(object.throwInversed)
+                {
+                    xStar.outerXVel2 *= 0.5;
+                }
             }
 
             xStar.setAngleVel = (object.xFire > 0) ? -3 : 3;

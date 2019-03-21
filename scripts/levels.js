@@ -2006,7 +2006,8 @@ var levels = {
             },
             'f' : {
                 level : "ice_way",
-                symbol : 'd'
+                symbol : 'd',
+                locked : true
             }
         },
         itemChests : {
@@ -2087,6 +2088,12 @@ var levels = {
                 symbol : 'a',
             }
         },
+        keys : {
+            'a' : {
+                level : "icyPuzzles",
+                symbol : 'f',
+            }
+        },
         signs : {
             'a' : {
                 message : "Be careful!"
@@ -2109,9 +2116,9 @@ var levels = {
             "                                                                               ",
             "                                                                               ",
             "                                                                               ",
-            "                                                                               ",
-            "                                                                               ",
-            "                                                                               ",
+            "                          a                                                    ",
+            "                          K            FF                                      ",
+            "                       FFFFFFF                                                 ",
             "                                                                               ",
             "                                                                               ",
             "                                                                               ",
@@ -2169,7 +2176,7 @@ var levels = {
             "ii                                                  ",
             "ii     FFF            7               FFFF          ",
             "ii                   FFF                            ",
-            "ii           a                                     a",
+            "ii hh        a                                hh   a",
             "ii           ]                                     D",
             "iii   iiiiiiiiiiiiiii   i  iiiiiiiii     iiiiiiiiiii",
             "iiiiiiiiiiiiiiiiiiiiii iiii11111iiiiiiiii11111iiiiii",
@@ -2196,7 +2203,7 @@ var levels = {
             },
             'd' : {
                 level : "icyPuzzles",
-                door : 'f',
+                symbol : 'f',
             }
         },
         plan : [
@@ -2209,10 +2216,10 @@ var levels = {
             "                                                    b",
             "                                                    D",
             "                  r bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
-            "           r 1111111wwwwwwwwwwwwwwwwwwwwwwwWWwwwwwwww",
-            "         r 111wwwwwwwwwwwwwwwwwwwwwwwwwwWWWWWWWWWwwww",
-            "a      r 111wwwWWWWWWWWWWWWWWWWWWWWWWWWWWWWWwWwwWWWWw",
-            "D    r 111wwwWWWWWWWWWWWWWWWWWwWWWWWWWWWWWWwwwwWWWWww",
+            "           r 1111111WWWWWWWWWWWWWWWWWWWWWwwwwwwwwwwww",
+            "         r 111wwwwwwwwwwwwwwwwwwwwwwwwwwwwWWWWWWWwwww",
+            "a      r 111wwwwWWWWWWWWWWWWWWWWWWWWWWWWWWWWwWwwWWWWw",
+            "D    r 111wwwwwWWWWWWWWWWWWWWWwWWWWWWWWWWWWwwwwWWWWww",
             "bbbb111111111WW11111111111111111111111111111111111wW1",
             "bbbbbbbbbbbb1WWdd111111111111111111111111111bbbbwwWWw",
             "bbbbbbbbbbbbbWWdbbb11111111111bbbbbbbbbbbbbbbbbbwwWWW",
@@ -2342,8 +2349,8 @@ var levels = {
             "                        s        C                         C       ",
             "                        C                                          ",
             "                                                                   ",
-            "                                                                   ",
-            "                                                                   ",
+            "                                                   7               ",
+            "                               7                                   ",
             "                                                                   ",
             "                                                                   ",
             "                                                                   ",

@@ -94,6 +94,7 @@ var sounds = {
     },
 };
 
+/*Import sounds*/
 sounds.addSound("coinSound.mp3");
 sounds.addSound("explosion.mp3");
 sounds.addSound("whistle1.mp3");
@@ -104,3 +105,6 @@ sounds.addSound("coin.mp3");
 sounds.addSound("dooropen.mp3");
 sounds.addSound("quickBoom.wav");
 sounds.addSound("zoom1.wav");
+sounds.addSound("soup4.wav");
+sounds.addSound("zooba.wav");
+sounds.addSound("whoo.wav");
