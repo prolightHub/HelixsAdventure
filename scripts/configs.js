@@ -2,7 +2,7 @@ var configs = {
     "overworld" : {
         name : "Overworld",
         level : {
-            arraysToSave : ["coin", "hpCoin", "heart"],
+            arraysToSave : ["crystal", "coin", "hpCoin", "heart"],
         }
     },
     "ninjaTemple" : {
@@ -17,7 +17,7 @@ var configs = {
                 a : 80,
             },
             laddersWhite : true,
-            arraysToSave : ["coin", "hpCoin", "fireBeaker", "waterBeaker", "ninja", "shooter", "heart"],
+            arraysToSave : ["crystal", "coin", "hpCoin", "fireBeaker", "waterBeaker", "ninja", "shooter", "heart"],
         },
     },
     "winter" : {
@@ -44,7 +44,7 @@ var configs = {
                 '8' : "catDogStatue",
                 'I' : "ice",
             },
-            arraysToSave : ["coin", "hpCoin", "ice"],
+            arraysToSave : ["crystal", "coin", "hpCoin", "ice"],
         },
     },
     "other" : {

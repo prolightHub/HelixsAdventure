@@ -806,7 +806,7 @@ var levels = {
             "                                                                        U       Uu   u   U       U                 bb   iii",
             "                                                                        U       UP PPPP PU       U                 bb   iii",
             "                                                                        U       UP PbbP PU       U  c              bb   dii",
-            "      A           A           A           A           A             p  |U  f |  U| PDDP |U  |    U| D              bb   Dii",
+            "      A           A           A           A           A             p  |U  f |  U| PDDP |U  |    U| D f            bb   Dii",
             "                                                                    bPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPgggddggggdd",
             "                                                                 bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
             "a                          a     b     d     c     e          bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
@@ -1588,6 +1588,18 @@ var levels = {
                 save : true,
             }
         },
+        special : {
+            'a' : {
+                arrayName : "crystal",
+                shape : "circle",
+                diameter : 20,
+                arguments : {
+                    '4' : {
+                        kind : "ninja"
+                    },
+                }
+            },
+        },
         plan : [
             "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
             "b                         b b    b    bb",
@@ -1599,9 +1611,9 @@ var levels = {
             "b                         b     b     bb",
             "b                         bbbbbbbbbbbbbb",
             "b                         PPPPPPPPPPPPPb",
-            "b           a b a         u    u    u  b",
-            "b         | S D [  |                   b",
-            "ba      ibbbbbbbbbbbi                  b",
+            "b            a b a        u    u    u  b",
+            "b      a  |  S D [  |                  b",
+            "ba     $ ibbbbbbbbbbbi                 b",
             "bD pf ibbbbbbbbbbbbbbbbbi              b",
             "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
         ],
@@ -1971,7 +1983,7 @@ var levels = {
             "                                                          E                                           T           T         PPPPP                 PPPPP                                                                           5                                                                                                                               U           <ii                                                  ",
             "                                                      34433333444      k            k            r 444443443334444444444                                                                                                                                                                                                                 3                                                                                         ",
             "                                                 r 3333444343433466666666666666666666666666666633333343433344333433334433                                    T    T                                                          5                                                                                                           3                                                        sss                              ",
-            "                                          E  r 1111iii11iii1iiiiiiwwiiiwwiiiiiiiiwww66666wii1wwwwwwiiiiiiiiiiiiiiiiiiii114    k            k    k        gggggggdddd                  FFF                                                                                                                                               3a3                                                                                        ",
+            "                          PPPPP           E  r 1111iii11iii1iiiiiiwwiiiwwiiiiiiiiwww66666wii1wwwwwwiiiiiiiiiiiiiiiiiiii114    k            k    k        gggggggdddd                  FFF                                                                                                                                               3a3                                                                                        ",
             "                                   r i1ii11111111iiiiiiii11111iiiwww66666wwwwii666666wwwwwwwwwWWWWWWWWwwwWWwwwwwwwwssssssss666666666sss6666sssss666wwwwwdddddddddddiii       FFFF                                                                                                                                                       3S3           z                                                                            ",
             "a                                 iiii1iiiiiiiii11111111111iiiiWWWWWWWWWWWWWWWWWWWWwwwWWWWWWWW666wwwWWWWWWWwwwWWWWwwwwssss666666666ssss6666ssss666wwwwwwwiiii111dddddii                                                                                                     k   k                                                  f    333           iUU___   __                                                                  ",
             "D_______QQ    k     k             iiiiiiiiiiiiiiiiiiiiiiiiiWWWWWiii6666WWWWWWWWWWWWWWWWWWWwwWW66666wWWwwwwWWWWwwwwwiissssssssssssssss6666sssss6666wwwwwwwiii111111ddddii                                     f                                                            d6666666d                                           r iiiiiiiiiiiii         i iiiiiiiiiiii                                                               ",
@@ -2117,8 +2129,8 @@ var levels = {
             "                                                                               ",
             "                                                                               ",
             "                          a                                                    ",
-            "                          K            FF                                      ",
-            "                       FFFFFFF                                                 ",
+            "                          K                                                    ",
+            "                        FFFFF                                                  ",
             "                                                                               ",
             "                                                                               ",
             "                                                                               ",
@@ -2285,7 +2297,7 @@ var levels = {
                 }, {
 
                 }, {
-
+                    contains : "meal"
                 }, {
 
                 }, {
@@ -2455,6 +2467,7 @@ var levels = {
         ],
     },
     "test" : {
+        theme : "winter",
         background : "underground",
         doors : {
             'a' : {
@@ -2491,6 +2504,38 @@ var levels = {
                 message : "/username",
             }
         },
+        special : {
+            'a' : {
+                arrayName : "crystal",
+                shape : "circle",
+                diameter : 20,
+                arguments : {
+                    '4' : {
+                        kind : "ninja"
+                    },
+                }
+            },
+            'b' : {
+                arrayName : "crystal",
+                shape : "circle",
+                diameter : 20,
+                arguments : {
+                    '4' : {
+                        kind : "overworld"
+                    },
+                }
+            },
+            'c' : {
+                arrayName : "crystal",
+                shape : "circle",
+                diameter : 20,
+                arguments : {
+                    '4' : {
+                        kind : "winter"
+                    },
+                }
+            }
+        },
         plan : [
             "                                               ",
             "                                               ",
@@ -2502,8 +2547,8 @@ var levels = {
             "                                               ",
             "                                               ",
             "                                          wwwww",
-            "    a         a                           wwwww",
-            "    D   p  ee [      ``~~99              wwwwww",
+            "    a    ca b a                b          wwwww",
+            " f  D  p $$ $ [      ``~~99    $         wwwwww",
             "gggggggggggggggg   gggggggggggggggggggggggggggg",
             "bbbbbbbbbbbbbbbb   bbbbbbbbbbbbbbbbbbbbbbbbbbbb",
         ],

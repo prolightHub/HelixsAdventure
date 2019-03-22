@@ -19497,6 +19497,7 @@ module.exports = function setupParser(Processing, options) {
         if (img.__isDirty) {
           img.updatePixels();
         }
+
         // Using HTML element's width and height in case if the image was resized.
         curContext.drawImage(htmlElement, 0, 0,
           htmlElement.width, htmlElement.height, bounds.x, bounds.y, bounds.w, bounds.h);

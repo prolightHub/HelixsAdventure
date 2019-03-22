@@ -46,7 +46,17 @@ var sketch = function(processing) /*Wrapper*/
         return image;
     };
 
-    function getLocalImage(url) {
+    String.prototype.upper = function() 
+    {
+        return this.charAt(0).toUpperCase() + this.slice(1);
+    };
+    String.prototype.startsWithVowel = function()
+    {
+        return (['a', 'e', 'i', 'o', 'u'].indexOf(this.charAt(0).toLowerCase()) !== -1);
+    };
+
+    function getLocalImage(url) 
+    {
         processing.externals.sketch.imageCache.add(url);
         return processing.loadImage(url);
     }
@@ -67,7 +77,7 @@ var sketch = function(processing) /*Wrapper*/
 /**   Hybrid Game Engine (Planet Search 2)  **/
 /**
     @Author Prolight
-    @Version 0.8.3 beta (83% complete)
+    @Version 0.8.4 beta (84% complete)
 
         64+ gameObjects!
 
@@ -644,7 +654,13 @@ var sketch = function(processing) /*Wrapper*/
         Added more to the existing levels in the ice place.
         Changed the text on the scoring system to fit.
         Made a special chest harder to get to.
+        Removed all unecessary comments
+        Removed tiles object and array as it was unnecessary.
+        Crystals are now in the game!
 
+    * 0.8.4
+        The save and exit button is now just the exit button.
+    
     Next :   
         v0.8.6 -> 
             Do something about the underwater level. It doesn't make sense for the player to not have the oxygen bar.
@@ -709,7 +725,7 @@ var game = {
     fps : 60, 
     loadFps : 140,
     gameState : "start", //Default = "start"
-    version : "v0.8.3 beta",
+    version : "v0.8.4 beta",
     fpsType : "manual", //Default = "manual"
     debugMode : true, //Turn this to true to see the fps
     showDebugPhysics : false,
@@ -783,7 +799,7 @@ const WIDTH = width;
 const HEIGHT = height;
 const HALF_WIDTH = width / 2;
 const HALF_HEIGHT = height / 2; 
-const BTN_COLOR = color(11, 68, 153, 200); //color(11, 68, 153, 100)
+const BTN_COLOR = color(11, 68, 153, 200);
 
 //Smooth out textures
 smooth();
@@ -874,8 +890,8 @@ var Button = function(xPos, yPos, width, height, colorVal, message, _round, _tex
     this.yPos = yPos;
     this.width = width;
     this.height = height;
+
     this.color = colorVal;
-    //this.font = createFont("sans serif");
     this.message = message;
     
     this.defaultXPos = xPos;
@@ -956,7 +972,7 @@ var buttons = {
     debugPhysics : new Button(145, 220, 110, 25, BTN_COLOR, "DebugPhysics " + game.showDebugPhysics || false),
     boundingBoxes : new Button(145, 255, 110, 25, BTN_COLOR, "BoundingBoxes"),
     info : new Button(145, 290, 110, 25, BTN_COLOR, "Info"),
-    save : new Button(155, 285, 90, 25, BTN_COLOR, "Save and exit"),
+    save : new Button(155, 285, 90, 25, BTN_COLOR, "Exit"),
     erase : new Button(205, 235, 80, 30, BTN_COLOR, "Erase"),
     back3 : new Button(115, 235, 80, 30, BTN_COLOR, "Back"),
     back4 : new Button(115, 235 + 30, 80, 30, BTN_COLOR, "Back"),
@@ -1295,7 +1311,7 @@ var saveDataHandler = {
     createSaveBtn : function(input, data)
     {
         var btnWidth = 130;
-        var btnHeight = 75;//65;
+        var btnHeight = 75;
         var btn = new Button(HALF_WIDTH - btnWidth / 2, height / 1.9 - btnHeight / 2, btnWidth, btnHeight, color(0, 0, 0, 100), data[input].name);
         btn.lastDraw = btn.draw;
         btn.saveFileName = input;
@@ -1309,9 +1325,7 @@ var saveDataHandler = {
             textSize((sfn === this.saveFileName) ? 17 : 11);
             textAlign(CENTER, CENTER);
             text(input, this.xPos + this.halfWidth, this.yPos + this.height * 0.21);            
-            fill(0, 0, 0, 75);
-            //rect(this.xPos + this.width * 0.2, this.yPos + this.height * 0.6, this.width * 0.6, this.height * 0.2, 10);
-
+           
             fill(0, 0, 0, 100);
             textSize((sfn === this.saveFileName) ? 12 : 9);
             text("Coins " + ((data[input].player || {}).coins || 0) + "\nScore " + ((data[input].player || {}).score || 0), 
@@ -1532,7 +1546,7 @@ var TextBox = function(xPos, yPos, width, height, colorVal, secondColorValue, te
     this.height = height;
     this.color = colorVal;
 
-    this.message = "";//"Enter";
+    this.message = "";
     this.selected = false;
     this.multipleLines = false;
 
@@ -1788,7 +1802,7 @@ var messageHandler = {
             this.origSetWidth = 250;
             this.origSetHeight = 60;
 
-            this.origSetX = (HALF_WIDTH - this.origSetWidth / 2);//((up) ? (width / 2 - 125) : 20);
+            this.origSetX = (HALF_WIDTH - this.origSetWidth / 2);
             this.origSetY = (setY || HEIGHT - (this.origSetHeight + yDiv));
 
             this.up = up;
@@ -2313,7 +2327,7 @@ var trees = {
                 array[i].push("");
             }
         }
-        //treesArray = array;
+        
         this.treesArray = array;
     },
     leaf : [
@@ -2596,88 +2610,6 @@ graphics.stars.draw = function()
         ellipse(this[i][0], this[i][1], 2, 2);
     }
 };
-
-var Tile = function(xPos, yPos, width, height, colorValue, minColor, maxColor)
-{
-    this.xPos = xPos;
-    this.yPos = yPos;
-    this.width = width;
-    this.height = height;
-    
-    this.color = colorValue || color(0, 140, 160);
-    
-    this.redVel = 1;//((random(0, 100) > 50) ? 1 : -1);
-    this.greenVel = 1;//((random(0, 100) > 50) ? 1 : -1);
-    this.blueVel = 1;//((random(0, 100) > 50) ? 1 : -1);
-    
-    this.minColor = minColor || color(0, 0, 0);
-    
-    this.minRed = red(this.minColor);
-    this.minGreen = green(this.minColor);
-    this.minBlue = blue(this.minBlue);
-    
-    this.maxColor = maxColor || color(255, 255, 255);
-    
-    this.maxRed = red(this.maxColor);
-    this.maxGreen = green(this.maxColor);
-    this.maxBlue = blue(this.maxColor);
-    
-    this.draw = function(i) 
-    {
-        noStroke();
-        fill(this.color);
-        rect(this.xPos, this.yPos, this.width, this.height);
-        
-        fill(0, 0, 0, 20);
-        rect(this.xPos + this.width * 0.15, 
-        this.yPos + this.height * 0.15, this.width * 0.7, this.height * 0.7);
-        
-        this.color = color(
-        red(this.color) + this.redVel,
-        green(this.color) + this.greenVel, 
-        blue(this.color) + this.blueVel);
-        
-        if(red(this.color) <= 0 || red(this.color) > this.maxRed)
-        {
-            this.redVel = -this.redVel; 
-        }
-        if(green(this.color) <= 0 || green(this.color) > this.maxGreen)
-        {
-            this.greenVel = -this.greenVel; 
-        }
-        if(blue(this.color) <= 0 || blue(this.color) > this.maxBlue)
-        {
-            this.blueVel = -this.blueVel; 
-        }
-    };
-};
-
-var tiles = [];
-tiles.add = function(xPos, yPos, width, height)
-{
-    var tile = new Tile(xPos, yPos, width, height,
-    color(random(0, 100), (140 + yPos)/5, 160 - xPos), undefined, color(200, 140, 230));
-    this.push(tile);    
-};
-tiles.draw = function() 
-{
-    for(var i = 0; i < this.length; i++)
-    {
-        this[i].draw(i);
-    }
-};
-tiles.create = function(w, h)
-{
-    this.length = 0;
-    for(var x = 0; x < width / w; x++)
-    {
-        for(var y = 0; y < height / h; y++)
-        {
-            this.add(x * w, y * h, w, h);
-        }
-    }
-};
-graphics.tiles = tiles;
 
 var shapes = {
     bush : function(x, y, w, h)
@@ -3047,7 +2979,7 @@ var backgrounds = {
                 function Layer_4()
                 {
                     background(0, 0, 0, 0);
-                    // fill(6, 30, 78);
+                    
                     fill(6, 20, 60);
 
                     var extra = 0;
@@ -3093,7 +3025,7 @@ var backgrounds = {
                 function Layer_5()
                 {
                     background(0, 0, 0, 0);
-                    // fill(6, 20, 60);
+                    
                     fill(6, 30, 78);
 
                     var extra = 0;
@@ -3185,16 +3117,6 @@ var backgrounds = {
                 }
             },
             moves : true
-        },
-        "disco" : {
-            load : function()
-            {
-                graphics.tiles.create(30, 30);
-            },
-            drawBackground : function()
-            {
-                graphics.tiles.draw();
-            },
         },
         "winter" : {
             primeLoad : function()
@@ -3620,7 +3542,7 @@ var pallete = {
     'e' : color(200, 150, 60),
     'f' : color(43, 132, 181),
     'g' : color(14, 130, 31),
-    'h' : color(40, 95 - 50, 151),//color(40, 40, 40),
+    'h' : color(40, 95 - 50, 151),
     'i' : color(31 - 20, 54 - 20, 122 - 20),
     'j' : color(200 - 30, 150 - 30, 60 - 30),
     'k' : color(34, 150, 51),
@@ -3853,7 +3775,7 @@ var storedImages = {
            'e':-10836532,
            'f':-12814140,
            'g':-14776440,
-           'h':-13808768,//-16777216,
+           'h':-13808768,
            'i':-16738574,
         },
     }),
@@ -4062,8 +3984,6 @@ var storedImages = {
     }),
     npcs : {
         "Abby" : pixelFuncs.createPixelImage({
-            //width : 9 * 3, 
-            //height : 27 * 3,//90 - 9, 
             replace : true,
             pixelSize : 3, 
             pixels : [
@@ -4150,52 +4070,6 @@ var storedImages = {
                 'k':-14780223,
             },
         }),
-        "Owen" : pixelFuncs.createPixelImage({
-            replace : true,
-            pixelSize : 3, 
-            pixels : [
-                "aaabbbbaaa",
-                "aabccccbaa",
-                "aaadeedaaa",
-                "aaaeeeeaaa",
-                "aaaeffeaaa",
-                "aaaeeeeaaa",
-                "aaaaggaaaa",
-                "aaggggggaa",
-                "ahhgggghha",
-                "gihjjjjhig",
-                "gihkkkkhig",
-                "gihjjjjhig",
-                "gihkkkkhig",
-                "gihjjjjhig",
-                "hhhkkkkhhh",
-                "eeejjjjeee",
-                "eehhhhhhee",
-                "ahhiiiihha",
-                "aihiaaihia",
-                "aihiaaihia",
-                "aihhaahhia",
-                "aihiaaihia",
-                "aihiaaihia",
-                "ahhhaahhha",
-                "alllaallla",
-                "llllaallll",
-            ],
-            pallete : {
-                'a':"clear",
-                'b':-4946176,
-                'c':-11827289,
-                'd':-2968576,
-                'e':-1977717,
-                'f':-998523,
-                'g':-12814081,
-                'h':-11831070,
-                'i':-11811870,
-                'j':-10836635,
-                'k':-9834320,
-                'l':-11823514,
-            },
-        }),
         "Oscar" : pixelFuncs.createPixelImage({
             replace : true,
             pixelSize : 3, 
@@ -4240,14 +4114,6 @@ var storedImages = {
                 'j':-12795047,
             },
         }),
-    },
-    squanderedTime : {
-        Borgon : {},
-        Gleebok : {},
-        Nockram : {},
-        Pelnor : {},
-        Stingclaw : {},
-        Verusa : {}
     },
     "chest" : pixelFuncs.createPixelImage({
         replace : true,
@@ -4516,6 +4382,7 @@ var itemsHandler = {
     },
 };
 
+var Crystal;
 var inventoryMenu = {
     opened : false,
     state : "closed",
@@ -4592,14 +4459,12 @@ var inventoryMenu = {
         "home" : {
             width : 330,
             height : 230,
-
             open : true,
             buttons : {
                 name  : new Button(10, 132 + 18 * 0, 140, 18, color(12, 60, 160, 100), ""),
                 hp    : new Button(10, 132 + 18 * 1, 140, 18, color(12, 60, 160, 100), ""),
                 coins : new Button(10, 132 + 18 * 2, 140, 18, color(12, 60, 160, 100), ""),
                 score : new Button(10, 132 + 18 * 3, 140, 18, color(12, 60, 160, 100), ""),
-
                 k1 : new Button(186, 132 + 18 * 0, 141, 18, color(12, 60, 160, 100), ""),
                 k2 : new Button(186, 132 + 18 * 1, 141, 18, color(12, 60, 160, 100), ""),
                 k3 : new Button(186, 132 + 18 * 2, 141, 18, color(12, 60, 160, 100), ""),
@@ -4611,9 +4476,7 @@ var inventoryMenu = {
         "chest" : {
             width : 330,
             height : 230,
-            buttons : {
-
-            },
+            buttons : {},
         },
         "items" : {
             width : 330,
@@ -4623,11 +4486,18 @@ var inventoryMenu = {
                 "options_drop" : new Button(190, 154, 138, 22, color(28, 180, 48, 100), "Drop", undefined, 10),
             },
         },
-    },
+        "crystals" : {
+            width : 330,
+            height : 230,
+            buttons : {
 
+            }
+        }
+    },
     menuButtons : {
         home : new Button(334, 100, 64, 26, color(12, 60, 160, 130), "Home"),
         items : new Button(334, 126, 64, 26, color(12, 60, 160, 130), "Items"),
+        crystals : new Button(334, 152, 64, 26, color(12, 60, 160, 130), "Crystals"),
     },
 
     update : function()
@@ -4907,23 +4777,28 @@ var inventoryMenu = {
                 },
             }, true);
         }
-
-        if(this.menuButtons.home.clicked() && this.scene !== "home")
+        else if(this.menuButtons.home.clicked() && this.scene !== "home")
         {            
             this.close(this.scene);
             this.open("home", undefined, true);
+        }
+        else if(this.menuButtons.crystals.clicked() && this.scene !== "crystals")
+        {
+            this.close(this.scene);
+            this.open("crystals", undefined, true);
         }
     },
     draw : function()
     {
         var player = gameObjects.getObject("player").input(0);
-
         var returned = (this.oFuncs.close || function() {})(this.scenes[this.scene]);
 
         if(returned && returned.length)
         {
             return this.close.apply(this, returned);
         }
+
+        var scene = this.scenes[this.scene];
 
         pushMatrix();
             translate(this.slideX, this.slideY);
@@ -4941,8 +4816,6 @@ var inventoryMenu = {
                 switch(this.scene)
                 {
                     case "home" :
-                        var scene = this.scenes[this.scene];
-
                         fill(0, 0, 0, 90);
                         rect(0, 0, scene.width || this.scenes.width, scene.height || this.scenes.height + 30);
 
@@ -4954,8 +4827,6 @@ var inventoryMenu = {
                         break;
 
                     case "chest" : case "items" : 
-                        var scene = this.scenes[this.scene];
-
                         fill(0, 0, 0, 90);
                         rect(0, 0, scene.width || this.scenes.width,  scene.height || this.scenes.height + 30);
 
@@ -4964,6 +4835,92 @@ var inventoryMenu = {
 
                         fill(240, 240, 240, 180);
                         text("Items                                   " + ((this.scene === "chest") ? "Chest Items" : "Options"), 10, 5);
+                        break;
+
+                    case "crystals" :
+                        fill(0, 0, 0, 90);
+                        rect(0, 0, scene.width || this.scenes.width,  scene.height || this.scenes.height + 30);
+
+                        fill(12, 60, 160, 100);
+                        rect(0, 0, scene.width || this.scenes.width, 26);
+
+                        fill(240, 240, 240, 180);
+                        text("Collected Crystals", 10, 5);
+
+                        var crystals = player.crystals;
+
+                        if(isEmpty(crystals))
+                        {
+                            fill(240, 240, 240, 100);
+                            textSize(10);
+                            text("You have not collected any crystals yet...", 10, 30);
+                            break;
+                        }
+
+                        pushMatrix();
+                            translate(170, 100);
+                            fill(0, 0, 0, 200);
+                            ellipse(0, 0, 20, 20);
+
+                            if(this.autoAngle === undefined)
+                            {
+                                this.autoAngle = 0;
+                            }
+
+                            var toText = "";
+                            var toFill = color(255, 255, 255, 140);
+
+                            if(this.rDir === undefined)
+                            {
+                                this.rDir = random(-3, 3);
+                            }
+
+                            var a = 0;
+                            for(var i in crystals)
+                            {
+                                a += 60;
+
+                                if(!crystals[i].object)
+                                {
+                                    crystals[i].object = new Crystal(0, 0, 30, { 
+                                        kind : i.toString() 
+                                    });
+                                }
+
+                                var oAngle = physics.formulas.resolveAngle(this.autoAngle + a);
+                                crystals[i].object.xPos = sin(radians(oAngle)) * 50;
+                                crystals[i].object.yPos = cos(radians(oAngle)) * 50;
+                                crystals[i].object.draw();
+
+                                if(oAngle > 320 || oAngle < 40)
+                                {
+                                    toText = i.toString().upper();
+                                    toFill = crystals[i].object.color;
+                                }
+                            }
+
+                            if(keys[LEFT])
+                            {
+                                this.autoAngle -= 3;
+                                this.rDir = 0;
+                            }
+                            else if(keys[RIGHT])
+                            {
+                                this.autoAngle += 3;
+                                this.rDir = 0;
+                            }else{
+                                this.autoAngle += this.rDir;
+                            }
+
+                        popMatrix();
+
+                        fill(red(toFill), green(toFill), blue(toFill), 120);
+                        textSize(14);
+                        textAlign(CENTER, TOP);
+                        text(toText, 170, 200);
+                        textAlign(LEFT, TOP);
+
+                        scene.onHover = toText;
                         break;
                 }
 
@@ -5005,8 +4962,7 @@ var inventoryMenu = {
 
                 (this.oFuncs.draw || function() {})(this.scenes[this.scene]);
 
-                var scene = this.scenes[this.scene];
-
+                var drawnText = false;
                 if(scene.buttons && !scene.noBar)
                 {
                     fill(0, 0, 0, 100);
@@ -5021,7 +4977,13 @@ var inventoryMenu = {
                         if(btn.clicked(mouseX, mouseY))
                         {
                             text((btn.type || "") +  " - " + (btn.hover || ""), 84, /*(scene.height || this.scenes.height) +*/ -31.5, (scene.width || this.scenes.width) - 5, 30);
+                            drawnText = true;
                         }
+                    }
+
+                    if(!drawnText && scene.onHover)
+                    {
+                        text(scene.onHover, 84, -31.5, (scene.width || this.scenes.width) - 5, 30);
                     }
                 }
             popMatrix();
@@ -5087,7 +5049,6 @@ var debugTool = {
         {
             this.activate(this.textBox.input.join(""));
             ENTER_KEY = false;
-            // keys = [];
         }
     },
     draw : function()
@@ -5412,17 +5373,8 @@ var screenUtils = {
                         break;
                     }
                 }
-
-                // var stateSymbol = ((!player.dead) ? /*((saved) ? '' : '*')*/'' : '!');
-
-                // text(" " + stateSymbol, width - 13, height - 3);
             }
-            // fill(0, 12, 12, 150);
-            // rect(20, 340, 40, screenUtils.infoBar.height, 10);
-            // fill(230, 230, 230, 100);
-            // text("Lives " + (player.lives), 20, 340);
-            // text("x " + (noLives ? 0 : (player.lives || 0)), 77, screenUtils.infoBar.height - 9);
-
+            
             textAlign(LEFT, CENTER);
 
             if(!game.hideKeys && player.goto !== undefined && player.goto.keysHolding !== undefined)
@@ -6030,7 +5982,7 @@ var physics = {
     push : {
         rectcircle : function(host, object)
         {
-            if(host.yPos + host.height < object.yPos && object.inAir) //&& object.yPos > object.lastYPos)
+            if(host.yPos + host.height < object.yPos && object.inAir)
             {
                 object.yPos = object.lastYPos;
             }
@@ -6223,7 +6175,6 @@ var observer = {
             },
             solveCollision : function(circle1, slope1)
             {
-                //slope1.color = 0;
                 var angle = atan2(slope1.height, slope1.width);
                 if(circle1.keptPoint === undefined)
                 {
@@ -6344,13 +6295,7 @@ var observer = {
                             rect1.inAir = false;
                             break;
                         }
-                        // else if(rect1.xPos + rect1.width + rect1.xVel <= slope1.xPos)//+ rect1.width <= slope1.xPos + rect1.xVel)
-                        // {
-                        //     rect1.xPos = slope1.xPos - rect1.width;
-                        //     rect1.xVel = 0;
-                        //     break;
-                        // }
-
+                        
                         /*Collide diagonal*/
                         if(rect1.xPos - 2 <= slope1.xPos && !slope1.fromSpike)
                         {
@@ -6358,7 +6303,7 @@ var observer = {
                             rect1.yVel = 0;
                             rect1.inAir = false;
                         }
-                        else if(rect1.xPos <= slopeRight)// && !handleDown())
+                        else if(rect1.xPos <= slopeRight)
                         {
                             rect1.yVel = 0;
                             rect1.inAir = false;
@@ -6420,7 +6365,7 @@ var observer = {
                             rect1.yVel = 0;
                             rect1.inAir = false;
                         }
-                        else if(rect1PointXPos >= slope1.xPos)// && !handleUp())// && handleDown())
+                        else if(rect1PointXPos >= slope1.xPos)
                         {
                             rect1.yVel = 0;
                             rect1.inAir = false;
@@ -6463,7 +6408,7 @@ var observer = {
                         }
 
                         /*Collide diagonal*/
-                        if(rect1.xPos <= slopeRight)// && !handleDown())
+                        if(rect1.xPos <= slopeRight)
                         {
                             rect1.inAir = true;
                             rect1.yVel = max(rect1.yVel, 0);
@@ -6488,17 +6433,11 @@ var observer = {
                             rect1.inAir = false;
                             break;
                         }
-                        // else if(rect1.xPos - rect1.xVel >= slopeRight - abs(rect1.yVel))
-                        // {
-                        //     rect1.xPos = slopeRight;
-                        //     rect1.xVel = 0;
-                        //     break;
-                        // }
 
                         /*Collide diagonal*/
                         var rect1PointXPos = rect1.xPos + rect1.width;
 
-                        if(rect1PointXPos >= slope1.xPos)// && !handleDown())
+                        if(rect1PointXPos >= slope1.xPos)
                         {
                             rect1.inAir = true;
                             rect1.yVel = max(rect1.yVel, 0);
@@ -6510,12 +6449,6 @@ var observer = {
                         break;
                 }
                 rect1.lastSlopeCollider = slope1;
-                // if(rect1.lastRectCollider !== undefined && observer.colliding(rect1, rect1.lastRectCollider))
-                // {
-                //     //rect1.yVel = 0;
-                //     //observer.solveCollision(rect1, rect1.lastRectCollider);
-                //     rect1.xVel = 0;
-                // }
             }
         },
         "circlecircle" : {
@@ -6937,7 +6870,7 @@ var Camera = function(xPos, yPos, width, height)
         row : 0,
     };
 
-    this.speed = 0.125;//0.15//0.2//0.1.25
+    this.speed = 0.125;
 
     this.getObject = function()
     {
@@ -7281,7 +7214,7 @@ cameraGrid.addReference = function(object)
 {
     var toSet = {
         arrayName : object.arrayName,
-        index : object.firstIndex//object.index,
+        index : object.firstIndex
     };
 
     if(!object.boundingBox.off)
@@ -7439,8 +7372,9 @@ gameObjects.setAfter = function()
         {
             if(this[i][j] === undefined)
             {
-                this[i][j] = {};//new GameObject(0, 0);
-                this[i][j].fake = true;
+                this[i][j] = {
+                    fake : true
+                };
             }
             if(this[i][j].toSetAfter && this[i][j].setAfter !== undefined)
             {
@@ -7624,13 +7558,15 @@ gameObjects.apply = function(noApply)
                 }
                 
                 this.renderPlace[object.arrayName].push(object.index);
-
+              
                 //Signify that we've used the object for this loop
                 usedObjects[i] = true;
             }
         }
     }
 };
+
+gameObjects.toRender = [];
 gameObjects.draw = function(noDraw)
 {
     if(noDraw)
@@ -7643,7 +7579,7 @@ gameObjects.draw = function(noDraw)
     //Render!
     for(i = 0; i < this.order.length; i++)
     {
-        array = this.getObject(this.order[i]);
+        array = this[this.references[this.order[i]]];
         for(j = 0; j < this.renderPlace[this.order[i]].length; j++)
         {
             if(array[this.renderPlace[this.order[i]][j]] !== undefined)
@@ -8387,8 +8323,6 @@ var LifeForm = function(hp, notNormalDeath)
             var damage1 = ((object.getDamage !== undefined) ? object.getDamage(object, amt) : (amt || object.damage));
             this.hp -= (damage1) * this.subDefense();
 
-            //this.hp -= (amt || (((object.getDamage !== undefined) ? object.getDamage(object, amt) : object.damage) * this.subDefense();
-
             if(this.scoreValue && this.hp <= 0 && 
             (object.isLifeForm || object.likeLifeForm) && typeof object.score === "number")
             {
@@ -8399,11 +8333,6 @@ var LifeForm = function(hp, notNormalDeath)
             }
         }
     };
-
-    // this.inflictDamage = function(object, amt)
-    // {
-    //     object.hp -= amt || this.damage;//this.damage || 0;
-    // };
 
     this.handleDeath = function()
     {
@@ -8674,12 +8603,8 @@ var DynamicRect = function(xPos, yPos, width, height, colorValue)
     this.inAir = true;
 
     this.yAcl = 3;
-    // this.xAcl = 3;
 
     this.mass = 2;
-
-    //this.xForce = 3;
-    //this.yForce = 3;
     
     this.upForce = 3.51;
 
@@ -8804,12 +8729,8 @@ var Water = function(xPos, yPos, width, height, colorValue)
           (object.inAir || object.yVel > 0 || object.boundingBox.yPos + object.boundingBox.height > this.yPos))
         {
             object.yVel = object.yVel / this.thickness;
-            //object.xVel = object.xVel / this.thickness;
-            //object.xVel = constrain(object.xVel, -object.maxXVel * 0.6, object.maxXVel * 0.6);
             object.inLiquid = true;
             object.inAir = false;
-
-            // object.jumpHeight = 0;
         }
     };
 };
@@ -8818,7 +8739,7 @@ gameObjects.addObject("water", createArray(Water));
 var BackBlock = function(xPos, yPos, width, height, colorValue)
 {
     Rect.call(this, xPos, yPos, width, height);
-    this.color = colorValue || color(0, 0, 0, 150);//color(74, 60, 74);
+    this.color = colorValue || color(0, 0, 0, 150);
     this.physics.solidObject = false;
     
     this.draw = function()
@@ -9058,12 +8979,11 @@ gameObjects.addObject("oneWay", createArray(OneWay));
 var FallingBlock = function(xPos, yPos, width, height, colorValue)
 {
     Rect.call(this, xPos, yPos, width, height);
-    this.color = colorValue || color(80, 0, 160, 150);//color(0, 0, 0, 70);
+    this.color = colorValue || color(80, 0, 160, 150);
     this.timer = 0;
     this.trigTime = 1;
     this.fallTime = 70;
     this.gravity = 1.5;
-    //this.physics.changes = true;
     this.type = "block";
     
     //Don't forget to set this to true since this object moves but it's not dynamic
@@ -9107,7 +9027,7 @@ var FallingBlock = function(xPos, yPos, width, height, colorValue)
                 this.boundingBox.height = abs(this.yPos - this.originalYPos) + this.height;
             }
                       
-            if(this.opacity <= 50)//if(this.yPos >= levelInfo.height)
+            if(this.opacity <= 50)
             {
                 this.timer = 0;
                 this.activated = false;
@@ -9115,8 +9035,7 @@ var FallingBlock = function(xPos, yPos, width, height, colorValue)
                 this.boundingBox.overSized = false;
                 this.yPos = this.originalYPos;
                 this.color = this.originalColor;
-                this.boundingBox.height = this.height;
-                //this.physics.changes = false; 
+                this.boundingBox.height = this.height;            
             }
         }
     };
@@ -9293,7 +9212,7 @@ gameObjects.addObject("movingPlatform", createArray(MovingPlatform));
 var Lava = function(xPos, yPos, width, height, colorValue, damage)
 {
     Rect.call(this, xPos, yPos, width, height);
-    this.color = colorValue || color(175, 30, 40); //color(170, 70, 80);
+    this.color = colorValue || color(175, 30, 40);
     this.color2 = color(130, 70, 80);
     this.physics.solidObject = false;
     /*Add padding to the boundingBox so it doesn't kill 
@@ -9383,12 +9302,12 @@ var Lava = function(xPos, yPos, width, height, colorValue, damage)
     this.num = round(random(0, 1000));
     screenUtils.loadImage(this, true, "lava" + this.num);
 
-    this.damage = damage || 0.1;//0.08;
+    this.damage = damage || 0.1;
     this.onCollide = function(object)
     {
         if(object.type === "lifeform" && !object.lavaImmune)
         {
-            object.takeDamage(this);//object.hp -= this.damage;
+            object.takeDamage(this);
         }
     };
 };
@@ -9411,7 +9330,7 @@ var MovingLava = function(xPos, yPos, width, height, colorValue, damage)
         this.lastOnCollide(object);
         if(object.type === "lifeform")
         {
-            object.takeDamage(this);//object.hp -= this.damage;
+            object.takeDamage(this);
         }
     };
 };
@@ -9537,9 +9456,6 @@ var Ring = function(xPos, yPos, diameter, colorValue)
         pushMatrix();
         translate(this.xPos, this.yPos);
         rotate(this.angle);
-        //fill(0, 0, 0);
-        //arc(0, 0, this.arcSize, this.arcSize, this.bladeRanges[0][0], this.bladeRanges[0][1]);
-        //arc(0, 0, this.arcSize, this.arcSize, this.bladeRanges[2][0], this.bladeRanges[2][1]);
         fill(this.bladeColor);
         arc(0, 0, this.arcSize, this.arcSize, this.bladeRanges[1][0], this.bladeRanges[1][1]);
         arc(0, 0, this.arcSize, this.arcSize, this.bladeRanges[3][0], this.bladeRanges[3][1]);
@@ -9613,17 +9529,8 @@ var ImageBlock = function(xPos, yPos, width, height, imageName)
     {
         try{
             image(loadedImages[this.imageName], this.xPos, this.yPos, this.width, this.height);
-
-            // if(!this.init)
-            // {
-            //     screenUtils.loadImage(this, true, this.imageName);
-            //     this.init = true;
-            // }
         }
-        catch(e)
-        {
-            // console.log(e);
-        }
+        catch(e) { }
     };
 };
 gameObjects.addObject("imageBlock", createArray(ImageBlock));
@@ -9637,8 +9544,6 @@ var Ice = function(xPos, yPos, width, height, colorValue, slipFactor, override)
         Ground.call(this, xPos, yPos, width, height, colorValue || color(33, 198, 207));
 
         this.triangular = true;
-
-        // screenUtils.loadImage(this, true, "ice1", undefined, undefined, undefined, 225);
 
         this.draw = function()
         {
@@ -9839,7 +9744,7 @@ var Ice = function(xPos, yPos, width, height, colorValue, slipFactor, override)
             //The restraining of trying to go the other way on ice
             if(abs(object.xVel) <= object.maxXVel * 0.6 && abs(object.xVel) > 0)
             {
-                object.xAcl = object.setXAcl * 0.6;//0.65;
+                object.xAcl = object.setXAcl * 0.6;
             }
         }
     };
@@ -9899,7 +9804,6 @@ var SuperIce = function(xPos, yPos, width, height, colorValue, slipFactor)
         {
             for(var j = 0; j < this.height; j += h)
             {
-                // fill(10, 80, 130, random(30, 240));
                 fill(40, 80, 220, random(40, 150));
                 rect(this.xPos + i, this.yPos + j, w, h);
             }
@@ -10016,7 +9920,7 @@ var Spring = function(xPos, yPos, width, height, colorValue)
 {
     Rect.call(this, xPos, yPos, width, height);
     this.color = colorValue || color(0, 150, 80);
-    this.boost = 10.15;//9.7;//12 //13
+    this.boost = 10.15;
     this.xBoost = this.boost;
     this.yBoost = this.boost;
     this.type = "block";
@@ -10394,10 +10298,10 @@ var Crate = function(xPos, yPos, width, height, colorValue, noBreak)
     DynamicRect.call(this, xPos, yPos, width, height, colorValue || color(190, 160, 84, 255)); 
    
     this.breakPercent = 0;
-    this.breakRate = 0.3;//random(0.55, 0.2);//0.65;
-    this.xDeacl = 0.25;//0.25//0.35; //Turn this up for less glitches
+    this.breakRate = 0.3;
+    this.xDeacl = 0.25; //Turn this up for less glitches
     this.type = "block";
-    this.noBreak = noBreak;//A no breaker / brainer
+    this.noBreak = noBreak;
     this.broken = false;
     this.autoXDeacl = true;
 
@@ -10490,7 +10394,7 @@ var Crate = function(xPos, yPos, width, height, colorValue, noBreak)
 
         if(object.type === "block")
         {
-            if(this.lastYVel >= this.maxYVel * 0.9)//* 0.8)
+            if(this.lastYVel >= this.maxYVel * 0.9)
             {
                 this.broken = true;
             }
@@ -10609,8 +10513,6 @@ var CheckPoint = function(xPos, yPos, width, height, colorValue, invisible)
     this.type = "use";
     this.xDiv = this.width * 0.2;
     this.xOff = this.width * 0.13;
-    //this.flagX = this.xPos + this.xOff + this.xDiv;
-    //this.flagRightX = this.xPos + this.width * 0.7 + this.xDiv;
     this.flagX2 = this.xOff + this.xDiv;
     this.flagRightX2 = this.width * 0.7 + this.xDiv;
     this.midY = this.yPos + this.height / 4;
@@ -10720,8 +10622,7 @@ var Chest = function(xPos, yPos, width, height)
     Rect.call(this, xPos, yPos, width, height);
 
     this.img = "chest";
-    //this.isOpen = false;
-
+   
     this.physics.solidObject = false;
 
     this.goto = {};
@@ -10778,12 +10679,6 @@ var Chest = function(xPos, yPos, width, height)
         {
             return;
         }
-
-        // if(!this.goto.regen && this.goto.save && !this.set2 && this.goto.isOpen)
-        // {
-        //     this.dispenseUncollected();
-        //     this.set2 = true;
-        // }
 
         this.lastUpdate();
 
@@ -10863,34 +10758,6 @@ var Chest = function(xPos, yPos, width, height)
             }
         }
     };
-
-    // this.saveUncollected = function()
-    // {
-    //     var k = 0;
-    //     this.drops.forEach(function(element) 
-    //     {
-    //         if(element.col1)
-    //         {
-    //             k++;
-    //         }
-    //     });
-
-    //     if(k < this.drops.length)
-    //     {
-    //         this.goto.open = false;
-    //     }
-    // };
-
-    // this.dispenseUncollected = function()
-    // {
-    //     for(var i = 0; i < this.drops.length; i++)
-    //     {
-    //         if(this.drops[i].total && !this.drops[i].col1)
-    //         {
-    //             this.dispenseDrop(this.drops[i]);
-    //         }
-    //     }
-    // };
 
     this.onCollide = function(object)
     {
@@ -11211,7 +11078,7 @@ var CloudMine = function(xPos, yPos, diameter)
 {
     Circle.call(this, xPos, yPos, diameter);
 
-    this.damage = 3.5;//random(1.5, 5);
+    this.damage = 3.5;
     this.activated = false;
     this.timer = 1;
 
@@ -11403,12 +11270,12 @@ var CloudMine = function(xPos, yPos, diameter)
         }
         else if(object.arrayName === this.arrayName)
         {
-            if(this.timer < -17.5)//-20 is the default
+            if(this.timer < -17.5)
             {
                 object.activated = true;
             }
         }
-        else if((object.type === "lifeform" && object.arrayName !== "waterBeaker") || object.explosive)// || object.arrayName === "crate")
+        else if((object.type === "lifeform" && object.arrayName !== "waterBeaker") || object.explosive)
         {
             this.activated = true;
             if(object.physics.shape === "rect" && this.ex.diameter < this.maxDiameter)
@@ -11480,20 +11347,10 @@ var Spike = function(xPos, yPos, width, height, colorValue, upSideDown)
         slopes.getLast().fromSpike = true;
         this.slopes.push(slopes.length - 1);
 
-        // slopes.add(this.xPos + fourthWidth, this.yPos + 1, fourthWidth, halfHeight, this.color);
-        // slopes.getLast().direction = "rightup";
-        // slopes.getLast().fromSpike = true;
-        // this.slopes.push(slopes.length - 1);
-
         slopes.add(this.xPos + halfWidth, this.yPos + 1, halfWidth, this.height, this.color);
         slopes.getLast().direction = "leftup";
         slopes.getLast().fromSpike = true;
         this.slopes.push(slopes.length - 1);
-
-        // slopes.add(this.xPos + halfWidth, this.yPos + 1, fourthWidth, halfHeight, this.color);
-        // slopes.getLast().direction = "leftup";
-        // slopes.getLast().fromSpike = true;
-        // this.slopes.push(slopes.length - 1);
 
         var rects = gameObjects.getObject("rect");
         this.rects.push(rects.add(this.xPos, this.yPos + this.height, this.width, 5));
@@ -11768,7 +11625,7 @@ var Spike = function(xPos, yPos, width, height, colorValue, upSideDown)
 
                 if(!this.makeBlink || !object.invincibleToLifeForm)
                 {
-                    object.takeDamage(this);//object.hp -= this.damage;
+                    object.takeDamage(this);
                 }
             }
             else if(this.updateMe && object.yVel > 0 && object.inAir)
@@ -11803,7 +11660,7 @@ var Bullet = function(xPos, yPos, diameter, colorValue, blastAngle, damage, homi
     this.xVel = 0;
     this.yVel = 0;
     this.maxVel = 1;
-    this.acl = 1;//0.3;
+    this.acl = 1;
   
     this.maxLife = 350;
     this.life = this.maxLife;
@@ -11849,7 +11706,6 @@ var Bullet = function(xPos, yPos, diameter, colorValue, blastAngle, damage, homi
             {
                 this.blastAngle -= min(this.changeAngleSpeed, abs(angle - this.blastAngle));
             }
-            //this.blastAngle = angle;
         }
         
         this.acl = this.maxVel;
@@ -11867,7 +11723,7 @@ var Bullet = function(xPos, yPos, diameter, colorValue, blastAngle, damage, homi
     {
         if(object.type === "lifeform" && !object.fromEnemy)
         {
-            object.takeDamage(this);//object.hp -= this.damage;
+            object.takeDamage(this);
             this.remove();
             this.onCollide = function() {};
         }
@@ -11942,7 +11798,6 @@ var Shooter = function(xPos, yPos, diameter, colorValue)
             lastBullet.maxVel = 1.55;
             lastBullet.life = 200;
             lastBullet.damage = 2;
-            //sounds.getSound("laser3.mp3").volume = sounds.settings.mainVolume * 0.1;
             sounds.mplaySound("laser3.mp3");
         }else{
             sounds.mplaySound("laser3.mp3", 0.012);
@@ -11972,8 +11827,6 @@ var Shooter = function(xPos, yPos, diameter, colorValue)
         }else{
             this.shootAngle = atan2(target.yPos - this.yPos, target.xPos - this.xPos) - 90;
         }
-        //atan2((mouseY + cam.focusYPos - cam.halfHeight) - this.yPos, 
-        //      (mouseX + cam.focusXPos - cam.halfWidth) - this.xPos);
         
         this.shootTimer += this.shootSpeed;
         if(this.shootTimer >= 33)
@@ -12003,7 +11856,7 @@ var Shooter = function(xPos, yPos, diameter, colorValue)
     {
         if(object.arrayName === "player" && object.yPos + object.height < this.yPos)
         {
-            this.takeDamage(object);//this.hp -= object.damage;
+            this.takeDamage(object);
         }
     };
 };
@@ -12100,8 +11953,8 @@ var Enemy = function(xPos, yPos, width, height, colorValue, props, complexDraw, 
 {
     DynamicRect.call(this, xPos, yPos, width, height);
     LifeForm.call(this, hp || 2); //Inherit from life form width LifeForm.call(this, hp, notNormalDeath);
-    this.color = colorValue || color(red(-166344), green(-166344), blue(-166344), 150);//-166344;
-    this.damage = damage || 1.0;//2.5 is the default
+    this.color = colorValue || color(red(-166344), green(-166344), blue(-166344), 150);
+    this.damage = damage || 1.0;
     
     this.scoreValue = 200;
 
@@ -12200,18 +12053,17 @@ var Enemy = function(xPos, yPos, width, height, colorValue, props, complexDraw, 
         if(object.yPos < this.yPos + this.height &&
            object.xPos + object.width >= this.xPos + this.width * 0.1 && 
            object.xPos <= this.xPos + this.width * 0.9)
-        // if(object.yVel > 0 && info.side === "up")
         {
             if(!this.lastHit)
             {
                 //Damage enemy
-                this.takeDamage(object, object.damage || 0.1);//this.hp -= (object.damage || 0.1); 
+                this.takeDamage(object, object.damage || 0.1);
                 object.yVel = -(object.jumpHeight || 1) / 2;
             }
             this.lastHit = true;
         }else{
             //Damage player
-            object.takeDamage(this);//object.hp -= this.damage;
+            object.takeDamage(this);
             this.lastHit = false;
         }
     };
@@ -12244,7 +12096,6 @@ var Enemy = function(xPos, yPos, width, height, colorValue, props, complexDraw, 
         }
         else if(info.side === "up")
         {
-            // this.blocksBelow++;
             this.block = object;
         }
     };
@@ -12268,7 +12119,7 @@ var Enemy = function(xPos, yPos, width, height, colorValue, props, complexDraw, 
         }
 
         //If this is approaching the edge of the block, go the other way
-        if(/*this.blocksBelow === 1*/this.groundBelow < -1 && this.block !== undefined)
+        if(this.groundBelow < -1 && this.block !== undefined)
         {
             this.handledEdge = true;
             if(!this.onHandleEdges(this.block))
@@ -12403,14 +12254,6 @@ var Enemy = function(xPos, yPos, width, height, colorValue, props, complexDraw, 
         {
             var lastHeight = this.height;
             this.height = max((this.origHeight - this.trigHeight) + (this.hp * this.trigHeight / this.maxHp), 0);
-
-            // if(!(this.lastSlopeCollider !== undefined && observer.boundingBoxesColliding(this, this.lastSlopeCollider)))
-            // {
-            //     this.yPos += abs(lastHeight - this.height);
-            // }else{
-            //     this.yPos -= 2; //Bounce if we're near a slope to prevent from going underground
-            // }
-
             this.boundingBox.height = this.height;
             this.halfHeight = this.height / 2;
         }
@@ -12422,8 +12265,6 @@ var Enemy = function(xPos, yPos, width, height, colorValue, props, complexDraw, 
         }
 
         this.groundCast = this.xPos + this.halfWidth;
-
-       // this.blocksBelow = 0;
 
         this.groundBelow--;
 
@@ -12452,7 +12293,6 @@ var Enemy = function(xPos, yPos, width, height, colorValue, props, complexDraw, 
                 }
             }
             
-            //this.cast.yVel = round(random(-6, 6)); 
             switch(this.task)
             {
                 case "patrol" :
@@ -12471,7 +12311,6 @@ var Enemy = function(xPos, yPos, width, height, colorValue, props, complexDraw, 
 
         if(this.cast !== undefined)
         {
-            //this.cast.time = 15;
             var speed = this.maxXVel + 10;
             this.cast.xVel = (this.xDir === "left") ? -speed : speed;
             if(!this.cast.signal())
@@ -12502,7 +12341,6 @@ var Enemy = function(xPos, yPos, width, height, colorValue, props, complexDraw, 
                 break;
                 
             case (object.arrayName === "slope") :
-                // this.yVel = -1;
                 break;
             
             case (this.arrayName === object.arrayName || object.fromEnemy) :
@@ -12521,11 +12359,10 @@ var FireBeaker = function(xPos, yPos, width, height, colorValue)
 
     this.scoreValue = 250;
 
-    this.damage = 1;//0.7;//0.2;// + 0.22;
+    this.damage = 1;
 
     this.particles = [];
-
-    this.particleColor = this.color;//(this.arrayName === "water") ? color(20, 120, 160, 200) ? this.color,
+    this.particleColor = this.color;
 
     this.addParticle = function()
     {
@@ -12595,8 +12432,7 @@ var FireBeaker = function(xPos, yPos, width, height, colorValue)
     {
         if(object.arrayName === "water")
         {
-            // this.takeDamage(object);
-            this.hp -= object.damage*0.23;
+            this.hp -= object.damage * 0.23;
         }
         if(object.arrayName === "slope")
         {
@@ -12694,10 +12530,6 @@ var IceBeaker = function(xPos, yPos, width, height, colorValue)
 
         fill(240, 240, 240, 200);
         rect(this.xPos, this.yPos + this.height - this.custHeight, this.width, this.custHeight, 5);
-        // rect(this.xPos, this.yPos,                                 this.width, this.custHeight, 5);
-
-        // rect(this.xPos + this.width - this.custWidth, this.yPos, this.custWidth, this.height, 5);
-        // rect(this.xPos,                               this.yPos, this.custWidth, this.height, 5);
     };
 
     this._lastOnCollide1 = this.onCollide;
@@ -12737,7 +12569,7 @@ var SkyViper = function(xPos, yPos, width, height, colorValue)
     this.lastGravity = this.gravity;
     this.gravity = 0;
 
-    this.damage = 2;//1.5;//0.5;
+    this.damage = 2;
     this.scoreValue = 500;
 
     this.turnTimer = 0;
@@ -12833,12 +12665,6 @@ var SkyViper = function(xPos, yPos, width, height, colorValue)
                            this.killObject.boundingBox.xPos >= this.xPos + this.width)
                         {
                             this.yDir = "up";
-                        }else{
-                            //this.xDir = (random(0, 100) > 50) ? "left" : "right";
-                            //if(random(0, 100) <= 10)
-                            {
-                                //this.yDir = "down";
-                            }
                         }
                         break;
 
@@ -12985,9 +12811,7 @@ var CatDogStatue = function(xPos, yPos, width, height)
     this.likeLifeForm = true;
     this.scoreValue = 800;
 
-    this.physics.sides = {
-        // up : true,
-    };
+    this.physics.sides = {};
 
     this.physics.movement = "dynamic";
     
@@ -13018,7 +12842,7 @@ var CatDogStatue = function(xPos, yPos, width, height)
     this.lastAutoHpTime = 0;
     this.autoHpTimeInterval = 200;
 
-    this.useLaser = true; // levels[levelInfo.level].allDogsOnDemand || Math.random() < 0.5;    
+    this.useLaser = true;
 
     this.laser.draw = function(xPos2, yPos2)
     {
@@ -13116,7 +12940,9 @@ var CatDogStatue = function(xPos, yPos, width, height)
         this.push(toSet);
     };
     spys.draw = function()
-    {
+    {   
+        noStroke();
+
         for(var i = this.length - 1; i >= 0; i--)
         {
             var spy = this[i];
@@ -13221,7 +13047,6 @@ var CatDogStatue = function(xPos, yPos, width, height)
             }
 
             this.feelingSaucy = true;
-            // this.xPos += this.pickedVel;
         }else{
             this.pickedVel = false;
         }
@@ -13259,8 +13084,6 @@ var CatDogStatue = function(xPos, yPos, width, height)
         if(millis() - this.laser.lastDamageTime > this.laser.damageInterval && this.laser.colliding(player))
         {
             player.takeDamage(this, this.laser.damage);
-
-            // player.yVel -= 6;
 
             this.laser.lastDamageTime = millis();
         }
@@ -13300,7 +13123,6 @@ var CatDogStatue = function(xPos, yPos, width, height)
                 object.onCollide = function() {};
                 object.remove(this);
             }else{
-                // object.hp -= 1;
                 object.yVel = abs(object.yVel);
             }
 
@@ -13321,7 +13143,7 @@ var NinjaStar = function(xPos, yPos, diameter, colorValue)
     this.outerXVel = 0;
     this.outerYVel = 0;
 
-    this.damage = 1.5;//2//.25;//.5;
+    this.damage = 1.5;
 
     this.life = random(150, 400);
 
@@ -13608,11 +13430,6 @@ var Ninja = function(xPos, yPos, width, height, colorValue)
         },
     });
 
-    // this.autoSetup = function()
-    // {
-    //     this.tasks.startTask("default");
-    // };
-
     this.draw = function()
     {   
         image(storedImages[this.arrayName], this.xPos, this.yPos, this.width, this.height);
@@ -13717,13 +13534,6 @@ var LaunchBall = function(xPos, yPos, diameter, colorValue, damage, speed)
 
         this.growth = this.growth || 0;
 
-        //Refrain from launching when not fully grown!
-        // if(this.growth < this.maxGrowth && this.mode === "launch")
-        // {
-        //     this.mode = "rotate";
-        //     this.growth = this.maxGrowth;
-        // }
-
         switch(this.mode)
         {
             case "rotate" :
@@ -13763,11 +13573,10 @@ var LaunchBall = function(xPos, yPos, diameter, colorValue, damage, speed)
             {
                 if(object.type === "lifeform" && this.noDamageTo.indexOf(object.arrayName + object.index) === -1)
                 {
-                    var countered = object.takeDamage(this);//object.hp -= this.damage;
+                    var countered = object.takeDamage(this);
 
                     if(!countered)
                     {
-                        //this.hp -= object.damage || 1;
                         this.remove();
                         this.onCollide = function() {};
                     }else{
@@ -13828,12 +13637,8 @@ var SpaceBreaker = function(xPos, yPos, diameter, colorValue, amt)
     this.launchBalls = [];
     this.toLaunchIndex = 0;
 
-    ///////////////////////////////////
-
-    this.nextHitTimeMultiplier = 3;//4;//2.5;// / 2;//1.75;//1.5
-    this.launchBallSpeedMultiplier = 1.6;//1.6/*1.4*/;
-
-    ///////////////////////////////////
+    this.nextHitTimeMultiplier = 3;
+    this.launchBallSpeedMultiplier = 1.6;
 
     this.primePositions = function(growth)
     {
@@ -13843,11 +13648,10 @@ var SpaceBreaker = function(xPos, yPos, diameter, colorValue, amt)
 
         for(var i = 0; i < this.posAmt; i++)
         {
-            launchBalls.add(this.xPos - 200, this.yPos, this.radius, this.color, /*1.5*/ 2, round(random(2.5, 5)) * this.launchBallSpeedMultiplier);
+            launchBalls.add(this.xPos - 200, this.yPos, this.radius, this.color, 2, round(random(2.5, 5)) * this.launchBallSpeedMultiplier);
 
             var launchBall = launchBalls.getLast();
             launchBall.hostObject = this;
-            // launchBall.damage = 1;//random(2, 5);
             launchBall.growth = ((growth === "full") ? launchBall.maxGrowth : growth) || launchBall.growth;
 
             cameraGrid.addReference(launchBall);
@@ -13862,7 +13666,7 @@ var SpaceBreaker = function(xPos, yPos, diameter, colorValue, amt)
 
     this.openCasts = 0;
 
-    this.hitLimiter = 60;//60;//45;//15
+    this.hitLimiter = 60;
     this.getNextHitTime = function()
     {
         return round(random(20, 30)) / this.nextHitTimeMultiplier;
@@ -13903,9 +13707,9 @@ var SpaceBreaker = function(xPos, yPos, diameter, colorValue, amt)
 
         var lastCast = gameObjects.getObject("cast").getLast();
         lastCast.setPos(lastCast);
-        lastCast.time = 100;//65;
-        lastCast.xVel = sin(this.castShootAngle) * 7;//3;
-        lastCast.yVel = cos(this.castShootAngle) * 7;//3;
+        lastCast.time = 100;
+        lastCast.xVel = sin(this.castShootAngle) * 7;
+        lastCast.yVel = cos(this.castShootAngle) * 7;
 
         lastCast.lastRemove = lastCast.remove;
         lastCast.remove = function()
@@ -13991,12 +13795,9 @@ var SpaceBreaker = function(xPos, yPos, diameter, colorValue, amt)
             this.primed = true;
         }
 
-        if(this.openCasts < 100 && millis() % (!this.delagSoft ? 600 : 900) >= (!this.delagSoft ? 80 : 400) && !this.delag)//60)
+        if(this.openCasts < 100 && millis() % (!this.delagSoft ? 600 : 900) >= (!this.delagSoft ? 80 : 400) && !this.delag)
         {
-            // for(var i = 0; i < 2; i++)
-            // {
-                this.addCast(this);
-            // }
+            this.addCast(this);
         }
 
         if(abs(this.posAngle) > ((MODE === "pjs") ? TWO_PI : 360))
@@ -14090,10 +13891,7 @@ var SpaceBreaker = function(xPos, yPos, diameter, colorValue, amt)
 
         if(this.mode === "regen" && this.chooseTravel)
         {
-            // if(this.hp > this.maxHp * 0.75)
-            // {
-                this.travelMode = (round(random(0, 100)) >= 50) ? "figure8" : "run";
-            // }
+            this.travelMode = (round(random(0, 100)) >= 50) ? "figure8" : "run";
             this.chooseTravel = false;
         }
 
@@ -14116,11 +13914,6 @@ var SpaceBreaker = function(xPos, yPos, diameter, colorValue, amt)
         this.upTime--;
         this.downTime--;
 
-        // if(millis() % 2000 >= 1999 && random(0, 100) > 80 && this.downTime < 0)
-        // {
-        //     this.downTime = 50;
-        // }
-
         if(this.upTime > 0)
         {
             this.travelMode = "rise";
@@ -14133,7 +13926,7 @@ var SpaceBreaker = function(xPos, yPos, diameter, colorValue, amt)
         switch(this.mode)
         {
             case "fire" :
-                var i = min(this.toLaunchIndex, this.launchBalls.length - 1);//floor(random(0, this.launchBalls.length));
+                var i = min(this.toLaunchIndex, this.launchBalls.length - 1);
                 if((this.delag && random(0, 1) > 0.5 || this.hits.length > 0 && this.isEnemy(this.hits[0].object.arrayName)) && 
                 (millis() % this.nextHitTime >= this.nextHitTime - 1 || this.unLaunchedBalls <= 1))
                 {
@@ -14175,7 +13968,7 @@ var SpaceBreaker = function(xPos, yPos, diameter, colorValue, amt)
                 this.usedLaunchBalls = 0;
                 for(var i = 0; i < this.launchBalls.length; i++)
                 {
-                    if(this.launchBalls[i].used)//this.launchBalls[i].mode === "launch")
+                    if(this.launchBalls[i].used)
                     {
                         this.usedLaunchBalls++;
                     }
@@ -14242,7 +14035,7 @@ var SpaceBreaker = function(xPos, yPos, diameter, colorValue, amt)
         if(this.isEnemy(object.arrayName))
         {
             this.takenDamage = true;
-            this.takeDamage(object);//this.hp -= object.damage;
+            this.takeDamage(object);
         }
     };
 };
@@ -14252,7 +14045,6 @@ var Boss = function(xPos, yPos, width, height, colorValue, props, what, hp)
 {
     Enemy.call(this, xPos, yPos, width, height, colorValue, props, what, hp);
     this.scoreValue = 1000;
-
     this.isBoss = true;
 };
 
@@ -14260,9 +14052,9 @@ var NinjaBoss = function(xPos, yPos, width, height)
 {
     Boss.call(this, xPos, yPos, width, height, color(150, 20, 220, 240), {
         charging : true,
-    }, false, 15);//15
+    }, false, 15);
 
-    this.damage = 0.5;//0.5
+    this.damage = 0.5;
 
     this.preventDefaultAI = true;
 
@@ -14399,7 +14191,6 @@ var NinjaBoss = function(xPos, yPos, width, height)
                    (this.hitObject.xVel !== 0 || random(0, 1) < 0.05) && 
                    millis() - this.jumpAboveObjectNext > this.jumpInterval &&
                    abs(this.middleXPos - this.hitObject.middleXPos) > ((this.width + this.hitObject.width) / 2) && 
-                   // this.yPos - this.hitObject.yPos < 300 && 
                    abs(this.xPos - this.hitObject.xPos) < levelInfo.unitWidth * 2)
                 {
                     this.setYDir("up");
@@ -14573,8 +14364,6 @@ var NinjaBoss = function(xPos, yPos, width, height)
         }
 
         this._lastUpdate();
-
-        // this.clearDir();
     };
 
     this.avoidCollision = function(object)
@@ -14870,101 +14659,20 @@ var IceDragon = function(xPos, yPos, width, height)
             this._init_ = true;
         }
 
-        // var v = 0;
-
-        // for(var i = 1; i < this.sections; i++)
-        // {
-        //     if(this.nodes[i].yPos < this.nodes[i - 1].yPos)
-        //     {
-        //         v++;
-        //     }
-        // }
-
-        // if(mouseIsPressed)
-        // {
-        //     console.log(v);
-        // }
-
         var node, lastNode;
 
         var d = dist(0, 0, this.xVel, this.yVel);
         for(var i = 1; i < this.sections; i++)
         {
             var node = this.nodes[i], lastNode = this.nodes[i - 1];
-
-            // var a = degrees(atan(node.xPos - lastNode.xPos, 
-            //                      node.yPos - lastNode.yPos));
-
-            // var length = dist(node.xPos, node.yPos, lastNode.xPos, lastNode.yPos);
-
-            // if(keys[" "] && i === 2)
-            // {
-            //     console.log(a);
-            // }
-
-            // if(a > 180 && a >= 0)
-            // {
-            //     a = 180;
-            // }
-
-            // a= 0;
-
-
-            // if(length > 120)
-            // {
-            //     a += 180;
-            //     a = physics.formulas.resolveAngle(a);
-            // }
-
-            // a = radians(a);
-
-            node.xPos += this.xVel;//cos(a) * d;
-            node.yPos += this.yVel;//sin(a) * d;
-
-            // var j = i - 1;
+            node.xPos += this.xVel;
+            node.yPos += this.yVel;
 
             if(node.yPos > lastNode.yPos)
             {
                 node.yPos = lastNode.yPos;
             }
-
-            // if(this.nodes[i].yPos < this.nodes[j].yPos)
-            // {
-            //     this.nodes[i].yPos += (this.sections - i) * 0.2 * (this.sections - v);
-            // }else{
-            //     this.nodes[i].yPos = this.nodes[j].yPos;
-            // }
         }
-
-        // this.nodes[1].xPos = this.xPos + 120 * 1;
-        // this.nodes[1].yPos = this.yPos + 20;
-
-        // this.nodes[2].xPos = this.xPos + 120 * 2;
-        // this.nodes[2].yPos = this.yPos + 20;
-
-        // if(!this._init_)
-        // {
-        //     this.nodes[3].xPos = this.xPos + 120 * 3;
-        //     this.nodes[3].yPos = this.yPos + 13;
-
-        //     this._init_ = true;
-        // }else{
-        //     this.nodes[3].xPos += this.xVel;
-        // }
-        // this.angle += 4;
-        // this.angle = physics.formulas.resolveAngle(this.angle);
-
-        // var a = radians(this.angle);
-
-        // this.nodes[4].xPos = this.xPos + 120 * 4 + cos(a) * 5;
-        // this.nodes[4].yPos = this.yPos + 26 + sin(a) * 5;
-
-        // if(this.nodes[3].yPos < this.nodes[4].yPos)
-        // {
-        //     this.nodes[3].yPos += 0.1;
-        // }else{
-        //     this.nodes[3].yPos -= 0.1;
-        // }
 
         /*Bottom*/
 
@@ -14983,8 +14691,6 @@ var IceDragon = function(xPos, yPos, width, height)
         this.nodes[9].xPos = this.xPos + this.width;
         this.nodes[9].yPos = this.yPos + this.height - 3;
     };
-
-    // this.controls = undefined;
 
     var _lastUpdate = this.update;
     this.update = function(isRemote)
@@ -15194,7 +14900,7 @@ var Player = function(xPos, yPos, width, height, colorValue)
     this.maxYVel = 12.5;
 
     //Never die (temperary)
-    this.maxLives = 9999;//99;//3 is the default
+    this.maxLives = 9999;
     this.lives = this.maxLives;
 
     this.walkSpeed = 3.25 - 0.34;
@@ -15219,6 +14925,7 @@ var Player = function(xPos, yPos, width, height, colorValue)
     this.discoveredPowers = {}; //These will get replaced, don't attach anything to it.
     this.changePowers = {};
     this.inventory = {};
+    this.crystals = {};
 
     var self = this;
 
@@ -15547,7 +15254,7 @@ var Player = function(xPos, yPos, width, height, colorValue)
             halfHeight : this.halfHeight,
         };
     };
-+
+
     this.setFixture();
 
     this.xFire = (random(0, 1) < 0.5) ? -1 : 1;
@@ -15598,11 +15305,11 @@ var Player = function(xPos, yPos, width, height, colorValue)
         },
         toggleZoom : function()
         {
-            return (keys.x || keys.k);//(keys.c || keys.j);
+            return (keys.x || keys.k);
         },
         zoom : function()
         {
-            return self.autoRun;//(keys[75] || keys[88] || self.autoRun); //'x'/'k' keys
+            return self.autoRun;//'x'/'k' keys
         },
         activate : function()
         {
@@ -15832,10 +15539,8 @@ var Player = function(xPos, yPos, width, height, colorValue)
 
         if(this.deathInfo.playerWasDead && this.goto.travelType === "checkPoint")
         {
-            // this.hp = this.deathInfo.playerLastHp || 1;
-
             //Does the player need to be revived or not?
-            if(/*this.deathInfo.playerWasDeath || */this.hp <= 0)
+            if(this.hp <= 0)
             {
                 this.revive();
             }
@@ -15899,7 +15604,7 @@ var Player = function(xPos, yPos, width, height, colorValue)
                 this.setFixture();
             }
 
-            lighting.fixtures.player.xPos = this.xPos + ((this.xVel >= 0) ? this.halfWidth : this.width);// + ((this.xVel < 0) ? this.width*0.75 : -this.width*0.25) + this.halfWidth/2;
+            lighting.fixtures.player.xPos = this.xPos + ((this.xVel >= 0) ? this.halfWidth : this.width);
             lighting.fixtures.player.yPos = this.yPos + this.halfHeight;
         }
     };
@@ -16038,7 +15743,6 @@ var Player = function(xPos, yPos, width, height, colorValue)
                 game.cutScening = true;
                 this.isLifeForm = false;
                 this.startExplosion();
-                // this.physics.solidObject = false;
             }
             this.restart = false;
         }
@@ -16274,7 +15978,7 @@ var BubbleShield = function(xPos, yPos, diameter, colorValue, hp)
 
         if(object.arrayName === "bullet" || object.arrayName === "ninjaStar" || object.arrayName === "launchBall")
         {
-            this.takeDamage(object);//this.hp -= object.damage;
+            this.takeDamage(object);
             object.remove();
             object.onCollide = function() {};
         }
@@ -16527,17 +16231,6 @@ var Wisp = function(xPos, yPos, diameter, colorValue)
             case "right" :
                 break;
         }
-
-        // if(mouseButton === LEFT)
-        // {
-        //     this.direction = "left";
-        // }
-        // else if(mouseButton === RIGHT)
-        // {
-        //     this.direction = "right";
-        // }else{
-        //     this.direction = "front";
-        // }
     };
 
     this.task = "locate";
@@ -16650,6 +16343,7 @@ var Voxelizer = function(xPos, yPos, width, height, colorValue)
         uy = physics.getMiddleYPos(this);
         var uw, uh;
 
+        noStroke();
         pushMatrix();
             translate(ux, uy);
             rotate(this.angle);
@@ -16984,11 +16678,6 @@ var Fog = function(xPos, yPos, diameter, colorValue)
             this.draw = function() {};
         }
 
-       // if(this.grown)
-        //{
-           // this.diameter = this.life * this.maxDiameter / this.maxLife;
-        //}
-
         this.color = color(red(this.color), green(this.color), blue(this.color), this.life * this.maxAlpha / this.maxLife);
         
         this.angle += this.angleVel;
@@ -17093,7 +16782,7 @@ var Snow = function(xPos, yPos, width, height, colorValue, collisionOff)
     this.xDeacl = 0.2;
 
     this.yVel = 0;
-    this.maxYVel = Number(random(1, 2).toFixed(2)) + 0.7;//1.5;
+    this.maxYVel = Number(random(1, 2).toFixed(2)) + 0.7;
 
     this.minYVel = -3;
 
@@ -17140,7 +16829,6 @@ var Snow = function(xPos, yPos, width, height, colorValue, collisionOff)
 
         if(this.meltTimer < 0)
         {
-            //this.remove();
             this.inAir = true;
         }
 
@@ -17169,9 +16857,6 @@ var Snow = function(xPos, yPos, width, height, colorValue, collisionOff)
         {
             this.remove();
         }
-
-        //Huge performance boost!
-        // this.physics.skipCollision = ((millis() - this.offset) % 1000 > 350);
     };
 
     this.hitRect = 0;
@@ -18280,11 +17965,10 @@ var NinjaStarShooter = function(xPos, yPos, diameter)
             if(object.controls.zoom())
             {
                 xStar.outerXVel2 = (object.xFire < 0) ? -5 : 5;
-
-                if(object.throwInversed)
-                {
-                    xStar.outerXVel2 *= 0.5;
-                }
+            }
+            if(object.throwInversed)
+            {
+                xStar.outerXVel2 *= 0.5;
             }
 
             xStar.setAngleVel = (object.xFire > 0) ? -3 : 3;
@@ -18545,6 +18229,121 @@ var Heart = function(xPos, yPos, diameter, amt)
 };
 gameObjects.addObject("heart", createArray(Heart));
 
+var Crystal = function(xPos, yPos, diameter, config)
+{
+    Circle.call(this, xPos, yPos, diameter);
+
+    this.physics.solidObject = false;
+    this.type = "power";
+
+    this.kind = config.kind;
+
+    switch(this.kind)
+    {
+        case "overworld" :
+            this.color = color(30, 160, 120, 80);
+            break;
+
+        case "ninja" :
+            this.color = color(105, 0, 200, 80);
+            break;
+
+        case "winter" :
+            this.color = color(0, 146, 172, 80); 
+            break;
+
+        default :
+            this.color = color(0, 0, 0, 80);
+            break;
+    }
+
+    this.altColor = color(0, 0, 0, 100);
+
+    this.generateTriangles = function()
+    {
+        this.angles = [];
+        this.vels = [];
+        this.sizes = [];
+        this.colors = [];
+        var defaultColor = color(red(this.color), green(this.color), blue(this.color), 100);
+
+        for(var i = 0; i < floor(random(6, 9)); i++)
+        {
+            this.angles[i] = random(0, 360);
+            this.vels[i] = random(-3, 3);
+            this.sizes[i] = min((random() + 0.3) * this.radius, this.radius);
+            this.colors[i] = (random() < 0.3) ? this.altColor : defaultColor;
+        }
+    };
+
+    this.generateTriangles();
+
+    var player = gameObjects.getObject("player")[0];
+    if(player && player.crystals)
+    {
+        if(player.crystals[this.kind])
+        {
+            this.remove();
+            this.draw = function() {};
+            this.onCollide = function() {};
+        }
+    }
+
+    var s = this.radius;
+    this.draw = function()
+    {
+        var i, a;
+        for(var i = 0; i < this.angles.length; i++)
+        {
+            this.angles[i] += this.vels[i];
+            var a = this.angles[i];
+            s = this.sizes[i];
+
+            fill(this.colors[i]);
+            triangle(this.xPos + sin(radians(a)) * s, this.yPos + cos(radians(a)) * s, 
+                     this.xPos + sin(radians(a + 120)) * s, this.yPos + cos(radians(a + 120)) * s, 
+                     this.xPos + sin(radians(a + 240)) * s, this.yPos + cos(radians(a + 240)) * s);
+        }
+
+        fill(this.color);
+        ellipse(this.xPos, this.yPos, this.diameter, this.diameter);
+    };
+
+    var inter = (this.kind.startsWithVowel() ? "an " : "a ") + this.kind.upper();
+    this.messages = {
+        "start" : {
+            messages : [{
+                message : "You got " + inter, 
+                color : color(255, 255, 255, 150)
+            }, {
+                message : "Crystal",
+                color : color(0, 160, 200, 170)
+            }, {
+                message : "!",
+                color : color(255, 255, 255, 150)
+            }],
+            up : true,
+            choices : {
+                "exit" : "Okay"
+            }
+        },
+    };
+
+    this.onCollide = function(object)
+    {
+        if(object.arrayName === "player")
+        {
+            talkHandler.start(this.messages, "start", "");
+
+            object.crystals[this.kind] = {};
+
+            this.remove();
+            this.onCollide = function() {};
+        }
+    };
+};
+gameObjects.addObject("crystal", createArray(Crystal));
+
 var Lever = function(xPos, yPos, width, height, colorValue)
 {
     Rect.call(this, xPos, yPos, width, height);
@@ -18568,7 +18367,7 @@ var Lever = function(xPos, yPos, width, height, colorValue)
     this.leftHandleAngle = 360 - 127.5;
     this.rightHandleAngle = 120;
 
-    this.pivotAngle = 105;//((360 - this.leftHandleAngle) + (this.rightHandleAngle - 0)) / 2;
+    this.pivotAngle = 105;
 
     this.handleAngle = this.leftHandleAngle;
     this.setAngleWithRange = function(x)
@@ -18723,9 +18522,9 @@ var Flypi = function(xPos, yPos, diameter, colorValue)
 
         if(this.factory)
         {
-            if(this.miniFlypis.length < 20)//millis() % 300 >= 200)
+            if(this.miniFlypis.length < 20)
             {
-                var amt = 3;//round(random(2, 6));
+                var amt = 3;
                 var flypis = gameObjects.getObject("flypi");
                 var radius = this.radius * 0.25;
 
@@ -18780,9 +18579,8 @@ var Flypi = function(xPos, yPos, diameter, colorValue)
     {
         if(object.isLifeForm)
         {
-            this.oxVel = 0;//object.xVel;
-            this.oyVel = 0;//object.yVel;
-
+            this.oxVel = 0;
+            this.oyVel = 0;
             this.attached = true;
             this.attachedArrayName = object.arrayName;
             this.attachedIndex = object.index;
@@ -18902,9 +18700,9 @@ var themes = {
             {
                 fireBeakers[i].color = color(70, 10, 200, 120);
                 fireBeakers[i].particleColor = color(30, 30, 200, 130);
-                fireBeakers[i].maxHp = 4;//0.4;
-                fireBeakers[i].hp = 4;//0.4;
-                fireBeakers[i].damage = 1.5;//0.3;
+                fireBeakers[i].maxHp = 4;
+                fireBeakers[i].hp = 4;
+                fireBeakers[i].damage = 1.5;
             }
 
             var waterBeakers = gameObjects.getObject("waterBeaker");
@@ -18912,16 +18710,16 @@ var themes = {
             {
                 waterBeakers[i].color = color(70, 10, 200, 120);
                 waterBeakers[i].particleColor = color(30, 30, 200, 130);
-                waterBeakers[i].maxHp = 4;//0.4;
-                waterBeakers[i].hp = 4;//0.4;
-                waterBeakers[i].damage = 1.5;//0.3;
+                waterBeakers[i].maxHp = 4;
+                waterBeakers[i].hp = 4;
+                waterBeakers[i].damage = 1.5;
                 waterBeakers[i].explosive = true;
             }
 
             var shooters = gameObjects.getObject("shooter");
             for(var i = 0; i < shooters.length; i++)
             {
-                shooters[i].upSpeed = 2.7;//2.3;
+                shooters[i].upSpeed = 2.7;
                 shooters[i].minDamage = 0.5;
             }
         },
@@ -19164,12 +18962,11 @@ var levelScripts = {
     "ninjaTempleBossRoom" : {
         afterLoad : function()
         {
-            this.spikeSpeed = 2.5;//2.5;
+            this.spikeSpeed = 2.5;
 
             this.state = this.spikeSpeed;
             this.up = levelInfo.yPos + levelInfo.unitHeight * 3;
-            this.down = levelInfo.yPos + levelInfo.height - levelInfo.unitHeight * 3.7;//3.9;
-
+            this.down = levelInfo.yPos + levelInfo.height - levelInfo.unitHeight * 3.7;
             this.startWaitTime = 0;
             this.startUpTimer = 0;
 
@@ -19177,7 +18974,7 @@ var levelScripts = {
             spikes.forEach(function(element, index, array)
             {
                 element.interval = random(1, 2);
-                element.damage = 2.7;//10 / 3.5;
+                element.damage = 2.7;
             });
 
             var bossDefeated = levels[levelInfo.level].save.bossDefeated;
@@ -20004,7 +19801,7 @@ levels.build = function(plan)
             switch(level.plan[row][col])
             {
                 case 'g' :
-                    gameObjects.getObject("ground").add(xPos, yPos, levelInfo.unitWidth, levelInfo.unitHeight, color(107, 83, 60));//color(120, 96, 81));
+                    gameObjects.getObject("ground").add(xPos, yPos, levelInfo.unitWidth, levelInfo.unitHeight, color(107, 83, 60));
                     break;
 
                 case 'd' :
@@ -20272,12 +20069,7 @@ levels.build = function(plan)
                     break;
 
                 case '0' :
-                    // gameObjects.getObject(table['0'] || "dynamicCircle").add(xPos + levelInfo.unitWidth / 2, yPos + levelInfo.unitHeight / 2, (typeof table['0'] === "undefined") ? levelInfo.unitWidth : levelInfo.unitWidth / 2);
                    
-                    // if(typeof table['0'] === "undefined")
-                    // {
-                    //     gameObjects.getObject("dynamicCircle").getLast().color = color(175, 175, 175, 250);
-                    // }
                     break;
                     
                 case 'F' : 
@@ -20348,7 +20140,7 @@ levels.build = function(plan)
                         switch(level.bosses[aboveSymbol].name)
                         {
                             case "ninjaBoss" :
-                                gameObjects.getObject("ninjaBoss").add(xPos, yPos - levelInfo.unitHeight, 11 * 2.7, floor(28 * 2.7));//levelInfo.unitWidth, levelInfo.unitHeight * 2);
+                                gameObjects.getObject("ninjaBoss").add(xPos, yPos - levelInfo.unitHeight, 11 * 2.7, floor(28 * 2.7));
                                 screenUtils.infoBar.bossArrayName = "ninjaBoss";
                                 break;
 
@@ -20463,7 +20255,17 @@ levels.build = function(plan)
                         try{
                             var entered = this.getSymbol(col, row - 1, level.plan);
                             var scope = level.special[entered];
-                            gameObjects.getObject(scope.arrayName).add(xPos, yPos, levelInfo.unitWidth, levelInfo.unitHeight);
+                            scope.arguments = scope.arguments || {}; 
+                            switch(scope.shape)
+                            {
+                                case "circle" :
+                                    gameObjects.getObject(scope.arrayName).add(xPos, yPos, scope.diameter || levelInfo.unitWidth, scope.arguments['4']);
+                                    break;
+
+                                case "rect" : default :
+                                    gameObjects.getObject(scope.arrayName).add(xPos, yPos, levelInfo.unitWidth, levelInfo.unitHeight);
+                                    break;
+                            }
                         }
                         catch(e)
                         {
@@ -20938,6 +20740,7 @@ game.loadSaveAfterLoad = function()
         player.maxHp = this.data.player.maxHp || player.maxHp;
         player.name = this.data.name || player.name;
         player.inventory = this.data.player.inventory || player.inventory;
+        player.crystals = this.data.player.crystals || player.crystals;
 
         if(this.data.player.autoRun !== undefined && !this._ft_autoRun)
         {
@@ -20985,7 +20788,6 @@ game.loadSaveAfterLoad = function()
     }
 
     saver.current.loaded = true;
-
     this.everAfterLoaded = true;
 };
 game.save = function(checkPoint)
@@ -21128,6 +20930,11 @@ game.save = function(checkPoint)
 
     levelScripts.onSave();
 
+    for(var i in player.crystals)
+    {
+        delete player.crystals[i].object;
+    }
+
     var success = saver.overWriteSaveData(saver.current.saveDataName, {
         name : saver.current.name,
         level : player.goto.checkPointLevel || levelInfo.level,
@@ -21143,6 +20950,7 @@ game.save = function(checkPoint)
             hp : player.hp,
             maxHp : player.maxHp,
             inventory : player.inventory,
+            crystals : player.crystals,
             powers : player.getPowers(),
             discoveredPowers : player.discoveredPowers,
             currentPower : player.discoveredPowersHandler.currentPower,
@@ -21372,11 +21180,7 @@ game.start = function()
         backgrounds.setBackground("spaceFromEarth");
     }
 
-    if(ESC_KEY)
-    {
-        // this.switchGameState(true, "play");
-    }
-    else if(keyIsPressed)
+    if(keyIsPressed)
     {
         this.switchGameState(true, "story");
     }
@@ -21775,11 +21579,8 @@ game.pauseMenu.mousePressed = function()
 {
     if(buttons.save.clicked())
     {
-        game.save();
-        game.switchGameState(true, "start");
-
-        //saver.loadSaveData();
-        //saveDataHandler.load();
+        //game.save();
+        //game.switchGameState(true, "start");
 
         //Restart the program, a quick fix to make sure 
         //we don't accidently unproperly load the same
@@ -22065,7 +21866,7 @@ function showError(e, fatal)
     textSize(width * 0.02);
 
     textAlign(LEFT, CENTER);
-    text(crashText + "\n" + /*crashStack + "\n*/"Line:\n" + crashLineNumber, 1, height * 0.8);
+    text(crashText + "\n" + "Line:\n" + crashLineNumber, 1, height * 0.8);
 }
 
 function initErrorHandler()
@@ -22118,7 +21919,7 @@ initErrorHandler();
 
 processing.scaledCondition = function()
 {
-    return (game.gameState !== "load" /*&& game.tempState !== "load"*/);
+    return (game.gameState !== "load");
 };
 
 //Other browsers have slowdowns
@@ -22132,6 +21933,7 @@ if(game.debugMode)
 {
     window.gameObjects = gameObjects;
     window.cam = cam;
+    window.storedImages = storedImages;
 }
 
 //Done!
