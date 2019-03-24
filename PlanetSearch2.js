@@ -643,24 +643,29 @@ var sketch = function(processing) /*Wrapper*/
         The Voxelizer is now in the game!
 
     * 0.8.3
-        Fixed the cutscene zoom in bug.
-        Added the cutscene to get the energy item.
+        Fixed the cut-scene zoom in bug.
+        Added the cut-scene to get the energy item.
         Fixed spike falling bug.
         Fixed water does not appear bug.
-        Fixed another cutscene bug.
+        Fixed another cut=scene bug.
         Fixed the door/sign entrance bug.
-        Fixed the 30fps mode can't see gameObjects when loading sometimes.
-        Fixed the disappearance bug on cutscenes.
+        Fixed the 30-fps mode can't see gameObjects when loading sometimes.
+        Fixed the disappearance bug on cut-scenes.
         Added more to the existing levels in the ice place.
         Changed the text on the scoring system to fit.
         Made a special chest harder to get to.
-        Removed all unecessary comments
+        Removed all unnecessary comments
         Removed tiles object and array as it was unnecessary.
         Crystals are now in the game!
 
     * 0.8.4
         The save and exit button is now just the exit button.
-    
+        Added a new level: trek
+        FireBeakers no longer hop on slopes.
+        The player no longer walks when reading a sign.
+        Fixed a few no-rendering glitches, and made the rendering a little bit faster!
+        Added fps settings
+
     Next :   
         v0.8.6 -> 
             Do something about the underwater level. It doesn't make sense for the player to not have the oxygen bar.
@@ -669,16 +674,10 @@ var sketch = function(processing) /*Wrapper*/
             Need to optimize game saving.
             Like make a section when when it loads from a save the right after the game has loaded make it load the settings.
 
-            Add rings to collect in the game.
-
             Fix the press 'r' and restart button makes player die glitch.
-            Make snowblocks not fall through oneways.
+            Make snow blocks not fall through one ways.
 
-            Add auto checkpoints into settings.
-    
-            Make fps (If set to auto) change to 60 unless you're in the play game state and not loading then change to 30.
-            Background things also would need to be sped up.
-            Need to check other browser support...
+            Add auto checkpoints into settings and fps into settings. Also need to make a block that costs coins to heal you.
 
     ===========================================================================================================================================================================
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -731,6 +730,8 @@ var game = {
     showDebugPhysics : false,
     boundingBoxes : false,
     debugMenuWhite : true,
+
+    overrideDebugSettings : false, // This doesn't do anything yet...
 };
 var levelInfo = {
     level : "intro", //Default = "intro"
@@ -965,12 +966,15 @@ var buttons = {
     restart : new Button(160, 245 - 30, 80, 25, BTN_COLOR, "Restart"),
     menu : new Button(160, 280 - 30, 80, 25, BTN_COLOR, "Menu"),
     back2 : new Button(0, 375, 75, 25, BTN_COLOR, "Back"),
-    settings : new Button(160, 210, 80, 25, BTN_COLOR, "Settings"),
+    settings : new Button(160, 210, 80, 25, BTN_COLOR, "Debug"),
     sound : new Button(160, 245, 80, 25, BTN_COLOR, "Sound"),
+    other : new Button(160, 280, 80, 25, BTN_COLOR, "Fps"),
     volumeOn : new Button(160, 230, 80, 25, BTN_COLOR, "Volume"),
     debugMode : new Button(145, 185, 110, 25, BTN_COLOR, "DebugMode " + game.debugMode),
     debugPhysics : new Button(145, 220, 110, 25, BTN_COLOR, "DebugPhysics " + game.showDebugPhysics || false),
     boundingBoxes : new Button(145, 255, 110, 25, BTN_COLOR, "BoundingBoxes"),
+    fps : new Button(145, 200, 110, 25, BTN_COLOR, "Fps " + game.fps),
+    fpsType : new Button(145, 230, 110, 25, BTN_COLOR, "Fps Type " + game.fpsType),
     info : new Button(145, 290, 110, 25, BTN_COLOR, "Info"),
     save : new Button(155, 285, 90, 25, BTN_COLOR, "Exit"),
     erase : new Button(205, 235, 80, 30, BTN_COLOR, "Erase"),
@@ -978,7 +982,7 @@ var buttons = {
     back4 : new Button(115, 235 + 30, 80, 30, BTN_COLOR, "Back"),
     back5 : new Button(0, 290, 30, 30, BTN_COLOR, "<<"),
     create : new Button(205, 235 + 30, 80, 30, BTN_COLOR, "Create"),
-    rename : new Button(205, 235 + 30, 80, 30, BTN_COLOR, "Rename"),
+    rename : new Button(205, 235 + 30, 80, 30, BTN_COLOR, "Rename")
 };
 buttons.boundingBoxes.textSize = 11;
 buttons.debugPhysics.textSize = 11;
@@ -7290,23 +7294,24 @@ gameObjects.drawBoundingBoxes = function()
     stroke(0, 0, 0);
     strokeWeight(0.5);
 
-    var boundingBox, array, object;
+    var boundingBox, array, object, i, j, shape;
 
     //Render!
-    for(var i = 0; i < this.order.length; i++)
+    for(i = 0; i < this.toOrder.length; i++)
     {
-        array = this.getObject(this.order[i]);
-        for(var j = 0; j < this.renderPlace[this.order[i]].length; j++)
-        {
-            object = array[this.renderPlace[this.order[i]][j]];
+        array = this.renderPlace[this[this.toOrder[i]].name];
 
-            if(object !== undefined)
+        for(j = 0; j < array.length; j++)
+        {
+            if(this[this.toOrder[i]][array[j]])
             {
-                var boundingBox = object.boundingBox;
-                rect(boundingBox.xPos, boundingBox.yPos, boundingBox.width, boundingBox.height);
+                shape = this[this.toOrder[i]][array[j]].boundingBox;
+                rect(shape.xPos, shape.yPos, shape.width, shape.height);
             }
         }
     }
+
+    noStroke();
 };
 gameObjects.removeObjects = function()
 {
@@ -7346,13 +7351,12 @@ gameObjects.removeObjects = function()
 gameObjects.findOrder = function()
 {
     this.renderPlace = {};
-
-    //Order for rendering
-    this.order = [];
     for(var i = 0; i < this.length; i++)
     {
-        this.order.push(this[i].name);
+        this.renderPlace[this[i].name] = [];
     }
+
+    this.toOrder = [];
 };
 gameObjects.addObjectsToCameraGrid = function()
 {
@@ -7383,6 +7387,8 @@ gameObjects.setAfter = function()
             }
         }
     }
+
+    this.objectsApplied = 0;
 };
 gameObjects.delag = function(clearEffects, deleteSnow)
 {
@@ -7506,24 +7512,25 @@ gameObjects.apply = function(noApply)
         return;
     }
 
-    var usedObjects = {};
+    var pcs = {};
+    this.indexes = {};
 
-    for(var i = 0; i < this.order.length; i++)
+    for(var i = 0; i < this.toOrder.length; i++)
     {
-        this.renderPlace[this.order[i]] = [];
+        this.renderPlace[this[this.toOrder[i]].name].length = 0;
     }
 
-    var cell, array, object;
+    var col, row, cell, i, array, object;
 
-    for(var col = cam.upperLeft.col; col <= cam.lowerRight.col; col++)
+    for(col = cam.upperLeft.col; col <= cam.lowerRight.col; col++)
     {
-        for(var row = cam.upperLeft.row; row <= cam.lowerRight.row; row++)
+        for(row = cam.upperLeft.row; row <= cam.lowerRight.row; row++)
         {           
             cell = cameraGrid[col][row];
 
-            for(var i in cell)
+            for(i in cell)
             {  
-                if(usedObjects[i])
+                if(pcs[i])
                 {
                     continue;
                 }
@@ -7548,25 +7555,23 @@ gameObjects.apply = function(noApply)
                     cameraGrid.addReference(object);
                 }
 
-                object.lastXPos = object.xPos;
-                object.lastYPos = object.yPos;
-
                 if(!game.cutScening || !object.isLifeForm)
                 {
+                    object.lastXPos = object.xPos;
+                    object.lastYPos = object.yPos;
+
                     object.update();
                     gameObjects.applyCollision(object);
                 }
-                
-                this.renderPlace[object.arrayName].push(object.index);
-              
+
                 //Signify that we've used the object for this loop
-                usedObjects[i] = true;
+                pcs[i] = true;
+                this.renderPlace[object.arrayName].push(object.index);
+                this.indexes[this.references[object.arrayName]] = true;
             }
         }
     }
 };
-
-gameObjects.toRender = [];
 gameObjects.draw = function(noDraw)
 {
     if(noDraw)
@@ -7576,18 +7581,42 @@ gameObjects.draw = function(noDraw)
 
     var array, i, j;
 
-    //Render!
-    for(i = 0; i < this.order.length; i++)
+    var order = [];
+    for(i in this.indexes)
     {
-        array = this[this.references[this.order[i]]];
-        for(j = 0; j < this.renderPlace[this.order[i]].length; j++)
+        if(order.indexOf(i) === -1)
         {
-            if(array[this.renderPlace[this.order[i]][j]] !== undefined)
+            order.push(i);
+        }
+    }
+
+    if(this.objectsApplied >= 2)
+    {
+        for(i = 0; i < order.length; i++)
+        {
+            array = this.renderPlace[this[order[i]].name];
+
+            for(j = 0; j < array.length; j++)
             {
-                array[this.renderPlace[this.order[i]][j]].draw();
+                this[order[i]][array[j]].draw();
+            }
+        }
+    }else{
+        for(i = 0; i < order.length; i++)
+        {
+            array = this.renderPlace[this[order[i]].name];
+
+            for(j = 0; j < array.length; j++)
+            {
+                if(this[order[i]][array[j]])
+                {
+                    this[order[i]][array[j]].draw();
+                }
             }
         }
     }
+
+    this.toOrder = order;
 };
 gameObjects.updateLoops = 0;
 gameObjects.counter = -100;
@@ -7628,6 +7657,8 @@ gameObjects.update = function()
             this.lastCheckTime = millis();
         }
     }
+
+    this.objectsApplied++;
 
     gameObjects.apply(messageHandler.active);
 
@@ -10074,6 +10105,11 @@ var Sign = function(xPos, yPos, width, height, colorValue, message, textColor, f
                     },
                 }, "start", "", true);
             }
+
+            if(messageHandler.active)
+            {
+                object.xVel = 0;
+            }
         }
     };
 };
@@ -12433,10 +12469,6 @@ var FireBeaker = function(xPos, yPos, width, height, colorValue)
         if(object.arrayName === "water")
         {
             this.hp -= object.damage * 0.23;
-        }
-        if(object.arrayName === "slope")
-        {
-            this.yPos -= 2;
         }
         this.lastOnCollide(object, info);
     };
@@ -21047,7 +21079,7 @@ game.settings = function()
     textSize(40);
     fill(31, 173, 88);
     textAlign(CENTER, CENTER);
-    text("Settings", 200, 110);
+    text("Debug", 200, 110);
     fill(0, 0, 0, 60);
     rect(75, 0, width - 75 * 2, height);
     fill(0, 0, 0, 100);
@@ -21107,6 +21139,47 @@ game.extras = function()
     this.switchGameState(buttons.settings.clicked(), "settings");
     buttons.sound.draw();
     this.switchGameState(buttons.sound.clicked(), "sound");
+    buttons.other.draw();
+    this.switchGameState(buttons.other.clicked(), "other");
+};
+game.other = function()
+{
+    textSize(40);
+    fill(31, 173, 88);
+    textAlign(CENTER, CENTER);
+    text("Fps", 200, 110);
+    fill(0, 0, 0, 60);
+    rect(75, 0, width - 75 * 2, height);
+    fill(0, 0, 0, 100);
+    textSize(12);
+    text(game.version, 364, 390); 
+
+    buttons.back2.draw();
+    buttons.fps.draw();
+    buttons.fpsType.draw();
+};
+game.other.mousePressed = function()
+{
+    if(buttons.fps.clicked())
+    { 
+        game.fps = {"60": 30, "30": 60}[game.fps.toString()];
+
+        if(game.fps === undefined)
+        {
+            game.fps = 60;
+        }
+
+        game.applyFps();
+        buttons.fps.message = "Fps " + game.fps;
+    }
+    else if(buttons.fpsType.clicked())
+    { 
+        game.fpsType = (game.fpsType === "auto") ? "manual" : "auto";
+        buttons.fpsType.message = ("Fps Type " + game.fpsType);
+    }
+
+
+    game.switchGameState(buttons.back2.clicked(), "extras");
 };
 game.sound = function()
 {

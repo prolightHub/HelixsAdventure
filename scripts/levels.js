@@ -339,6 +339,10 @@ var levels = {
             'b' : {
                 level : "coreGround",
                 symbol : 'a',
+            }, 
+            'c' : {
+                level : "trek",
+                symbol : 'a'
             }
         },
         keys : {
@@ -354,6 +358,9 @@ var levels = {
             },
             'b' : {
                 message : "Seek Caution\nbeyond!",
+            },
+            'c' : {
+                message : "Door leads east."
             }
         },
         plan : [
@@ -366,9 +373,9 @@ var levels = {
             "                                      cccc                           cc      cc              ",
             "                                ii    chhc                          cc        cc             ",
             "                                 i    chhc                                                   ",
-            "                           b  AA  T   cccc     f        cc          Aggg    gggA         p   ",
-            "                          bb Addddddgggggggg  gggg     cii        gggddddAAddddd   hh  b b b ",
-            "                           ddddddibddibddibd  dibd      i     bhh dddddddddddd     hh  S D S ",
+            "                           b  AA  T   cccc     f        cc          Aggg    gggA             ",
+            "                          bb Addddddgggggggg  gggg     cii        gggddddAAddddd   cchhcc c c",
+            "                           ddddddibddibddibd  dibd      i     bhh dddddddddddd     hhcchh S D",
             "             b           Adddddddbbddbbddbbd  dbbd       gggAAbb Adddddddddd       gggggggggg",
             "            bib       i Addbbddddddddddddddd  dddd      gdddddggggdddddddddd        dbbbbbbbd",
             "       b     b       iiddddbbddL    biid             Aggdddddddddddddddddd           ddbbbbbd",
@@ -404,6 +411,53 @@ var levels = {
             "                                      dddddddd   dd         ddd      ddd                     ",
             "                                      dddddddd   dd         ddd      d dd                    ",
         ],
+    },
+    "trek" : {
+        theme : "overworld",
+        background : "spaceFromEarth",
+        doors : {
+            'a' : {
+                level : "behindTheVillage",
+                symbol : 'c'
+            },
+            'b' : {
+                level : "coreGround",
+                symbol : 'a'
+            }, 
+        },
+        plan : [
+            "                                                                       ",
+            "                                                                       ",
+            "                                                             C         ",
+            "                                       C        C                      ",
+            "                                                                       ",
+            "                                                                &      ",
+            "                                                                       ",
+            "                                                      cc         hh   b",
+            "                       C                                              D",
+            "          C                                 cc                 e  r bbb",
+            "                                                        e   r gggbbbbbb",
+            "                                                  E T  gggbbddddddddddd",
+            "                                            TE  gggggggbbbbbbbbbbbbdddd",
+            "                      c c                r gggggddddddddddddddddddddddb",
+            "                       c                 ddddddddddbbbbbbbbbbbbbbbbbbbb",
+            "a                                      ddddbbbbbddbbbbbbbbbbbbbbbbbbbbb",
+            "D f    T                e            ddddbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "gggggggggggg m   m   bPPPb     m   bbddddbbbbbbbbbbbbbbbbbbbbbbbddddddd",
+            "bbbbbbbbbb                         ddddddddddddddddbbbbbbbbbbdddddddddd",
+            "bbbbbbb                         Adddddddddddddddddddddddddddddddddddddd",
+            "                                ddddddddddddddddddddddddddddddddddddddd",
+            "                                ddddddddddddddddddddddddddddddddddddddd",
+            "                              Addddddddddddddddddddd                   ",
+            "                             dddddddddddddddddddddd                    ",
+            "                            A dddddddddddddddddddddd                   ",
+            "                            bbbbdddddddddddddddddd                     ",
+            "                               bb                                      ",
+            "                                                                       ",
+            "                                                                       ",
+            "                                                                       ",
+            "                                                                       "
+        ]
     },
     "coreGround" : {
         theme : "overworld",
@@ -444,7 +498,7 @@ var levels = {
         },
         doors : {
             'a' : {
-                level : "behindTheVillage",
+                level : "trek",
                 symbol : 'b',
             },
             'b' : {
