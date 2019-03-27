@@ -421,7 +421,7 @@ var levels = {
                 symbol : 'c'
             },
             'b' : {
-                level : "trek2",
+                level : "smooth",
                 symbol : 'a'
             },
         },
@@ -459,8 +459,8 @@ var levels = {
             "                                                                       "
         ]
     },
-    "trek2" : {
-        theme : "overworld",
+    "smooth" : {
+        theme : "overworld", 
         background : "spaceFromEarth",
         doors : {
             'a' : {
@@ -468,8 +468,55 @@ var levels = {
                 symbol : 'b'
             },
             'b' : {
+                level : "trek2",
+                symbol : 'a'
+            }
+        },
+        plan : [
+            "                                                                                                                                                                                                                  ",
+            "                                                                                                                                                                                                                  ",
+            "                                                                                                                                                                                                                  ",
+            "                                                                                                                                                                                                                  ",
+            "                                                                                                                                                                                                                  ",
+            "                                                                                                                                                                                                                  ",
+            "                                              r                     r                                                                                                             r                               ",
+            "                      r                       C                     C                                                                                     E                       C                               ",
+            "                      C                                   C                           ccccc                                                        UPPPPPPPP               r                      &       cc     b",
+            "                                      C                                                                                                            Uu   u                  C                      cc      cc     D",
+            "        C                                                                            bPbPbPb                                                       U                                              cc           ggg",
+            "                                                                                                                                      x            U                                                           ddd",
+            "                                                                                                                                     xxE           U                                          &  ggggFFF  FFFddddd",
+            "                                     &                                                                                              PPPP            u   u       cc                          cc   dddd         dddd",
+            "                                                                           pf                                                hh     u          xE                 c            fTEe         cc   dbbd         dddd",
+            "                                                                      &  Ub^^^^bFFF                                                            xx                       c      ggggg             dbbd         dddd",
+            "                              cc  hh                           hhhh      Ub    b              cc                           UPPPP             UPPPP             O               ddbbd  FFF  gggg  dbbd          ddd",
+            "             cc  cc           cc  hh                                     Ub  PPb      N   N        cc                      Uu                Uu     u   u        O  hh  O      ddbbd       dddd  dbbd           dd",
+            "             cc  cc         T           FFF              PPP  b^^^^bFF   Ub    b     bPbPbPb  FF        cc                 U        u        U         PPPP                    ddbbb       Vddd  ddbd           dd",
+            "   cc         e  e gg  m   gggggFFFFbb       Uiii  PPP        b    b      b    b     <     >       FF             x        U                 U         u                       ddbbb        dddAAddbdAAA        dd",
+            "a  cc    er gggggggd        bbb              UdbiE            b    b      b    b     <     >            FF       xxx   xx  U                                oo      O    m  sssddbbbAE      dddddddbdddd        dd",
+            "DT   fpr dddddddddd         Vb               Udbii            b  PPb      bPP  b     <     >                    xxxxx  xx  Uu                 u     u   u                   dddddbbbggg     Vddddddbbbbd        dd",
+            "gggggggddddddddddVV          V               Udbbi            b    b      b    b     <     >                PPPPPPPPPPPPPPPP        u                                       oddddbbbddd      ddddddbbbdd        dd",
+            "dddddddddddddddV                             Udbbi            b    b      b    b     <     >                u   u   u   u       F F     F F F     F    u                 ooooddddbbdbddA     ddddddbbbdd         d",
+            "bbbbbbddddddddV                              Udbbi            b    b      b    b     <     >                                                                                 Vdddbbdbbbg     Vdbbdbbbbbd         d",
+            "bbbbbbbbbddddd                            E  ddbbiE           bPP  b      >  PP<     <     >                                u                 u     u   u                     dddbbdbbbd      dbbbbbbbbb         d",
+            "bbbbbbbbbbbdbbwwwwwwwwwwwwwwwwwwwwwE  wwwwwddddbbii           b    b      >    <     <     >                                        u                                         dddbbbbbbd      dbbbbbbbbb         d",
+            "bbbbbbbbbbbbwwwwwwwE  www E wwwE  w W wwwwwiibbbbiii A             be     >    <     <     >                u   u   u   u                              u                      ddddbbbbbdAAA   Vdbbbbiiii          ",
+            "bbbbbbbbbbbbwwwwwww W www W www W w   wwiiiiibbbbbbiii n   n     e b######b    b     <     >                                                                                  ddbbbbbbbdbbb    dbbbiiiii          ",
+            "bbbbbbbbbbbbbwwwwww   www   www   wwwwwwwiiibbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb     <     >                                u                 u     u   u                     dddddbbbbbbbb      iiiiiii          ",
+            "bbbbbbbbbbbbbbwwwwwwwwwwwwwwwwwwwwwwwwwwwiibbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb*****<     >****************                    ****u   ******    **        ******************dddddbbbbbbbb   c  iiiiiii          ",
+        ],
+    },
+    "trek2" : {
+        theme : "overworld",
+        background : "spaceFromEarth",
+        doors : {
+            'a' : {
+                level : "smooth",
+                symbol : 'b'
+            },
+            'b' : {
                 level : "coreGround",
-                symbol : 'a',
+                symbol : 'a'
             }
         },
         plan : [
@@ -482,7 +529,7 @@ var levels = {
             "                                                                         r         r                                                          &                        ",
             "                                                        r                C         C*                           &                                                      ",
             "                                         r              C                                                                      &                              cc  hh  b",
-            "                               C         C                                                             &                                                              D",
+            "                               C         C                                                             &                                                            p D",
             "                                                            &                          &                                                 e                  b^^^^^^^^^b",
             "                    C                                                                                                                 bPPPPb m    bb    m   bcc       b",
             "    C                                                               c                  c                 hh                            bbb                  b         b",

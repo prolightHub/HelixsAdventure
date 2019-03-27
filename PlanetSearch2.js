@@ -668,6 +668,8 @@ var sketch = function(processing) /*Wrapper*/
         Fixed beaker glitch!
         Updated Moving platforms to not go back and forth when hitting water.
         Added a new level: Trek2!
+        Fixed a minor chest ui bug where the hover won't show.
+        Added a new level smooth!
 
     Next :   
         v0.8.6 -> 
@@ -11020,8 +11022,9 @@ var ItemChest = function(xPos, yPos, width, height)
                                 delete slot_btn.extra;
                             }
 
-                            player_btn.hover = object.inventory.items[i].description || player_btn.hover;
-                            slot_btn.hover = self.goto.items[i].description || slot_btn.hover;
+                            var swap = player_btn.hover;
+                            player_btn.hover = slot_btn.hover;
+                            slot_btn.hover = swap;
 
                             player_btn.firstColor = player_btn.color = (player_btn.message === " - ") ? color(28, 28, 28, 100) : color(12, 60, 160, 100);
                             slot_btn.firstColor = slot_btn.color = (slot_btn.message === " - ") ? color(28, 28, 28, 100) : color(12, 60, 160, 100);
@@ -12092,7 +12095,10 @@ var Enemy = function(xPos, yPos, width, height, colorValue, props, complexDraw, 
             {
                 self.groundBelow = 1;
               
-                self.block.nextToBlock = false;
+                if(self.block)
+                {
+                    self.block.nextToBlock = false;
+                }
             }
         },
         function(cast)
