@@ -665,6 +665,9 @@ var sketch = function(processing) /*Wrapper*/
         The player no longer walks when reading a sign.
         Fixed a few no-rendering glitches, and made the rendering a little bit faster!
         Added fps settings
+        Fixed beaker glitch!
+        Updated Moving platforms to not go back and forth when hitting water.
+        Added a new level: Trek2!
 
     Next :   
         v0.8.6 -> 
@@ -684,7 +687,16 @@ var sketch = function(processing) /*Wrapper*/
     ===========================================================================================================================================================================
 
     Ideas:
-        
+
+    Credits:
+        Sound:
+            Most mp3s by Khan Academy. (In www.kasandbox.org)
+            Other sounds were created by using Bfxr and Chiptone: https://sfbgames.com/chiptone/ (Under CC0 licence)
+        Libraries: processing.js (http://processingjs.org)
+    
+        Levels:
+            All levels made by me, except one by Caleb.
+
     TODO:
         -Star pillars you can travel to
         Still need to make star pillars that you can travel to by selecting which level in an inventory
@@ -7592,14 +7604,20 @@ gameObjects.draw = function(noDraw)
 
     if(this.objectsApplied >= 2)
     {
-        for(i = 0; i < order.length; i++)
-        {
-            array = this.renderPlace[this[order[i]].name];
-
-            for(j = 0; j < array.length; j++)
+        try{
+            for(i = 0; i < order.length; i++)
             {
-                this[order[i]][array[j]].draw();
+                array = this.renderPlace[this[order[i]].name];
+
+                for(j = 0; j < array.length; j++)
+                {
+                    this[order[i]][array[j]].draw();
+                }
             }
+        }
+        catch(e)
+        {
+
         }
     }else{
         for(i = 0; i < order.length; i++)
@@ -9129,6 +9147,7 @@ var MovingPlatform = function(xPos, yPos, width, height, colorValue, direction, 
     };
     
     screenUtils.loadImage(this, true, "movingPlatform" + this.color);
+
     this.updateBoundingBox = function()
     {     
         if(this.outerXVel !== 0)
@@ -9147,16 +9166,55 @@ var MovingPlatform = function(xPos, yPos, width, height, colorValue, direction, 
                     this.boundingBox.width += diff; 
                     if(this.boundingBox.width >= this.boundingBox.maxWidth)
                     {
-                         this.boundingBox.xPos += diff;
+                        this.boundingBox.xPos += diff;
                     }
                 }
             }
             this.boundingBox.width = min(this.boundingBox.maxWidth, this.boundingBox.width);
         }else{
-            this.boundingBox.xPos = this.xPos;  
+            this.boundingBox.xPos = this.xPos;
         }
         this.boundingBox.yPos = this.yPos;
     };
+
+    this.toSetAfter = true;
+    this.setAfter = function()
+    {
+        switch(this.type)
+        {
+            case "blocks":
+                this.color = color(0, 90, 150, 90);
+
+                var s = this.width / 4;
+                this.height = s;
+                this.draw = function() 
+                {
+                    noStroke();
+                    strokeWeight(0.2);
+
+                    var border = 3.5;
+                    var x, y, w, h;
+
+                    for(var i = 0; i < this.width; i += s)
+                    {
+                        x = this.xPos + i;
+                        y = this.yPos;
+
+                        fill(this.color);
+                        rect(x, y, s, s);
+
+                        stroke(0, 0, 10);
+                        fill(0, 0, 10);
+                        rect(x, y, s, border);
+                        rect(x + s - border, y, border, s);
+                        rect(x, y + s - border, s, border);
+                        rect(x, y, border, s)
+                    }
+                };
+                break;
+        }
+    };
+
     this.changedX = 0;
     this.update = (this.physics.movement === "dynamic") ? function()
     {   
@@ -9204,10 +9262,11 @@ var MovingPlatform = function(xPos, yPos, width, height, colorValue, direction, 
 
     this.onCollide = (this.physics.movement === "dynamic") ? function(object)
     {
-        if(this.arrayName === object.arrayName || object.arrayName === "snow")
+        if(this.arrayName === object.arrayName || object.arrayName === "snow" || object.arrayName === "rain")
         {
             return;  
         }
+
         if(object.type === "block" && object.arrayName !== "crate" && (object.arrayName !== "backBlock"))
         {
             this.nextXVel = ((this.xPos > object.xPos) ? this.xSpeed : -this.xSpeed);
@@ -9220,7 +9279,7 @@ var MovingPlatform = function(xPos, yPos, width, height, colorValue, direction, 
             {
                 if(this.changedX <= 0 && this.outerXVel !== 0 && abs(object.xVel) < abs(this.outerXVel) && abs(object.xVel) < this.xSpeed)
                 {
-                    object.xVel = this.outerXVel * 1.1;
+                    object.xPos += this.outerXVel;
                 }
                 if(this.outerYVel < 0)
                 {
@@ -12022,7 +12081,7 @@ var Enemy = function(xPos, yPos, width, height, colorValue, props, complexDraw, 
 
     this.addCastForGroundCheck = function(self, arrayName)
     {
-        gameObjects.getObject("cast").add(self.xPos + self.halfWidth, self.yPos + self.halfHeight, 3, arrayName, function(object)
+        gameObjects.getObject("cast").add(self.xPos + self.halfWidth, self.yPos + self.halfHeight - 1, 3, arrayName, function(object)
         {
             if(object.physics === undefined)
             {
@@ -12032,12 +12091,14 @@ var Enemy = function(xPos, yPos, width, height, colorValue, props, complexDraw, 
             if(/*object.physics.shape === "rect" &&*/ object.type !== "lifeform" && object.arrayName !== self.arrayName)
             {
                 self.groundBelow = 1;
+              
+                self.block.nextToBlock = false;
             }
         },
         function(cast)
         {
             cast.xPos = self.xPos + self.halfWidth;  
-            cast.yPos = self.yPos + self.height - 1;
+            cast.yPos = self.yPos + self.halfHeight - 1;
         }, false, Infinity);
         self.groundCast = gameObjects.getObject("cast").getLast();
         self.groundCast.setPos(self.groundCast);
@@ -12117,6 +12178,8 @@ var Enemy = function(xPos, yPos, width, height, colorValue, props, complexDraw, 
 
     this.onHandleBlock = function(object, info) {};
 
+    this.marginRight = 0;
+
     this.handleBlock = function(object, info)
     {
         if(this.onHandleBlock(object, info))
@@ -12132,6 +12195,10 @@ var Enemy = function(xPos, yPos, width, height, colorValue, props, complexDraw, 
         }
         else if(info.side === "up")
         {
+            if(this.block && this.marginRight <= this.block.xPos)
+            {
+                this.marginRight = this.block.xPos;
+            }
             this.block = object;
         }
     };
@@ -12165,7 +12232,8 @@ var Enemy = function(xPos, yPos, width, height, colorValue, props, complexDraw, 
                 {
                     this.handleLeft();
                 }
-                else if(inBetweenX >= this.block.xPos + this.block.width)
+                else if(inBetweenX >= this.block.xPos + this.block.width && !this.block.nextToBlock && 
+                       this.marginRight < this.block.xPos + this.block.width)
                 {
                     this.handleRight();
                 }
@@ -15291,6 +15359,7 @@ var Player = function(xPos, yPos, width, height, colorValue)
 
     this.xFire = (random(0, 1) < 0.5) ? -1 : 1;
     this.backwards = true;
+    this.autoRun = true;
 
     this.controls = {
         left : function()
@@ -20074,8 +20143,15 @@ levels.build = function(plan)
                     break;
 
                 case 'm' :
-                    gameObjects.getObject("movingPlatform").add(xPos, yPos, levelInfo.unitWidth, levelInfo.unitHeight, color(200, 200, 20), "up");
-                    gameObjects.getObject("movingPlatform").getLast().xSpeed = 1.5;
+                    if(levelInfo.theme !== "winter")
+                    {
+                        gameObjects.getObject("movingPlatform").add(xPos, yPos, levelInfo.unitWidth, levelInfo.unitHeight, color(200, 200, 20), "up");
+                        gameObjects.getObject("movingPlatform").getLast().xSpeed = 1.5;
+                    }else{
+                        var platform = gameObjects.getObject("movingPlatform").add(xPos, yPos, levelInfo.unitWidth * 3 - levelInfo.unitWidth * 0.6, levelInfo.unitHeight, color(200, 200, 20), "up");
+                        platform.xSpeed = 1.6;
+                        platform.type = "blocks";
+                    }
                     break;
 
                 case 'M' :
