@@ -1197,7 +1197,7 @@ var levels = {
         plan : [
             "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
             "b                              ddd                                2  2222222222 U bbbb",
-            "b                              d*d    p                           2  2222222222 U bbbb",
+            "b                              d*d                                2  2222222222 U bbbb",
             "QQQQQQQUUQQQQQQQQQQQQQQQQQQQUUQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQbbbbbbbbbbbb U bbbb",
             "Q               11             d*d                       chch     Q  bbbbbbbbbb U bbbb",
             "Q              X><X            ddd                       hchc     Q  bbbbbbbbbb U bbbb",
@@ -1214,7 +1214,7 @@ var levels = {
             "QbbUUbbbvvvvvvvvvvvvvvvvvxvvvbUd*d                                Q  bbbbbbbbbb U bbbb",
             "Q                        x    Uddd                 sss            Q  bbbbbbbbbb U bbbb",
             "Qa a                     x    Ud*d   a       cPd                  Q  bbbbbbbbbb U bbbb",
-            "QD S  bUUbbbbbbbbbUUbbbbbbbbbUUddd   [  f    DPD                  Q  bbbbbbbbbccUccbbb",
+            "QDpS  bUUbbbbbbbbbUUbbbbbbbbbUUddd   [  f    DPD                  Q  bbbbbbbbbccUccbbb",
             "QQQQQQQUUQQQQQQQQQUUQQQQQQQQQUUQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQbbbbbbbbbbbccUccbbb",
             "b                              ddd                                b  bbbbbbbbchhUhhcbb",
             "b                              ddd                                b  bbbbbbbbchhUhhcbb",
@@ -2503,30 +2503,179 @@ var levels = {
                 level : "entry",
                 symbol : 'b'
             },
+            'b' : {
+                level : "fold2",
+                symbol : 'a'
+            }
         },
         plan : [
-            "                                                                   ",
-            "                                                                   ",
-            "      s                                      s                     ",
-            "      C                          s           C             s       ",
-            "                        s        C                         C       ",
-            "                        C                                          ",
-            "                                                                   ",
-            "                                                   7               ",
-            "                               7                                   ",
-            "                                                                   ",
-            "                                                                   ",
-            "                                                                   ",
-            "a                                                                  ",
-            "D  p  __ ____ _8______    8 ____________ ___8______  _QQ__________ ",
-            "``9````````````9````````````9````````````9```````````9````````````9",
-            "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
-            "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww",
-            "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww",
-            "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww",
-            "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww",
-            "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww",
-            "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+            "                                                                                           ",
+            "                                                                              s            ",
+            "      s                                      s                                C            ",
+            "      C                          s           C             s         s                     ",
+            "                        s        C                         C         C                     ",
+            "                        C                                                                  ",
+            "                                                                                           ",
+            "                                                   7                                       ",
+            "                               7                                           E               ",
+            "           E                                               E           PPPPP               ",
+            "           PPPPP                                        PPPP                               ",
+            "                                                                                           ",
+            "a                                                                                         b",
+            "D  p  __ ____ _8______T   8 ____  TT____ ___8______  _QQ__________          ____   T   f  D",
+            "``9````````````9````````````9````````````9```````````9````````````9```````````9```````````9",
+            "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
+            "wwwwwwwwwwwwwwwwwwwwwwwwwwIIIIwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww",
+            "wwwwwwwwwwwwwwwwwwwwwwwwwwwwIIIwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwWWWWWWWWWWWWWWWwwwwwwww",
+            "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww",
+            "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww",
+            "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww",
+            "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        ]
+    },
+    "fold2" : {
+        theme : "winter",
+        addArraysToSave : ["cloudMine"],
+        doors : {
+            'a' : {
+                level : "fold",
+                symbol : 'b'
+            },
+            'b' : {
+                level : "fold2",
+                symbol : 'c'
+            },
+            'c' : {
+                level : "fold2",
+                symbol : 'b'
+            },
+            'd' : {
+                level : "fold2",
+                symbol : 'e'
+            },
+            'e' : {
+                level : "fold2",
+                symbol : 'd'
+            },
+            '*' : {
+                level : "fold2",
+                symbol : '$'
+            },
+            '$' : {
+                level : "fold2",
+                symbol : '*'
+            },
+            'x' : {
+                level : "fold2",
+                symbol : 'y'
+            },
+            'y' : {
+                level : "fold2",
+                symbol : 'x'
+            },
+            'z' : {
+                level : "fold2",
+                symbol : 'u'
+            },
+            'u' : {
+                level : "fold2",
+                symbol : 'z'
+            },
+            '1' : {
+                level : "fold2",
+                symbol : '2'
+            },
+            '2' : {
+                level : "fold2",
+                symbol : '1'
+            },
+            '3' : {
+                level : "fold2",
+                symbol : '4'
+            },
+            '4' : {
+                level : "fold2",
+                symbol : '3',
+                locked : true
+            },
+            '?' : {
+                level : "excape",
+                symbol : 'a',
+            }
+        },
+        signs : {
+            'a' : {
+                message : "Drop down!"
+            }
+        },
+        itemChests : {
+            'a' : {
+                items : [{
+                    contains : "meal"
+                }, {
+                    contains : "fairy"
+                }, {
+
+                }, {
+
+                }]
+            },
+            'b' : {
+                items : [{
+                    contains : "goldbar"
+                }, {
+
+                }, {
+
+                }, {
+                    
+                }]
+            },
+        },
+        plan : [
+            "9~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~9",
+            "~               4      z                                                                   I     7                           I                         ~",
+            "~               D      D                                                                   I                7                I                         ~",
+            "~           U9````````````9U                                                               I                                 I                         ~",
+            "~           U              U                                                               9~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~9UU                       ~",
+            "~           U              U                             hh         cc         hh      cc  ~                   i*            ~UU                       ~",
+            "~      8    U              U   8                            kk k          k      k         ~                   i*            ~UU                       ~",
+            "9~~~~~~~~~~~~9vvvvvvvvvvvv9~~~~~~~~~~~~9~~~~~~~~~~~~9wwwiiiwwwwwwwwiiiiwwwwwwwwiiiwwwwwiiiw~   $          b   xi*           1~UU                       ~",
+            "~                                                   ~wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww~   D          D   Di*           D~UU                       ~",
+            "~                                                   ~wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww~iiiiiiiiFFFFi`````~**~~~~~~~~~~~~9~~~~~~~~~~~~9~~~~~~~~~~UU9",
+            "~a   hhh                            d               ~wwwwwww66666wwwwwwwwwwwwwwwwwwwwwwwwww        i    i     ~*~            ~                       UU~",
+            "~D   hhh                            D               ~wwwwwwwwwwww66666wwwwwwwwwwwwwwwwwwwww  ccccc i    i     ~*~            ~                       UU~",
+            "9~~~~~~~~~~~~9````````````9~~~~~~~~~~~~9FFFFFFFFFFFF9~~~~~~9vvv9~~~~~~~~~~~~~~~~~~~~~~~~~~~9 ccccc i    i     ~*~            ~                       UU~",
+            "~                         ~      7     ~                   >   <                           ~ ccccc iFFFFi     ~*~            ~                       UU~",
+            "~                         ~            ~                   >ae <                           ~ ccccc i    i      *             9^^^^UU9~~~~~9~~~~~~~~~~~~9",
+            "~c                        ~           b~                   >SD <                           ~ ccccc i    i     ~*~            ~    UU~                  ~",
+            "~D                     sss~           ]~                   9^^^9                           ~ ccccc iFFFFi     ~*~            ~    UU~      ?           ~",
+            "9~~~~~~~UU~~~9~~~~~~~~~~~~9~~~~~UU~~~~~9                                                   ~ ccccc i    i     ~~~           u~    UU~      D   3       ~",
+            "~      7UU   ~                  UU     ~                                                   ~ ccccc i    i           p       D~    UU~         34    U  ~",
+            "~  7    UU   ~                  UU     ~                                                   ~ ccccc iFFFFiiiiiiiiiiiiiiiiiiiiii    UU~        334    U  ~",
+            "~a      UU   ~                  UU    y~                                                  *~ ccccc i                         I    UU~2      3334    U 3~",
+            "~]      UU   ~                  UU    D~        8                        8                D~       i                         I    UU~D     44344    U D~",
+            "9~~~~~~~~~~~~9~~~~~~~~~~~~9~~~~~~~~~~~~9```````````````````````````````````````````````````9^^^^^^^iFFFFiiiiiiiiiiiiiiiiiiiiiiiii^^^9~~~~~~~~~~~~~~~~~~9",
+        ]
+    },
+     "excape" : {
+        theme : "winter",
+        doors : {
+            'a' : {
+                level : "fold2",
+                symbol : '?'
+            }
+        },
+        plan : [
+            "                                           ",
+            "                                           ",
+            "                                           ",
+            "                                           ",
+            "a                                          ",
+            "D                                          ",
+            "```````````````````````````````````````````",
+            "                                           ",
+            "                                           ",
         ]
     },
     "locked_In" : {
@@ -2619,7 +2768,7 @@ var levels = {
     },
     "test" : {
         theme : "winter",
-        background : "underground",
+        background : "winter",
         doors : {
             'a' : {
                 level : "test2",
@@ -2687,6 +2836,13 @@ var levels = {
                 }
             }
         },
+        itemChests : {
+            'a' : {
+                items : [{
+                    contains : "fairy"
+                }]
+            }
+        },
         plan : [
             "                                               ",
             "                                               ",
@@ -2695,11 +2851,11 @@ var levels = {
             "                                               ",
             "                                               ",
             "                                               ",
-            "    b   m    b         m            b          ",
+            "                       m            b          ",
             "                                               ",
             "                                          wwwww",
-            "    a                                     wwwww",
-            " f  D  p             ``~~99              wwwwww",
+            "    a       a       eeee                  wwwww",
+            " f  D  p T  ]        ``~~99   ####       wwwwww",
             "gggggggggggggggg   gggggggggggggggggggggggggggg",
             "bbbbbbbbbbbbbbbb   bbbbbbbbbbbbbbbbbbbbbbbbbbbb",
         ],
@@ -2736,11 +2892,11 @@ var levels = {
             "                                               ",
             "                                               ",
             "                                               ",
+            "                                   s           ",
             "                                               ",
             "                                               ",
             "                                               ",
-            "                                               ",
-            "                                               ",
+            "                                   s           ",
             "                                               ",
             "                                               ",
             "                                               ",

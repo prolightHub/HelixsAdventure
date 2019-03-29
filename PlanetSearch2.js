@@ -670,6 +670,10 @@ var sketch = function(processing) /*Wrapper*/
         Added a new level: Trek2!
         Fixed a minor chest ui bug where the hover won't show.
         Added a new level smooth!
+        Added an override settings option!
+        Added a different type of tree, the fur tree!
+        We now have fairies!
+        We now have have level fold2!
 
     Next :   
         v0.8.6 -> 
@@ -697,7 +701,7 @@ var sketch = function(processing) /*Wrapper*/
         Libraries: processing.js (http://processingjs.org)
     
         Levels:
-            All levels made by me, except one by Caleb.
+            All levels made by me, except one by my brother.
 
     TODO:
         -Star pillars you can travel to
@@ -745,7 +749,7 @@ var game = {
     boundingBoxes : false,
     debugMenuWhite : true,
 
-    overrideDebugSettings : false, // This doesn't do anything yet...
+    overrideDebugSettings : true
 };
 var levelInfo = {
     level : "intro", //Default = "intro"
@@ -4366,6 +4370,13 @@ var usableItems = {
     "energy" : {
         nonDrop : true,
         description : "Can be used to power up chests.",
+        appropriate : function()
+        {
+            return false;
+        }
+    },
+    "fairy" : {
+        description : "Automatically heals you when you die",
         appropriate : function()
         {
             return false;
@@ -8884,17 +8895,73 @@ var Pillar = function(xPos, yPos, width, height, colorValue, pillarBlock)
 };
 gameObjects.addObject("pillar", createArray(Pillar));
 
-var Tree = function(xPos, yPos, width, height)
+var Tree = function(xPos, yPos, width, height, type)
 {
     Rect.call(this, xPos, yPos, width, height);
 
     this.physics.solidObject = false;
-    this.img = trees.createTree(this.width, this.height, 3, 3);
 
-    this.draw = function()
+    switch(type)
     {
-        image(this.img, this.xPos, this.yPos + 5, this.width, this.height);
-    };
+        case "fur":
+            var t_tn = 0.1;
+
+            this._img = createGraphics(this.width, this.height + 30, P2D);
+
+            this.loadDraw = function()
+            {
+                physics.getMiddleXPos(this);
+                physics.getMiddleYPos(this);
+
+                this._img.beginDraw();
+                this._img.noStroke();
+
+                var yPos = 0;
+                var xPos = 0;
+                var middleXPos = xPos + this.width / 2;
+
+                this._img.fill(128, 85, 49);
+                this._img.rect(floor(middleXPos - this.width * t_tn), floor(yPos + this.height * 0.4), floor(this.width * t_tn * 2), floor(this.height));
+
+                var h = this.height * 0.4;
+                var hWidth = this.width * 0.67 * 0.5;
+
+                this._img.pushMatrix();
+                this._img.translate(0, 40);
+                for(var y = 0; y < 3; y++)
+                {
+                    this._img.fill(0, 110, 48);
+                    this._img.triangle(middleXPos, yPos, floor(middleXPos - hWidth + y * 1), yPos + h, floor(middleXPos + hWidth - y * 1), yPos + h);
+
+                    this._img.fill(0, 133, 50);
+                    this._img.triangle(middleXPos, yPos, middleXPos, yPos + h, floor(middleXPos + hWidth - y * 1), yPos + h);
+
+                    this._img.translate(0, -20);
+                }
+                this._img.popMatrix();
+                this._img.endDraw();
+            };
+
+            this.toSetAfter = true;
+            this.setAfter = function()
+            {
+                this.loadDraw();
+                this.draw = function()
+                {
+                    image(this._img, this.xPos, this.yPos);
+                };
+            };
+            break;
+
+        default:
+            this.img = trees.createTree(this.width, this.height, 3, 3);
+
+            this.draw = function()
+            {
+                image(this.img, this.xPos, this.yPos + 5, this.width, this.height);
+            };
+            break;
+    }
 };
 gameObjects.addObject("tree", createArray(Tree));
 
@@ -11360,7 +11427,7 @@ var CloudMine = function(xPos, yPos, diameter)
             this.physics.movement = "static";
         }
 
-        if(object.type === "block" && object.arrayName !== "block" &&
+        if(object.type === "block" && object.arrayName !== "block" && object.imageName !== "cathodes2" && object.imageName !== "up" && 
            object.arrayName !== "oneWay" && object.arrayName !== "movingPlatform" && 
            object.arrayName !== "cloud" && object.arrayName !== "crate" && object.arrayName !== "hardCaseBlock" && !object.explosive)
         {
@@ -15839,6 +15906,35 @@ var Player = function(xPos, yPos, width, height, colorValue)
             this.restart = true;
         }
         
+        if(this.dead && this.hp <= 0)
+        {
+            try{
+                var fairyIndex = -1;
+                this.inventory.items.some(function(element, index, array)
+                {
+                    if(element.contains === "fairy")
+                    {
+                        fairyIndex = index;
+                        return true;
+                    }
+                });
+
+                if(fairyIndex >= 0 && this.yPos < levelInfo.yPos + levelInfo.height)
+                {
+                    this.dead = false;
+                    this.revive();
+                    this.yVel -= 3;
+
+                    this.inventory.items[fairyIndex] = {};
+                    return;
+                }
+            }
+            catch(e)
+            {
+                console.log(e);
+            }
+        }
+
         if(this.dead || (this.restart && this.controls.restart())) //or 'r'
         {
             if(!this.dead || this.yPos >= levelInfo.yPos + levelInfo.height)
@@ -20014,9 +20110,16 @@ levels.build = function(plan)
                     break;
                 
                 case 'T' :
-                    var w = levelInfo.unitWidth * 2;
-                    var h = levelInfo.unitHeight * random(4, 6);
-                    gameObjects.getObject("tree").add(xPos, yPos - (h -  levelInfo.unitHeight), w, h);
+                    if(levelInfo.theme !== "winter")
+                    {
+                        var w = levelInfo.unitWidth * 2;
+                        var h = levelInfo.unitHeight * random(4, 6);
+                        gameObjects.getObject("tree").add(xPos, yPos - (h - levelInfo.unitHeight), w, h);
+                    }else{
+                        var w = levelInfo.unitWidth * 2;
+                        var h = levelInfo.unitHeight * 3.6;
+                        gameObjects.getObject("tree").add(xPos, yPos - (h - levelInfo.unitHeight), w, h, "fur");
+                    }
                     break;
 
                 case 'i' :
@@ -20862,6 +20965,29 @@ game.loadSaveAfterLoad = function()
         }
         this._ft_autoRun = true;
 
+        if(!this._ft_settings && this.data.settings && !game.overrideDebugSettings)
+        {
+            var lastFps = game.fps;
+            game.fps = this.data.settings.fps || game.fps;
+            game.fpsType = this.data.settings.fpsType || game.fpsType;
+
+            if(!game.fps)
+            {
+                game.fps = 60;
+            }
+
+            if(lastFps !== game.fps)
+            {
+                game.applyFps();
+            }
+
+            game.debugMode = (this.data.settings.debugMode !== undefined) ? this.data.settings.debugMode : game.debugMode;
+            game.showDebugPhysics = (this.data.settings.showDebugPhysics !== undefined) ? this.data.settings.showDebugPhysics : game.showDebugPhysics;
+            game.boundingBoxes = (this.data.settings.boundingBoxes !== undefined) ? this.data.settings.boundingBoxes : game.boundingBoxes;
+ 
+            this.ft_settings = true;
+        }
+
         player.discoveredPowers = this.data.player.discoveredPowers || player.discoveredPowers;
         player.discoveredPowersHandler.init();
         player.discoveredPowersHandler.setChangePowers();
@@ -21049,6 +21175,15 @@ game.save = function(checkPoint)
         delete player.crystals[i].object;
     }
 
+    var saveSettings = (!game.overrideDebugSettings) ? {
+        fps : game.fps,
+        fpsType : game.fpsType,
+        debugMode : game.debugMode,
+        showDebugPhysics : game.showDebugPhysics,
+        boundingBoxes : game.boundingBoxes
+    }
+    : ((this.data || {}).settings || {});
+
     var success = saver.overWriteSaveData(saver.current.saveDataName, {
         name : saver.current.name,
         level : player.goto.checkPointLevel || levelInfo.level,
@@ -21069,6 +21204,7 @@ game.save = function(checkPoint)
             discoveredPowers : player.discoveredPowers,
             currentPower : player.discoveredPowersHandler.currentPower,
         },
+        settings : saveSettings,
         doors : this.usedDoors || {},
         openedChests : openedChests,
         custom : this.customSaveData || {},
@@ -21251,7 +21387,6 @@ game.other.mousePressed = function()
             game.fps = 60;
         }
 
-        game.applyFps();
         buttons.fps.message = "Fps " + game.fps;
     }
     else if(buttons.fpsType.clicked())
@@ -21260,6 +21395,7 @@ game.other.mousePressed = function()
         buttons.fpsType.message = ("Fps Type " + game.fpsType);
     }
 
+    game.applyFps();
 
     game.switchGameState(buttons.back2.clicked(), "extras");
 };
