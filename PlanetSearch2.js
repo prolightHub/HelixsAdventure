@@ -77,7 +77,7 @@ var sketch = function(processing) /*Wrapper*/
 /**   Hybrid Game Engine (Planet Search 2)  **/
 /**
     @Author Prolight
-    @Version 0.8.4 beta (84% complete)
+    @Version 0.8.5 beta (85% complete)
 
         64+ gameObjects!
 
@@ -674,6 +674,12 @@ var sketch = function(processing) /*Wrapper*/
         Added a different type of tree, the fur tree!
         We now have fairies!
         We now have have level fold2!
+        Finished level fold2.
+        Changed the special "up" image from '~' to all of '<', '>', '^' and 'v'.
+        We now have the Sonic boomer!
+
+    * 0.8.5
+        
 
     Next :   
         v0.8.6 -> 
@@ -742,7 +748,7 @@ var game = {
     fps : 60, 
     loadFps : 140,
     gameState : "start", //Default = "start"
-    version : "v0.8.4 beta",
+    version : "v0.8.5 beta",
     fpsType : "manual", //Default = "manual"
     debugMode : true, //Turn this to true to see the fps
     showDebugPhysics : false,
@@ -5128,6 +5134,44 @@ var screenUtils = {
             this.timer = 0;
         }
     },
+    shakeOffX : 0,
+    shakeOffY : 0,
+    lastShakeTime : millis(),
+    shakeTime : 0,
+    newShakeScreen : function(time, intensityX, intensityY, shakeInterval)
+    {
+        this.shakeTime = time;
+        this.intensityX = intensityX;
+        this.intensityY = intensityY;
+
+        this.lastShakeTime = millis();
+        this.shakeInterval = shakeInterval || 0;
+    },
+    manageShake : function()
+    {
+        if(millis() - this.lastShakeTime > this.shakeTime)
+        {
+            this.shaking = false;
+            this.shakeOffX = 0;
+            this.shakeOffY = 0;
+            this.shakeTime = 0;
+            return;
+        }
+
+        this.shaking = true;
+
+        if(!this.shakeInterval || millis() - this.lastShakeChangeTime > this.shakeInterval)
+        {
+            this.shakeOffX = random(-this.intensityX, this.intensityX);
+            this.shakeOffY = random(-this.intensityY, this.intensityY);
+            this.lastShakeChangeTime = millis();
+        }
+
+        if(this.shakeOffX && this.shakeOffY)
+        {
+            translate(this.shakeOffX, this.shakeOffY);
+        }
+    },
     rumble : function()
     {
         if(!sounds.getSound("rumble.mp3").paused)
@@ -8828,6 +8872,8 @@ var BackBlock = function(xPos, yPos, width, height, colorValue)
 
         image(this.img, this.xPos, this.yPos);
     };
+
+    this.notExplosive = true;
 };
 gameObjects.addObject("backBlock", createArray(BackBlock));
 
@@ -9691,6 +9737,8 @@ var ImageBlock = function(xPos, yPos, width, height, imageName)
         }
         catch(e) { }
     };
+
+    this.notExplosive = true;
 };
 gameObjects.addObject("imageBlock", createArray(ImageBlock));
 
@@ -13306,6 +13354,204 @@ var CatDogStatue = function(xPos, yPos, width, height)
 };
 gameObjects.addObject("catDogStatue", createArray(CatDogStatue));
 
+var SonicBoomer = function(xPos, yPos, diameter, colorValue)
+{
+    DynamicCircle.call(this, xPos, yPos, diameter)
+    this.physics.solidObject = false;
+
+    this.gravity = 0;
+
+    this.color = colorValue || color(152, 0, 30, 120);
+
+    this.booming = false;
+    this.boomCounter = 0;
+
+    this.explosion = {
+        diameter : 0,
+        diameter2 : 0,
+    };
+
+    var sz = 0.6;
+
+    var self = this;
+
+    this.darkThings = [];
+    this.darkThings.add = function(xPos, yPos, diameter, xVel, yVel)
+    {
+        this.push({
+            xPos : xPos,
+            yPos : yPos,
+            diameter : diameter,
+            xVel : xVel,
+            yVel : yVel
+        });
+    };
+    this.darkThings.draw = function()
+    {
+        for(var i = this.length - 1; i >= 0; i--)
+        {
+            var darkThing = this[i];
+
+            fill(0, 0, 0, 30);
+            ellipse(darkThing.xPos, darkThing.yPos, darkThing.diameter, darkThing.diameter);
+
+            darkThing.xPos += darkThing.xVel;
+            darkThing.yPos += darkThing.yVel;
+        }
+    };
+
+    this.draw = function()
+    {
+        noStroke();
+
+        if(!this.booming)
+        {
+            fill(this.color);
+            ellipse(this.xPos, this.yPos, this.diameter, this.diameter);
+            return;
+        }
+
+        fill(this.color);
+        ellipse(this.xPos, this.yPos, this.diameter * 0.4, this.diameter * 0.4);
+
+        fill(132, 4, 100, 120);
+        ellipse(xPos, yPos, this.explosion.diameter, this.explosion.diameter);
+
+        fill(132, 4, 100, 120);
+        ellipse(xPos, yPos, this.explosion.diameter * 1.2, this.explosion.diameter * 1.2);
+
+        this.explosion.diameter += 45 * sz;
+
+        if(this.explosion.diameter > 1200 * sz)
+        {
+            this.explosion.diameter = -Infinity;
+        }
+
+        fill(50, 4, 200, 123);
+        ellipse(xPos, yPos, this.explosion.diameter2, this.explosion.diameter2);
+
+        this.explosion.diameter2 += 20 * sz;
+
+        if(this.explosion.diameter2 > 1200 * sz)
+        {
+            this.explosion.diameter2 = -Infinity;
+        }
+
+        this.diameter = this.explosion.diameter2 / 4;
+        this.radius = this.diameter / 2;
+
+        this.darkThings.draw();
+    };
+
+    this.startBoom = function(object)
+    {
+        screenUtils.newShakeScreen(600, 7, 7);
+
+        this.boomCounter = 30;
+        sounds.mplaySound("whoo.wav");
+        sounds.mplaySound("explosion.mp3");
+
+        this.gravity = 4;
+        this.hitObject = object;
+
+        this.yVel = -10;
+
+        this.booming = true;
+
+        this.diameter = 60;
+
+        var a, i;
+        for(i = 0; i < 120; i++)
+        {
+            a = radians(random(0, 360));
+            this.darkThings.add(this.xPos, this.yPos, random(2, 7), cos(a) * random(4, 5) * 4, sin(a) * random(4, 5) * 4);
+        }
+    };
+
+    var lastUpdate = this.update;
+    this.update = function()
+    {
+        this.boomCounter--;
+
+        if(this.booming && this.boomCounter <= 14)
+        {
+            var exploder = gameObjects.getObject("dynamicCircle").add(xPos, yPos, this.diameter * 2.2);
+            cameraGrid.addReference(exploder);
+            exploder.draw = function() {};
+            exploder.physics.solidObject = false;
+            exploder.update = function() {};
+            exploder.onCollide = function(object)
+            {
+                if(object.physics.movement === "static" && object.physics.shape === "rect" && object.arrayName !== "dynamicCircle")
+                {
+                    if(!object.notExplosive)
+                    {
+                        object.remove();
+                        return;
+                    }
+                }
+            };
+        }
+
+        if(this.hitObject && this.boomCounter < 0)
+        {
+            this.booming = false;
+
+            var flypis = gameObjects.getObject("flypi");
+            for(var i = 0; i < 56; i++)
+            {
+                cameraGrid.addReference(flypis.add(xPos, yPos, round(random(4, 8)), color(0, 0, 200, 100)));
+            }
+
+            this.onCollide = function() {};
+            this.draw = function() {};
+            this.remove();
+
+            this.update = function() {};
+        }
+
+        return lastUpdate.apply(this, arguments);
+    };
+
+    this.damage = 5;
+
+    this.onCollide = function(object)
+    {
+        if(object.arrayName === this.arrayName)
+        {
+            object.hitObject = this.hitObject;
+        }
+
+        if(object.physics.movement === "static" && object.physics.shape === "rect")
+        {
+            if(!object.notExplosive)
+            {
+                object.remove();
+                return;
+            }
+        }
+
+        if(object.physics.movement === "dynamic")
+        {
+            if(!this.exploding)
+            {
+                if(object.hp)
+                {
+                    object.hp -= this.damage;
+                    var angle = atan2(object.xVel, object.yVel);
+                    object.yVel = -sin(angle) * 30 || object.yVel;
+                    object.xVel = -cos(angle) * 30 || object.xVel;
+                }
+
+                this.startBoom(object);
+
+                this.exploding = true;
+            }
+        }
+    };
+};
+gameObjects.addObject("sonicBoomer", createArray(SonicBoomer));
+
 //Ninja Star, specific to the Ninja.
 var NinjaStar = function(xPos, yPos, diameter, colorValue)
 {
@@ -16836,6 +17082,8 @@ var HardCaseBlock = function(xPos, yPos, width, height, colorValue)
             object.hp = min(object.hp, object.maxHp);
         }
     };  
+
+    this.notExplosive = true;
 };
 gameObjects.addObject("hardCaseBlock", createArray(HardCaseBlock));
 
@@ -17631,6 +17879,7 @@ var Cloud = function(xPos, yPos, width, height, colorValue, weather, cloudType, 
     this.snow = createArray(Snow);
 
     this.alpha = 255;
+    this.notExplosive = true;
 
     this.setColor = function()
     {
@@ -20164,10 +20413,6 @@ levels.build = function(plan)
                     gameObjects.getObject("imageBlock").add(xPos, yPos, levelInfo.unitWidth, levelInfo.unitHeight, "dark"); 
                     break;
 
-                case '`' :
-                    gameObjects.getObject("imageBlock").add(xPos, yPos, levelInfo.unitWidth, levelInfo.unitHeight, "up").physics.sides = { up : true }; 
-                    break;
-
                 case '~' :
                     gameObjects.getObject("imageBlock").add(xPos, yPos, levelInfo.unitWidth, levelInfo.unitHeight, "cathodes2"); 
                     break;
@@ -20215,6 +20460,10 @@ levels.build = function(plan)
                     
                 case '+' :
                     gameObjects.getObject("net").add(xPos, yPos, levelInfo.unitWidth, levelInfo.unitHeight);
+                    break;
+
+                case '`' :
+                    gameObjects.getObject("sonicBoomer").add(xPos + levelInfo.unitWidth / 2, yPos + levelInfo.unitWidth / 2, levelInfo.unitWidth);
                     break;
 
                 case 'n' : 
@@ -20303,12 +20552,58 @@ levels.build = function(plan)
                     break;
 
                 case '<' : case '>' : case '^' : case 'v' :
-                    gameObjects.getObject("oneWay").add(xPos, yPos, levelInfo.unitWidth, levelInfo.unitHeight, color(120, 96, 81), ({
+                    var oneWay = gameObjects.getObject("oneWay").add(xPos, yPos, levelInfo.unitWidth, levelInfo.unitHeight, color(120, 96, 81), ({
                         '<' : "left",
                         '>' : "right",
                         '^' : "up",
                         'v' : "down"
                     }[level.plan[row][col]]));
+
+                    if(level.specialOneWays)
+                    {
+                        switch(level.plan[row][col])
+                        {
+                            case '<' :
+                                oneWay.draw = function()
+                                {
+                                    pushMatrix();
+                                    translate(this.xPos, this.yPos + this.height);
+                                    rotate(270);
+                                    image(loadedImages["up"], 0, 0, this.width, this.height);
+                                    popMatrix();
+                                };
+                                break;
+
+                            case '>' :
+                                oneWay.draw = function()
+                                {
+                                    pushMatrix();
+                                    translate(this.xPos + this.width, this.yPos);
+                                    rotate(90);
+                                    image(loadedImages["up"], 0, 0, this.width, this.height);
+                                    popMatrix();
+                                };
+                                break;
+
+                            case '^' :
+                                oneWay.draw = function()
+                                {
+                                    image(loadedImages["up"], this.xPos, this.yPos, this.width, this.height);
+                                };
+                                break;
+
+                            case 'v' :
+                                oneWay.draw = function()
+                                {
+                                    pushMatrix();
+                                    translate(this.xPos, this.yPos + this.height);
+                                    scale(1, -1);
+                                    image(loadedImages["up"], 0, 0, this.width, this.height);
+                                    popMatrix();
+                                };
+                                break;
+                        }
+                    }
                     break;
 
                 case 'l' : case 'r' : case 'L' : case 'R' :
@@ -21967,6 +22262,7 @@ game.play = function(noDraw)
 {
     pushMatrix();
         cam.view();
+        screenUtils.manageShake();
         backgrounds.drawForeground();
         gameObjects.update();
         gameObjects.draw(noDraw);
