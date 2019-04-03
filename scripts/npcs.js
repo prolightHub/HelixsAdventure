@@ -58,7 +58,7 @@ var npcData = {
                 }
             },
             "Yes" : {
-                message : "Did you know you can press 'k' or 'x'\nto toggle running?",
+                message : "Did you ever notice that even in the day\nyou can always see the moon?",
                 choices : {
                     "next" : "..."
                 }

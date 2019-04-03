@@ -679,7 +679,13 @@ var sketch = function(processing) /*Wrapper*/
         We now have the Sonic boomer!
 
     * 0.8.5
-        
+        Made deflected Ninja Stars do more damage.
+        Fixed weird graphics for a moving platform in the winter theme.        
+        Changed level fold2 to be easier!
+        Disabled zooming in option.
+        Removed text about the zooming in option.
+        Fixed bug with snowblocks travel too far.
+        Upgraded the Ninja Guard to avoid voxelizers.
 
     Next :   
         v0.8.6 -> 
@@ -7028,7 +7034,7 @@ var Camera = function(xPos, yPos, width, height)
                     this.scaleVel = abs(this.scaleVel);
                 }
             }
-        }
+       }
 
         this.scale += this.scaleVel;
         this.scale = constrain(this.scale, 0, this.maxScale);
@@ -9325,6 +9331,8 @@ var MovingPlatform = function(xPos, yPos, width, height, colorValue, direction, 
                         rect(x, y + s - border, s, border);
                         rect(x, y, border, s)
                     }
+
+                    noStroke();
                 };
                 break;
         }
@@ -13636,6 +13644,7 @@ var NinjaStar = function(xPos, yPos, diameter, colorValue)
                 {
                     this.blockedByPlayer = true;
                     this.life += 200;
+                    this.damage = 2;
                 }
             }
 
@@ -15725,7 +15734,7 @@ var Player = function(xPos, yPos, width, height, colorValue)
         },
         toggleZoom : function()
         {
-            return (keys.x || keys.k);
+            // return (keys.x || keys.k);
         },
         zoom : function()
         {
@@ -16885,6 +16894,8 @@ var Voxelizer = function(xPos, yPos, width, height, colorValue)
     this.lastXDeacl = this.xDeacl;
     this.lastYDeacl = this.yDeacl;
 
+    this.lastBouncedTime = 0;
+
     var lastUpdate = this.update;
     this.update = function()
     {
@@ -16912,6 +16923,11 @@ var Voxelizer = function(xPos, yPos, width, height, colorValue)
         this.xDeacl = this.lastXDeacl;
         this.yDeacl = this.lastYDeacl;
 
+        if(millis() - this.lastBouncedTime < 2400)
+        {
+            this.following = 4;
+        }
+
         switch(this.following)
         {
             case 0 : case 2 :
@@ -16934,6 +16950,16 @@ var Voxelizer = function(xPos, yPos, width, height, colorValue)
                     this.xVel = cos(a) * 3;
                     this.yVel = sin(a) * 3;
                 }
+                break;
+
+            case 4 :
+                this.target = gameObjects.getObject("player")[0];
+
+                var a = atan2(physics.getMiddleYPos(this.target) - this.middleYPos, 
+                              physics.getMiddleXPos(this.target) - this.middleXPos);
+
+                this.xVel = cos(a) * -3.7;
+                this.yVel = sin(a) * -3.7;
                 break;
 
             default :
@@ -16994,9 +17020,16 @@ var Voxelizer = function(xPos, yPos, width, height, colorValue)
         if(this.target && object.arrayName === this.target.arrayName && 
             object.arrayName !== this.arrayName)
         {
-            object.takeDamage(this);
-            object.xVel += this.xVel * 0.5;
-            object.yVel += this.yVel * 0.5;
+            var avoided = object.takeDamage(this)
+
+            if(!avoided)
+            {
+                object.xVel += this.xVel * 0.5;
+                object.yVel += this.yVel * 0.5;
+            }else{
+                this.lastBouncedTime = millis();
+                this.xVel = this.yVel = 0;
+            }
         }
 
         return lastOnCollide.apply(this, arguments);
@@ -17599,17 +17632,20 @@ var SnowBlock = function(xPos, yPos, width, height, colorValue, layoutType)
         this.checkRect.physics.solidObject = false;
         this.checkRect.physics.movement = "dynamic";
 
-        this.checkRect.boundingBox.xPos += 1;
-        this.checkRect.boundingBox.yPos += 1;
-        this.checkRect.boundingBox.width -= 2;
-        this.checkRect.boundingBox.height -= 2;
+        this.checkRect.boundingBox.xPos += 2;
+        this.checkRect.boundingBox.yPos += 2;
+        this.checkRect.boundingBox.width -= 4;
+        this.checkRect.boundingBox.height -= 4;
+
+        this.checkRect.draw = function() {};
 
         this.checkRect.timer = 0;
         this.checkRect.update = function()
         {
-            if(this.timer >= 2)
+            if(this.timer >= 3)
             {
                 self.moveDir = direction;
+               
                 self.busyChecking = false;
                 this.remove();
                 this.onCollide = function() {};
@@ -17617,13 +17653,12 @@ var SnowBlock = function(xPos, yPos, width, height, colorValue, layoutType)
 
             this.timer++;
         };
-
         this.checkRect.onCollide = function(object)
         {
             physics.getMiddleXPos(self);
             physics.getMiddleXPos(object);
 
-            if(object.arrayName === self.arrayName && object.yPos === this.yPos)
+            if(object.arrayName === self.arrayName && object.yPos === this.yPos && object.index !== self.index)
             {
                 object.checkIfSafe(direction);
             }
@@ -17662,33 +17697,67 @@ var SnowBlock = function(xPos, yPos, width, height, colorValue, layoutType)
         }
     };
 
+    this.lastMoveDir = "";
+
     this.update = function()
     {
         this.xVel = 0;
         this.yVel = 0;
 
-        if(this.moveDir === "left")
+        if(this.lastMoveDir !== "" && this.moveDir !== "")
         {
-            this.xPos -= this.width;
-            cameraGrid.addReference(this);
             this.moveDir = "";
         }
-        else if(this.moveDir === "right")
+        else if(!this.lastMoved)
         {
-            this.xPos += this.width;
-            cameraGrid.addReference(this);
+            this.busyChecking = false;
+        }
+
+        if(this.lastMoved)
+        {
             this.moveDir = "";
-        }else{
-            this.oyVel += this.gravity;
-            this.oyVel = constrain(this.oyVel, -this.maxOYVel, this.maxOYVel);
+            this.busyChecking = true;
+        }
 
-            this.yPos += this.oyVel;
+        this.lastMoved = false;
 
-            this.oxVel = constrain(this.oxVel, -this.maxOXVel, this.maxOXVel);
-            this.xPos += this.oxVel;
+        if(!this.busyChecking)
+        {
+            if(this.moveDir === "left")
+            {
+                this.xPos -= this.width;
+                cameraGrid.addReference(this);
+                this.moveDir = "";
+
+                this.lastMoved = true;
+            }
+            else if(this.moveDir === "right")
+            {
+                this.xPos += this.width;
+                cameraGrid.addReference(this);
+                this.moveDir = "";
+
+                this.lastMoved = true;
+            }else{
+                this.oyVel += this.gravity;
+                this.oyVel = constrain(this.oyVel, -this.maxOYVel, this.maxOYVel);
+
+                this.yPos += this.oyVel;
+
+                this.oxVel = constrain(this.oxVel, -this.maxOXVel, this.maxOXVel);
+                this.xPos += this.oxVel;
+            }
         }
 
         this.updateBoundingBox();
+    };
+
+    this.updateBoundingBox = function()
+    { 
+        this.boundingBox.xPos = this.xPos + 2;
+        this.boundingBox.yPos = this.yPos + 2;
+        this.boundingBox.width = this.width - 4;
+        this.boundingBox.height = this.height - 4;
     };
 
     this.updateBoundingBox = function()
@@ -17731,11 +17800,13 @@ var SnowBlock = function(xPos, yPos, width, height, colorValue, layoutType)
                 if(object.lastXPos > object.xPos)
                 {
                     this.checkIfSafe("left");
+                    this.recheck = false;
                 }
             }else{
                 if(object.lastXPos < object.xPos)
                 {
                     this.checkIfSafe("right");
+                    this.recheck = false;
                 }
             }
 
@@ -18180,16 +18251,23 @@ var NinjaGuard = function(xPos, yPos, diameter)
         {
             var diff = millis() - power.hitStartedTime;
 
-            if((hitObject.arrayName === "ninjaStar" || hitObject.arrayName === "launchBall" || hitObject.arrayName === "wispIce") && power.on)
+            if(power.on)
             {
-                return (diff > 15 && diff < 450);
+                if(hitObject.arrayName === "ninjaStar" || hitObject.arrayName === "launchBall" || hitObject.arrayName === "wispIce")
+                {
+                    return (diff > 16 && diff < 450);
+                }
+                else if(hitObject.arrayName === "voxelizer")
+                {
+                    return true;
+                }
             }
 
             return false;
         },
         update : function(object, power)
         {
-            if(millis() - power.startTime > 450)
+            if(millis() - power.startTime > 500)
             {
                 if(power.on)
                 {
@@ -20513,8 +20591,15 @@ levels.build = function(plan)
                     break;
 
                 case 'M' :
-                    gameObjects.getObject("movingPlatform").add(xPos, yPos, levelInfo.unitWidth, levelInfo.unitHeight, color(200, 200, 20), "up");
-                    gameObjects.getObject("movingPlatform").getLast().ySpeed = 1.5;
+                    if(levelInfo.theme !== "winter")
+                    {
+                        gameObjects.getObject("movingPlatform").add(xPos, yPos, levelInfo.unitWidth, levelInfo.unitHeight, color(200, 200, 20), "up");
+                        gameObjects.getObject("movingPlatform").getLast().ySpeed = 1.5;
+                    }else{
+                        var platform = gameObjects.getObject("movingPlatform").add(xPos, yPos, levelInfo.unitWidth * 3 - levelInfo.unitWidth * 0.6, levelInfo.unitHeight, color(200, 200, 20), "up");
+                        platform.ySpeed = 1.6;
+                        platform.type = "blocks";
+                    }
                     break;
 
                 case 'c' : 

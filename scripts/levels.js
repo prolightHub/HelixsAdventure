@@ -63,8 +63,8 @@ var levels = {
                 message : "Press 't' if you\n can't read a sign.",
             },
             'k' : {
-                message : "Press 'x' to dash /\n zoom in and out.",
-                adjustW : 120
+                message : "You can also press the\nspacebar to do extra stuff!",
+                adjustW : 130
             },
             'x' : {
                 message : "You can even press 'e'\nto open your inventory!",
@@ -324,7 +324,7 @@ var levels = {
             "b      U     b",
             "b      U     b",
             "ba     U  a  b",
-            "bD     U  @  b",
+            "bD   p U  @  b",
             "bbbbbbbbbbbbbb",
         ],
     },
@@ -959,8 +959,8 @@ var levels = {
             "                                                                        U       UP PbbP PU       U  c              bb   dii",
             "      A           A           A           A           A             p  |U  f |  U| PDDP |U  |    U| D f            bb   Dii",
             "                                                                    bPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPgggddggggdd",
-            "                                                                 bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
-            "a                          a     b     d     c     e          bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "   h     c     h     c                                           bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "a  h     c     h     c     a     b     d     c     e          bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
             "D  p  |     |     |     |  S  |  S  |  S  |  S  |  S  |    bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
             "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
             "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
@@ -2394,8 +2394,8 @@ var levels = {
             "vvvvvvvvvvvvvvvvvvvvvdUbb11111bbbbbbbbbbbbbbbbbbbbbbb",
             "d    hh    cc         Ubb1111ddbbbbbbbbbbbbbbbbbbbbbb",
             "D    hh    cc         Ubb11111bbbbbbbbbbbbbbbbbbbbbbb",
-            "^^^^^^^^^^^^^^^^^^^^^dUbb11111bbbbbbbbbbbbbbbbbbbbbbb",
-            "bbbbbbbbbbbb111111111dUbb11111bbbbbbbbbbbbbbbbbbbbbbb",
+            "^^^^^^^^^^^^^^^^^^^^^ddbb11111bbbbbbbbbbbbbbbbbbbbbbb",
+            "bbbbbbbbbbbb111111111ddbb11111bbbbbbbbbbbbbbbbbbbbbbb",
         ],
     },
     "entry" : {
@@ -2446,7 +2446,7 @@ var levels = {
                 }, {
                     contains : "bubbleShield",
                 }, {
-
+                    
                 }, {
                     contains : "meal"
                 }, {
@@ -2454,7 +2454,7 @@ var levels = {
                 }, {
 
                 }, {
-
+                    contains : "fairy"
                 }, {
 
                 }, {
@@ -2485,10 +2485,10 @@ var levels = {
             "iiiiiiiiiiiiiiiiiiiiiiiiiii11111111111111111111iPPPPPPPiiiissiiiiiiiiiiiiiiiiiiiiiiiiiiii",
             "wwwwwwwwwwwwwWWWWWWww1111www1111111111111111111111111111111111111111111111111111111111111",        
             "wwwwwwwwwWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWiiii1111111111111111111111111111111111111111111111",
-            "wwwwwwwwwWWW11111WWWWWWWWWWWWWWWWWWWWWWiiiii1111Wwww1111111111111111111111111111111111111",
+            "wwwwwwwwwWWWwwwwwWWWWWWWWWWWWWWWWWWWWWWiiiii1111Wwww1111111111111111111111111111111111111",
             "wwwwwwwwWWWWww111111111111111111111WWWWWWWWWWwwwW1111111111111111111111111111111111111111",
             "1111111WWWw111111111111111111111111WWW1111111111WWW11111111111111111111111111111111111111",
-            "1111111wwWW1111111111111111111111111     111111111111111111111111111111111111111111111111",
+            "1111wwwwwWW1111111111111111111111111     111111111111111111111111111111111111111111111111",
             "1111cwwwwWW1111111111111111111111111         z 111111111111111111111111111111111111111111",
             "1111DwwwwWW11111111111111111111111111111     ] 111111111111111111111111111111111111111111",
             "1111bbbbbbbb11111111111111111111111111111111111111111111111111111111111111111111111111111"
@@ -2642,20 +2642,20 @@ var levels = {
             "~           U              U                                                               9~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~9UU                       ~",
             "~           U              U                             hh         cc         hh      cc  ~                   i*            ~UU                       ~",
             "~      8    U              U   8                            kk k          k      k         ~                   i*            ~UU                       ~",
-            "9~~~~~~~~~~~~9vvvvvvvvvvvv9~~~~~~~~~~~~9~~~~~~~~~~~~9wwwiiiwwwwwwwwiiiiwwwwwwwwiiiwwwwwiiiw~   $          b   xi*           1~UU                       ~",
+            "9~~~~~~~~~~~~9~~~~~vv~~~~~9~~~~~~~~~~~~9~~~~~~~~~~~~9wwwiiiwwwwwwwwiiiiwwwwwwwwiiiwwwwwiiiw~   $          b   xi*           1~UU                       ~",
             "~                                                   ~wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww~   D          D   Di*           D~UU                       ~",
             "~                                                   ~wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww~iiiiiiiiFFFFi^^^^^~**~~~~~~~~~~~~9~~~~~~~~~~~~9~~~~~~~~~~UU9",
             "~a   hhh                            d               ~wwwwwww66666wwwwwwwwwwwwwwwwwwwwwwwwww        i    i     ~*~            ~                       UU~",
             "~D   hhh                            D               ~wwwwwwwwwwww66666wwwwwwwwwwwwwwwwwwwww  ccccc i    i     ~*~            ~                       UU~",
-            "9~~~~~~~~~~~~9^^^^^^^^^^^^9~~~~~~~~~~~~9FFFFFFFFFFFF9~~~~~~9vvv9~~~~~~~~~~~~~~~~~~~~~~~~~~~9 ccccc i    i     ~*~            ~                       UU~",
-            "~                         ~      7     ~                   >   <                           ~ ccccc iFFFFi     ~*~            ~                       UU~",
-            "~                         ~            ~                   >ae <                           ~ ccccc i    i      *             9^^^^UU9~~~~~9~~~~~~~~~~~~9",
-            "~c                        ~           b~                   >SD <                           ~ ccccc i    i     ~*~            ~    UU~     4            ~",
-            "~D                     sss~           ]~                   9^^^9                           ~ ccccc iFFFFi     ~*~            ~    UU~     b?           ~",
-            "9~~~~~~~UU~~~9~~~~~~~~~~~~9~~~~~UU~~~~~9                                                   ~ ccccc i    i     ~~~           u~    UU~      D           ~",
-            "~      7UU   ~                  UU     ~                                                   ~ ccccc i    i           p       D~    UU~         3     U  ~",
-            "~  7    UU   ~                  UU     ~                                                   ~ ccccc iFFFFiiiiiiiiiiiiiiiiiiiiii    UU~        33     U  ~",
-            "~a      UU   ~                  UU    y~                                                  *~ ccccc >                         I    UU~2      334     U 3~",
+            "9~~~~~~~~~~~~9^^^^^^^^^^^^9~~~~~~~~~~~~9FFFFFFFFFFFF9~~~~~~9~~~9~~~~~~~~~~~~~~~~~~~~~~~~~~~9 ccccc i    i     ~*~            ~                       UU~",
+            "~                         ~      7     ~                   ~   ~                           ~ ccccc iFFFFi     ~*~            9^^^^UU9~~~~~9~~~~~~~~~~~~9",
+            "~                         ~            ~                   ~ae ~                           ~ ccccc i    i      *             ~    UU~   U              ~",
+            "~c                        ~           b~                   ~SD ~                           ~ ccccc i    i     ~*~            ~    UU~   U 4            ~",
+            "~D                     sss~           ]~                   9~~~9                           ~ ccccc iFFFFi     ~*~            ~    UU~   U b?           ~",
+            "9~~~~~~~UU~~~9~~~~~~~~~~~~9~~~~~UU~~~~~9                                                   ~ ccccc i    i     ~~~           u~    UU~   U  D           ~",
+            "~      7UU   ~                  UU     ~                                                   ~ ccccc i    i           p       D~    UU~   U     3     U  ~",
+            "~  7    UU   ~                  UU     ~                                                   ~ ccccc iFFFFiiiiiiiiiiiiiiiiiiiiii    UU~   U    33     U  ~",
+            "~a      UU   ~                  UU    y~                                                  *~ ccccc >                         I    UU~2  U   334     U 3~",
             "~]      UU   ~                  UU    D~        8                        8                D~       >                         I    UU~D     4434     U D~",
             "9~~~~~~~~~~~~9~~~~~~~~~~~~9~~~~~~~~~~~~9^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^9^^^^^^^iFFFFiiiiiiiiiiiiiiiiiiiiiiiii^^^9~~~~~~~~~~~~~~~~~~9",
         ]
@@ -2679,11 +2679,11 @@ var levels = {
             "                                                                                       ",
             "                                                                                       ",
             "                                                                                       ",
-            "        iiiiiii                                                                        ",                                       
-            "        iibbbii                                                                        ",                                       
-            "           `bii                                                                        ",                                        
-            "a       iibbbii                                                                        ",                                       
-            "D  f    iiii~~~ ~~~                                                                    ",                                        
+            "                                                                                       ",                                       
+            "                                                                                       ",                                       
+            "                                                                                       ",                                        
+            "a                                                                                      ",                                       
+            "D  f   8                                                                               ",                                        
             "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^",
             "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
             "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
@@ -2804,7 +2804,7 @@ var levels = {
         chests : {
             'a' : {
                 drops : [{
-                    contains : "ninjaStarShooter",
+                    contains : "ninjaGuard",
                     total : true,
                 }],
             },
@@ -2865,12 +2865,12 @@ var levels = {
             "                                               ",
             "                                               ",
             "                                               ",
+            "                                   7           ",
             "                                               ",
-            "                       m            b          ",
-            "                                               ",
-            "                                          wwwww",
-            "    a       a       eeee                  wwwww",
-            " f  D  p T  ]        ^^~~99   ####       wwwwww",
+            "                           7                   ",
+            "                                      bbbbbb   ",
+            "    a                       a                  ",
+            " f  D         T     bbbbb p [                  ",
             "gggggggggggggggg   gggggggggggggggggggggggggggg",
             "bbbbbbbbbbbbbbbb   bbbbbbbbbbbbbbbbbbbbbbbbbbbb",
         ],
