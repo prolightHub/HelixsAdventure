@@ -23,7 +23,7 @@ var sketch = function(processing) /*Wrapper*/
         keyIsPressed = false;
     };
 
-    function getImage(s) 
+    function getImage(s)
     {
         var url = "https ://www.kasandbox.org/programming-images/" + s + ".png";
         processing.externals.sketch.imageCache.add(url);
@@ -686,6 +686,7 @@ var sketch = function(processing) /*Wrapper*/
         Removed text about the zooming in option.
         Fixed bug with snowblocks travel too far.
         Upgraded the Ninja Guard to avoid voxelizers.
+        Added boss room door.
 
     Next :   
         v0.8.6 -> 
@@ -10417,6 +10418,21 @@ var Door = function(xPos, yPos, width, height, colorValue)
         textAlign(CENTER, CENTER);
         textSize(30);
         text(this.symbol, this.xPos + this.width * 0.5, this.yPos + this.height * 0.4);
+
+        if(this.goto.style === "boss")
+        {
+            textSize(15);
+            fill(220, 0, 0, 40);
+            text("!", this.xPos + this.width * 0.5, this.yPos + this.height * 0.76);
+            noStroke();
+
+            fill(220, 0, 0, 70);
+            arc(this.xPos, this.yPos, 20, 20, radians(0), radians(90));
+            arc(this.xPos + this.width, this.yPos, 20, 20, radians(90), radians(180));
+
+            arc(this.xPos, this.yPos + this.height, 20, 20, radians(270), radians(360));
+            arc(this.xPos + this.width, this.yPos + this.height, 20, 20, radians(180), radians(270));
+        }
     };
 
     this.update = function()

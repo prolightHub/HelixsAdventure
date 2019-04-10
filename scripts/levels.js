@@ -1630,6 +1630,7 @@ var levels = {
             'b' : {
                 level : "ninjaTempleBossRoom",
                 symbol : 'a',
+                style : "boss"
             },
             'c' : {
                 level : "ninjaTempleHub",
@@ -2663,6 +2664,7 @@ var levels = {
      "excape" : {
         theme : "winter",
         specialOneWays : true,
+        removeArraysToSave: ["ice"],
         doors : {
             'a' : {
                 level : "fold2",
@@ -2682,8 +2684,8 @@ var levels = {
             "                                                                                       ",                                       
             "                                                                                       ",                                       
             "                                                                                       ",                                        
-            "a                                                                                      ",                                       
-            "D  f   8                                                                               ",                                        
+            " a                                                                                     ",                                       
+            " D f       T  T                                                                        ",                                        
             "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^",
             "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
             "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
