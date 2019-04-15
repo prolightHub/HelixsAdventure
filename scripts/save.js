@@ -254,3 +254,36 @@ function isEmpty(obj)
 
     return true;
 }
+
+var convertToBinary = function(obj)
+{
+    for(var i in obj)
+    {
+        var newArr = [];
+
+        obj[i].forEach(function(element, index)
+        {
+            newArr.push(element ? 1 : 0);
+        });
+
+        obj[i] = newArr;
+    }
+
+    return obj;
+};
+var convertToBoolean = function(obj)
+{
+    for(var i in obj)
+    {
+        var newArr = [];
+
+        obj[i].forEach(function(element, index)
+        {
+            newArr.push(element ? true : false);
+        });
+
+        obj[i] = newArr;
+    }
+
+    return obj;
+};

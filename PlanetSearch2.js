@@ -688,6 +688,15 @@ var sketch = function(processing) /*Wrapper*/
         Upgraded the Ninja Guard to avoid voxelizers.
         Added boss room door.
 
+    * 0.8.6
+        Added extra defense against 20 player hp bug.
+        Changed rectangle on score text to extend.
+        Made readspeed and inventoryMenu opening speed the same in 30 fps.
+        Made the debugTool not be openable in non-debugMode
+        Removed streaks.update function from voxelizer.
+        Changed objectExists from bool form to binary/number form to save space in localstorage!
+        Fixed save file bug where save file button goes down according to screen scaling.
+
     Next :   
         v0.8.6 -> 
             Do something about the underwater level. It doesn't make sense for the player to not have the oxygen bar.
@@ -705,16 +714,20 @@ var sketch = function(processing) /*Wrapper*/
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     ===========================================================================================================================================================================
 
-    Ideas:
-
     Credits:
         Sound:
             Most mp3s by Khan Academy. (In www.kasandbox.org)
             Other sounds were created by using Bfxr and Chiptone: https://sfbgames.com/chiptone/ (Under CC0 licence)
-        Libraries: processing.js (http://processingjs.org)
+            Libraries: processing.js (http://processingjs.org)
     
+        Code:
+            CookieHandler object and isEmpty function in saver.js 
+            and browserDetection.js were made by their respectable authors on stackoverflow :)
+
         Levels:
-            All levels made by me, except one by my brother.
+            All levels made by ProlightHub, except one by my brother.
+
+        All other code is by (Me) ProlightHub on Github & Phantom Falcon on Khan Academy! 
 
     TODO:
         -Star pillars you can travel to
@@ -753,7 +766,7 @@ var sketch = function(processing) /*Wrapper*/
 
 var game = {
     fps : 60, 
-    loadFps : 140,
+    loadFps : 160,
     gameState : "start", //Default = "start"
     version : "v0.8.5 beta",
     fpsType : "manual", //Default = "manual"
@@ -761,7 +774,7 @@ var game = {
     showDebugPhysics : false,
     boundingBoxes : false,
     debugMenuWhite : true,
-
+    
     overrideDebugSettings : true
 };
 var levelInfo = {
@@ -1235,6 +1248,7 @@ var saveDataHandler = {
         {
             saveName += this.getNumName();
         }
+        
         saver.newSaveData(saveName, name, replace, replaceName);
         saveDataHandler.createSaveBtn(saveName, saver.saveData);
         buttons.load(this.saveFiles);
@@ -1347,7 +1361,8 @@ var saveDataHandler = {
     {
         var btnWidth = 130;
         var btnHeight = 75;
-        var btn = new Button(HALF_WIDTH - btnWidth / 2, height / 1.9 - btnHeight / 2, btnWidth, btnHeight, color(0, 0, 0, 100), data[input].name);
+
+        var btn = new Button(HALF_WIDTH - btnWidth / 2, HALF_HEIGHT * 2 / 1.9 - btnHeight / 2, btnWidth, btnHeight, color(0, 0, 0, 100), data[input].name);
         btn.lastDraw = btn.draw;
         btn.saveFileName = input;
         btn.name = data[input].name;
@@ -1395,6 +1410,8 @@ var saveDataHandler = {
     },
 };
 saveDataHandler.load();
+
+window.saveDataHandler = saveDataHandler;
 
 var Slider = function(xPos, yPos, width, height, colorValue, message)
 {
@@ -1666,7 +1683,7 @@ var TextBox = function(xPos, yPos, width, height, colorVal, secondColorValue, te
             this.input.pop();
             keyReleased();
         }
-        else if(keyCode !== SHIFT && key.toString() !== "￿")
+        else if(keyCode !== SHIFT && key.toString() !== "￿" && key.toString() !== "\n")
         {
             this.input.push(key.toString());
         }
@@ -1775,6 +1792,11 @@ var MessageBox = function(xPos, yPos, width, height, colorValue)
             if(!this.doneReading)
             {
                 this.counter += this.readSpeed;
+
+                if(game.fps <= 40)
+                {
+                    this.counter += this.readSpeed;
+                }
             }
 
             if(this.counterFull)
@@ -1815,6 +1837,11 @@ var MessageBox = function(xPos, yPos, width, height, colorValue)
                 msg = msg.slice(0, val);
 
                 this.counter += this.readSpeed;
+
+                if(game.fps <= 40)
+                {
+                    this.counter += this.readSpeed;
+                }
             }
             text(msg, this.xPos + 10, this.yPos + 20);
         }
@@ -4549,6 +4576,12 @@ var inventoryMenu = {
             this.slideY -= this.slideVel;
             this.slideVel += this.slideAcl;
 
+            if(game.fps <= 36)
+            {
+                this.slideY -= this.slideVel;
+                this.slideVel += this.slideAcl / 2;
+            }
+
             if(this.slideY < this.minY)
             {
                 this.slideY = this.minY;
@@ -4559,6 +4592,12 @@ var inventoryMenu = {
         {
             this.slideY += this.slideVel;
             this.slideVel += this.slideAcl;
+
+            if(game.fps <= 36)
+            {
+                this.slideY += this.slideVel;
+                this.slideVel += this.slideAcl / 2;
+            }
 
             if(this.slideY > this.maxY)
             { 
@@ -5333,9 +5372,7 @@ var screenUtils = {
             
             textAlign(NORMAL, CENTER);
             fill(0, 12, 12, 150);
-            rect(125, 0, 140, screenUtils.infoBar.height, 10);
-            fill(230, 230, 230, 100);
-
+           
             var sp = "    ";
 
             if(player.coins)
@@ -5350,7 +5387,12 @@ var screenUtils = {
                 }
             }
 
-            text("Coins " + (player.coins || 0) + sp + "Score " + (player.score || 0), 130, screenUtils.infoBar.height - 8);
+            var csText = "Coins " + (player.coins || 0) + sp + "Score " + (player.score || 0);
+
+            rect(125, 0, textWidth(csText) + 12, screenUtils.infoBar.height, 10);
+            fill(230, 230, 230, 100);
+
+            text(csText, 130, screenUtils.infoBar.height - 8);
             
             var lvl = screenUtils.filterLevel(levelInfo.level);
 
@@ -14488,7 +14530,7 @@ gameObjects.addObject("spaceBreaker", createArray(SpaceBreaker));
 var Boss = function(xPos, yPos, width, height, colorValue, props, what, hp)
 {
     Enemy.call(this, xPos, yPos, width, height, colorValue, props, what, hp);
-    this.scoreValue = 1000;
+    this.scoreValue = 2600;
     this.isBoss = true;
 };
 
@@ -14496,7 +14538,7 @@ var NinjaBoss = function(xPos, yPos, width, height)
 {
     Boss.call(this, xPos, yPos, width, height, color(150, 20, 220, 240), {
         charging : true,
-    }, false, 15);
+    }, false, 14);
 
     this.damage = 0.5;
 
@@ -14838,6 +14880,8 @@ var NinjaBoss = function(xPos, yPos, width, height)
             heart.minimumYPos = levelInfo.yPos + levelInfo.unitHeight * 11;
 
             cameraGrid.addReference(heart);
+
+            this.remove = function() {};
         }
     };
 
@@ -16888,13 +16932,6 @@ var Voxelizer = function(xPos, yPos, width, height, colorValue)
 
         noStroke();
     };
-    this.streaks.update = function()
-    {
-        for(var i = 0; i < this.length; i++)
-        {
-            var streak = this[i];
-        }
-    };
 
     this.lastStreakTime = 0;
     this.nextStreakTime = 800;
@@ -16922,8 +16959,6 @@ var Voxelizer = function(xPos, yPos, width, height, colorValue)
             this.lastStreakTime = millis();
             this.nextStreakTime = random(20, 80);
         }
-
-        this.streaks.update();
 
         if((millis() + this.timeOffset) - this.lastFollowTime > this.nextFollowTime)
         {
@@ -21325,7 +21360,7 @@ game.loadSave = function(saveDataName)
         {
             for(var level in this.configAreas[area].levels)
             {
-                levels[level].cache.objectsExists = this.configAreas[area].levels[level].objectsExists;
+                levels[level].cache.objectsExists = convertToBoolean(this.configAreas[area].levels[level].objectsExists || {});
             }
         }
     }
@@ -21542,9 +21577,9 @@ game.save = function(checkPoint)
     {
         for(var level in this.configAreas[area].levels)
         {
-            this.configAreas[area].levels[level].objectsExists = (
+            this.configAreas[area].levels[level].objectsExists = convertToBinary(
                 levels[level].cache.objectsExists ||
-                this.configAreas[area].levels[level].objectsExists);
+                this.configAreas[area].levels[level].objectsExists || {});
         }
     }
 
@@ -21991,6 +22026,8 @@ game.selectSaveFile.keyPressed = function()
             textBoxes.naming.edit();
             keys = [];
         }
+
+        ENTER_KEY = false;
     }
     else if(game.selectSaveFile.newSave)
     {
@@ -22395,7 +22432,7 @@ game.play = function(noDraw)
 };
 game.play.keyPressed = function()
 {
-    if(keys[F12] && (!game.cutScening || debugTool.active))
+    if(keys[F12] && (!game.cutScening || debugTool.active) && game.debugMode)
     {
         debugTool.active = !debugTool.active;
         game.cutScening = debugTool.active;
