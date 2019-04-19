@@ -4,6 +4,7 @@ var sounds = {
     settings : {
         off : false,
         mainVolume : 0.5,
+        song: true
     },
     addSound : function(str, type, volume, returnIt)
     {
@@ -65,13 +66,16 @@ var sounds = {
             sound.play();
         }
     },
-    stopSound : function(str)
+    stopSound : function(str, noStartOver)
     {
         var sound = this.getSound(str);
         if(sound !== undefined)
         {
             sound.loop = false;
-            sound.currentTime = sound.duration;
+            if(!noStartOver)
+            {
+                sound.currentTime = sound.duration;
+            }
             sound.pause();
         } 
     },

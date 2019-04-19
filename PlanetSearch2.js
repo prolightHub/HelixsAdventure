@@ -77,7 +77,7 @@ var sketch = function(processing) /*Wrapper*/
 /**   Hybrid Game Engine (Planet Search 2)  **/
 /**
     @Author Prolight
-    @Version 0.8.5 beta (85% complete)
+    @Version 0.8.6 beta (86% complete)
 
         64+ gameObjects!
 
@@ -699,6 +699,7 @@ var sketch = function(processing) /*Wrapper*/
         Added Music 3 different kinds.
         Added more sound code for supporting music/songs.
         Updated sound just a little more.
+        Added per level/configLevel music and a song/music on/off button.
 
     Next :   
         v0.8.6 -> 
@@ -772,7 +773,7 @@ var game = {
     fps : 60, 
     loadFps : 160,
     gameState : "start", //Default = "start"
-    version : "v0.8.5 beta",
+    version : "v0.8.6 beta",
     fpsType : "manual", //Default = "manual"
     debugMode : true, //Turn this to true to see the fps
     showDebugPhysics : false,
@@ -1021,6 +1022,7 @@ var buttons = {
     sound : new Button(160, 245, 80, 25, BTN_COLOR, "Sound"),
     other : new Button(160, 280, 80, 25, BTN_COLOR, "Fps"),
     volumeOn : new Button(160, 230, 80, 25, BTN_COLOR, "Volume"),
+    music : new Button(160, 195, 80, 25, BTN_COLOR, "Music"),
     debugMode : new Button(145, 185, 110, 25, BTN_COLOR, "DebugMode " + game.debugMode),
     debugPhysics : new Button(145, 220, 110, 25, BTN_COLOR, "DebugPhysics " + game.showDebugPhysics || false),
     boundingBoxes : new Button(145, 255, 110, 25, BTN_COLOR, "BoundingBoxes"),
@@ -20336,6 +20338,9 @@ levels.applySettings = function(level)
 
     levelInfo.backgroundDarkGrid = (level.backgroundDarkGrid || configLevel.backgroundDarkGrid);
     screenUtils.useInverseCircle = level.hideScreen || configLevel.hideScreen;
+
+    levelInfo.lastSong = levelInfo.currentSong || "";
+    levelInfo.currentSong = level.song || configLevel.song || "";
 },
 levels.build = function(plan)
 {
@@ -21085,6 +21090,11 @@ loader.loadLevel = function(level, step, levelStep)
             break;
             
         case 4 :
+            if(levelInfo.currentSong !== levelInfo.lastSong)
+            {
+                sounds.playSound(levelInfo.currentSong, true);
+            }
+
             var player = gameObjects.getObject("player").input(0);
             cam.attach(function()
             {
@@ -21454,20 +21464,31 @@ game.loadSaveAfterLoad = function()
         }
     }
 
-    /*Sound save-loading*/
-    if(typeof this.data.soundPercent === "number")
+    if(!this.revertFirst)
     {
-        sounds.setMainVolume(this.data.soundPercent / 100);
-        this.percent = this.data.soundPercent / 100;
-    }
-    if(typeof this.data.soundOff === "boolean")
-    {
-        sounds.settings.off = this.data.soundOff;
-
-        for(var i in sounds.sounds)
+        /*Sound save-loading*/
+        if(typeof this.data.soundPercent === "number")
         {
-            sounds.sounds[i].muted = (sounds.settings.off);
+            sounds.setMainVolume(this.data.soundPercent / 100);
+            this.percent = this.data.soundPercent / 100;
         }
+        if(typeof this.data.soundOff === "boolean")
+        {
+            sounds.settings.off = this.data.soundOff;
+
+            for(var i in sounds.sounds)
+            {
+                sounds.sounds[i].muted = (sounds.settings.off);
+            }
+        }
+        if(typeof this.data.soundSong === "boolean")
+        {
+            sounds.settings.song = this.data.soundSong;
+
+            game.sound.applySongs();
+        }
+
+        this.revertFirst = true;
     }
 
     saver.current.loaded = true;
@@ -21633,6 +21654,7 @@ game.save = function(checkPoint)
         dead : player.dead,
         soundPercent : sounds.getMainVolume() * 100,
         soundOff : sounds.settings.off,
+        soundSong : sounds.settings.song,
         player : {
             autoRun : player.autoRun,
             coins : player.coins,
@@ -21719,19 +21741,24 @@ game.how = function()
     fill(0, 0, 0, 60);
     rect(75, 0, width - 75 * 2, height);
     fill(11, 68, 153, 80);
-    rect(100, 100, 200, 210, 10);
+    rect(102, 100, 206, 230, 10);
     fill(200, 200, 200, 150);
     textAlign(NORMAL, NORMAL);
     text("  Use the arrow keys to move or wasd." +
-    "Press down to go through doors or to activate checkpoints." +
+    " Press down to go through doors or to activate checkpoints." +
     " Press 'p' to pause, 'r' to restart, 't' to print what" +
     " signs say if you can't read it and 'm' to go directly to the menu." +
     "\n\n   This is Planet Search 2 If you haven't played the first " +
-    "one please play it right now.\n\n        Created by Prolight", 110, 115, 200, 225);
+    "one please play it right now (press '1').\n\n        Created by ProlightHub on Github & Phantom Falcon on Khan Academy (same).", 106, 115, 200, 225);
     fill(0, 0, 0, 100);
     text(game.version, 334, 394); 
     buttons.back2.draw();
     this.switchGameState(buttons.back2.clicked(), "menu");
+
+    if(keys["1"])
+    {
+        window.location.href = "https://prolighthub.itch.io/planet-search";
+    }
 };
 game.settings = function()
 {
@@ -21802,6 +21829,9 @@ game.extras = function()
     this.switchGameState(buttons.sound.clicked(), "sound");
     buttons.other.draw();
     this.switchGameState(buttons.other.clicked(), "other");
+
+    textSize(12);
+    text("Note: These changes will not save\nuntil you save your game!", 200, 364);
 };
 game.other = function()
 {
@@ -21859,6 +21889,10 @@ game.sound = function()
     this.switchGameState(buttons.back2.clicked(), "extras");
     buttons.volumeOn.draw();
     buttons.volumeOn.message = "Volume " + (sounds.settings.off ? "off" : "on");
+
+    buttons.music.draw();
+    buttons.music.message = "Music " + (sounds.settings.song ? "on" : "off");
+
     sliders.volume.draw();
 
     this.percent = sliders.volume.getPercent();
@@ -21886,11 +21920,33 @@ game.sound.onEnter = function()
 {
     sliders.volume.set(sounds.getMainVolume() * 100);
 };
+game.sound.applySongs = function()
+{
+    if(!sounds.settings.song)
+    {
+        for(var i in sounds.sounds)
+        {
+            if(sounds.sounds[i].type === "song")
+            {
+                sounds.stopSound(i, true);
+            }
+        }
+    }
+    else if(levelInfo.currentSong)
+    {
+        sounds.playSound(levelInfo.currentSong, true);
+    }
+};
 game.sound.mousePressed = function()
 {
     if(buttons.volumeOn.clicked())
     {
         sounds.settings.off = !sounds.settings.off;
+    }
+    else if(buttons.music.clicked())
+    {
+        sounds.settings.song = !sounds.settings.song;
+        this.applySongs();
     }
 };
 game.sound.mouseReleased = function()
@@ -21901,6 +21957,11 @@ game.sound.mouseReleased = function()
         this.wasInSound = false;
     }
 };
+
+if(game.gameState === "start")
+{
+    sounds.playSound(game.sounds.titleScreen, true);
+}
 
 game.start = function()
 {
@@ -21929,7 +21990,7 @@ game.start = function()
     fill(0, 0, 0, 100);
     text(game.version, 364, 390);
 
-    if(!this.startedPlaying)
+    if((mouseIsPressed || keyIsPressed) && !this.startedPlaying)
     {
         sounds.playSound(game.sounds.titleScreen, true);
         this.startedPlaying = true;

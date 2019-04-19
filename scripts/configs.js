@@ -9,6 +9,7 @@ var configs = {
         name : "Ninja Temple",
         area : "Area 1",
         level : {
+            song: "StepUpv2.wav",
             background : "dark",
             shade : {
                 r : 0,
