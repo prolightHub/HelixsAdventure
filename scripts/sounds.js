@@ -18,6 +18,7 @@ var sounds = {
         }else{
             var snd = new Audio("sounds/" + str);
             snd.type = type || "sound";
+            snd.isSong = isSong;
             volume = volume || 1;
             snd.setVolume = volume;
             snd.volume = this.settings.mainVolume * volume;
@@ -50,7 +51,7 @@ var sounds = {
 
         snd1.play(); 
     },
-    playSound : function(str)
+    playSound : function(str, loop)
     {
         if(this.settings.off)
         {
@@ -60,8 +61,19 @@ var sounds = {
         var sound = this.getSound(str);
         if(sound !== undefined)
         {
+            sound.loop = loop || false;
             sound.play();
         }
+    },
+    stopSound : function(str)
+    {
+        var sound = this.getSound(str);
+        if(sound !== undefined)
+        {
+            sound.loop = false;
+            sound.currentTime = sound.duration;
+            sound.pause();
+        } 
     },
     getMainVolume : function()
     {
@@ -80,8 +92,12 @@ var sounds = {
         }
         for(var i in this.sounds)
         {
-            this.sounds[i].volume = mainVolume;
+            // this.sounds[i].volume = mainVolume;
             this.sounds[i].volume = (this.settings.mainVolume * this.sounds[i].setVolume);
+            if(this.sounds[i].volume <= 0)
+            {
+                this.stopSound(i);
+            }
         }
     },
     setVolume : function(str, volume)
@@ -94,7 +110,7 @@ var sounds = {
     },
 };
 
-/*Import sounds*/
+/* Import sounds */
 sounds.addSound("coinSound.mp3");
 sounds.addSound("explosion.mp3");
 sounds.addSound("whistle1.mp3");
@@ -108,3 +124,11 @@ sounds.addSound("zoom1.wav");
 sounds.addSound("soup4.wav");
 sounds.addSound("zooba.wav");
 sounds.addSound("whoo.wav");
+
+//Made with beepbox
+sounds.addSound("StepUp.wav", "song");
+sounds.addSound("StepUpv2.wav", "song");
+
+// This stuff einkurogane
+sounds.addSound("PS2.mp3", "song");
+sounds.addSound("PS2-8bit.mp3", "song");

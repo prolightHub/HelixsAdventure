@@ -696,19 +696,20 @@ var sketch = function(processing) /*Wrapper*/
         Removed streaks.update function from voxelizer.
         Changed objectExists from bool form to binary/number form to save space in localstorage!
         Fixed save file bug where save file button goes down according to screen scaling.
+        Added Music 3 different kinds.
+        Added more sound code for supporting music/songs.
+        Updated sound just a little more.
 
     Next :   
         v0.8.6 -> 
             Do something about the underwater level. It doesn't make sense for the player to not have the oxygen bar.
             Fix the bubble shields. Maybe make bubble shield allows you to go underwater?
 
-            Need to optimize game saving.
             Like make a section when when it loads from a save the right after the game has loaded make it load the settings.
 
             Fix the press 'r' and restart button makes player die glitch.
-            Make snow blocks not fall through one ways.
 
-            Add auto checkpoints into settings and fps into settings. Also need to make a block that costs coins to heal you.
+            Add auto checkpoints into settings. Also need to make a block that costs coins to heal you.
 
     ===========================================================================================================================================================================
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -719,6 +720,9 @@ var sketch = function(processing) /*Wrapper*/
             Most mp3s by Khan Academy. (In www.kasandbox.org)
             Other sounds were created by using Bfxr and Chiptone: https://sfbgames.com/chiptone/ (Under CC0 licence)
             Libraries: processing.js (http://processingjs.org)
+
+            Music:
+                PS2.mp3 & PS2-8bit.mp3 by einkurogane on Reddit.
     
         Code:
             CookieHandler object and isEmpty function in saver.js 
@@ -775,7 +779,10 @@ var game = {
     boundingBoxes : false,
     debugMenuWhite : true,
     
-    overrideDebugSettings : true
+    overrideDebugSettings : true,
+    sounds : {
+        titleScreen: "PS2.mp3"
+    }
 };
 var levelInfo = {
     level : "intro", //Default = "intro"
@@ -21456,6 +21463,11 @@ game.loadSaveAfterLoad = function()
     if(typeof this.data.soundOff === "boolean")
     {
         sounds.settings.off = this.data.soundOff;
+
+        for(var i in sounds.sounds)
+        {
+            sounds.sounds[i].muted = (sounds.settings.off);
+        }
     }
 
     saver.current.loaded = true;
@@ -21863,6 +21875,11 @@ game.sound = function()
         sliders.volume.onClick(mouse);
     }
 
+    for(var i in sounds.sounds)
+    {
+        sounds.sounds[i].muted = (sounds.settings.off);
+    }
+
     sounds.setMainVolume(this.percent / 100);
 };
 game.sound.onEnter = function()
@@ -21905,11 +21922,18 @@ game.start = function()
     if(keyIsPressed)
     {
         this.switchGameState(true, "story");
+        return;
     }
 
     textSize(12);
     fill(0, 0, 0, 100);
     text(game.version, 364, 390);
+
+    if(!this.startedPlaying)
+    {
+        sounds.playSound(game.sounds.titleScreen, true);
+        this.startedPlaying = true;
+    }
 };
 game.selectSaveFile = function()
 {
@@ -22007,6 +22031,8 @@ game.selectSaveFile = function()
     }
 
     game.selectSaveFile.stopErase--;
+
+    this.exited = false;
 };
 game.selectSaveFile.keyPressed = function()
 {
@@ -22045,6 +22071,8 @@ game.selectSaveFile.keyPressed = function()
         this.activateSaveFile();
         keys[keyCode] = false;
         keys[key.toString() || ""] = false;
+
+        sounds.stopSound(game.sounds.titleScreen);
     }
 };
 game.selectSaveFile.renameSaveFile = function()
@@ -22063,6 +22091,8 @@ game.selectSaveFile.afterNew = function()
     saver.setCurrent(game.selectSaveFile.saveName);
     game.gameState = "menu";
     loader.startLoadLevel(levelInfo.level);
+
+    sounds.stopSound(game.sounds.titleScreen);
 };
 game.selectSaveFile.createSaveFile = function()
 {
@@ -22150,6 +22180,7 @@ game.selectSaveFile.mousePressed = function()
             if(saveDataHandler.buttons.play.clicked())
             {
                 this.activateSaveFile(true);
+                sounds.stopSound(game.sounds.titleScreen);
                 return;
             }
             else if(saveDataHandler.buttons.erase.clicked())
@@ -22224,11 +22255,19 @@ game.story = function()
     popMatrix();
 
     game.hideLoadView = true;
+   
+    if(!this.exited)
+    {
+        sounds.getSound(game.sounds.titleScreen).muted = true;
+    }
 
     if((keyIsPressed || storyHandler.done) && !ENTER_KEY && this.story.timer > 20)
     {   
         game.story.needsInit = true;
         this.story.timer = 0;
+        sounds.getSound(game.sounds.titleScreen).muted = false;
+        this.exited = true;
+
         this.switchGameState(true, "selectSaveFile");
     }
 };
