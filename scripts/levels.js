@@ -2783,6 +2783,30 @@ var levels = {
             "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
         ],
     },
+    "generated": {
+        plan : [
+            "                                                                                          ",
+            "                                                                                          ",
+            "                                                                                          ",
+            "                                                                                          ",
+            "                                                                                          ",
+            "                                                                                          ",
+            "                                                                                          ",
+            "                                                                                          ",
+            "                                                                                          ",
+            "                                                                                          ",
+            "                                                                                          ",
+            "                                                                                          ",
+            "                                                                                          ",
+            " E   p  E  T E   E                                                                        ",
+            "gggggggggggggggggg                                                                       E",
+            "ddddddddddddddddddg    T  Tggg       g         E                    T   gggggggggggggggggg",
+            "ddddddbdbbdddddddddgg  g  gdddgg   ggdgggggggggggg  TEE  gggg ggggggggggdddddddddddddddddd",
+            "ddddbdbbbbdbbdbbddbdd  d  dddbdd   ddbdddddddddddd  gggggddddgdddddddddddbbbdbddddddddbddd",
+            "bbbbbbbbbbbbbbbbbbbdb  b  dbbbdd   bbbdbbdddbbbbdb  dddddbbddddddbdbbddbbddbbbbdbbdddbbbdb",
+            "bbbbbbbbbbbbbbbbbbbbd  b  bbbbdd   bbbdbdbbbbdbbdb  bddbdbbbbdbbbdbbddddbbbbbbbbbbbbbbbbbb"
+        ]
+    },
     "test" : {
         theme : "winter",
         background : "winter",
