@@ -2664,35 +2664,108 @@ var levels = {
      "excape" : {
         theme : "winter",
         specialOneWays : true,
-        removeArraysToSave: ["ice"],
+        removeArraysToSave : ["ice"],
         doors : {
             'a' : {
                 level : "fold2",
                 symbol : '?'
+            },
+            'b' : {
+                level : "mountain",
+                symbol : 'a'
             }
         },
         plan : [
-            "                                                                                       ",
-            "                                                                                       ",
-            "                                                                                       ",
-            "                                                                                       ",
-            "                                                                                       ",
-            "                                                                                       ",
-            "                                                                                       ",
-            "                                                                                       ",
-            "                                                                                       ",
-            "                                                                                       ",                                       
-            "        cccc                                                                           ",                                       
-            "                cccc                                                                   ",                                        
-            " a                                                                                     ",                                       
-            " D f       T  T                                                                        ",                                        
-            "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^",
+            "bbbiibbbIIIIIIIIbibibbibIIIIIIIiibbibbbibibibibbbbbbbbbIIIbbbbIIIIIIIIIIIIIIIIIIIIIIIII",
+            "    V         bbb         V                                  s                  VV     ",
+            "                                                             C                         ",
+            "                      7                        s                                       ",
+            "                                    s          C                                      b",
+            "                                    C                                                 D",
+            "                                                   7                           11111111",
+            "                                                                           344333444444",
+            "                                                     cccc                34444433333444",
+            "                                                                     r iiiiiiiiiiiiiiii",                                       
+            "        cccc                     cccc                          T   iiiiiiiiiiiiiiiiiiii",                                       
+            "                cccc                                         r iiiiiiiiiiiiiiiiiiiiiiii",                                        
+            " a                                                      T r iiiiiiiiiiiiiiiiiiiiiiiiiii",                                       
+            " D f p      T  T        QQ                           r iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",                                        
+            "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^11111111111111111111111111111111111111",
             "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
             "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
             "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
             "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
             "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
             "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
+        ]
+    },
+    "mountain" : {
+        theme : "winter",
+        specialOneWays : true,
+        removeArraysToSave : ["ice"],
+        doors : {
+            'a' : {
+                level : "excape",
+                symbol : 'b'
+            },
+            'b' : {
+                level : "mountain2",
+                symbol : 'a'
+            }
+        },
+        plan : [
+            "                                                       s             s                                             ",
+            "                                                       C             C                                             ",
+            "b     FFF                                                                                                          ",
+            "D             T                                                                                                    ",
+            "iiiU        Uiil                                                                                                   ",
+            "WWWWWWWWWWWWiiiiiil                     2              c      2                                                    ",
+            "WWWWWWWWWiiiiiiiiiiiil  T             PPPPPPP                PPPP                                                  ",
+            "WWWWWWWWWIIIIIIIIIIIIIIIIIIl                       c                cc                                             ",
+            "WWWWWWWW343444434443344IIIIIIIl                                                                                    ",
+            "WWWWWWWWWWW4443343443434IIIIIIIIl       E            2                                                             ",
+            "11111113434444433434IIIIIIIIIIIIIIIbbbIIIIIIIIIIIIIIIIIIIIIIIIIIIbbIA                                              ",
+            "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb   bbbbbbbbbbbbbbbbbbA      cc                                    ",
+            "bbbbbbbbbbbiiiibiiiiiiibbbbbbbbbbbbbbbb                  VV          bbIIA                                         ",
+            "         V                V                                            V IIIIIIIIIIU                               ",
+            "                                                                                   U                     k    k    ",
+            "                                                                                   U                               ",
+            "a                                                                                  U     ssss   ssss    sssssssssss",
+            "D      p                                                      QQ                   U     iiiisssIIIIssssiiiiIIIIIII",
+            "1111111i11111111111111111111111111111111111 FFFF FF  F1111111111111111111111111111111111111111111111111111111111111",
+            "iiiiiiiiiiiii iiiiiiiiiiiiiiiiiiiiiiiii                iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
+            "iiiiiiiiiiii         iiiiii                               iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
+            "iiii                  iiii                                     iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
+            "ii                     ii                                         iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
+            "ii                     ii                                            iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
+        ]
+    },
+    "mountain2" : {
+        theme : "winter",
+        specialOneWays : true,
+        removeArraysToSave : ["ice"],
+        doors : {
+            'a' : {
+                level : "mountain",
+                symbol : 'b'
+            }
+        },
+        plan : [
+            "                                                                                           ",
+            "                                                                                           ",
+            "                                                                                           ",
+            "                                                                                           ",
+            "                                                                                           ",
+            "                                                                                           ",
+            "                                                                                           ",
+            "                                                                                           ",
+            "                                                                                           ",
+            "                                                                                  f       a",
+            "                                                                              iiIIIIl  p  D",
+            "                                                                                   iiiIIIII",
+            "                                                                                           ",
+            "                                                                                           ",
+            "                                                                                           ",
         ]
     },
     "locked_In" : {
