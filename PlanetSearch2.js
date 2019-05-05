@@ -705,6 +705,8 @@ var sketch = function(processing) /*Wrapper*/
         Fixed fps settings.
 
     * 0.8.7
+        Sped up colliding and solveCollision functions in Observer!
+        Added the "high" background!
 
     Next :   
         v0.8.6 -> 
@@ -777,7 +779,7 @@ var sketch = function(processing) /*Wrapper*/
 var game = {
     fps : 60, 
     loadFps : 160,
-    gameState : "start", //Default = "start"
+    gameState : "play", //Default = "start"
     version : "v0.8.7 beta",
     fpsType : "manual", //Default = "manual"
     debugMode : true, //Turn this to true to see the fps
@@ -791,7 +793,7 @@ var game = {
     }
 };
 var levelInfo = {
-    level : "intro", //Default = "intro"
+    level : "mountain2", //Default = "intro"
     xPos : 0,
     yPos : 0,
     width : width,
@@ -3499,6 +3501,261 @@ var backgrounds = {
                 }
             },
         },
+        "high" : {
+            primeLoad : function()
+            {
+                var p = new Processing(canvas, function(pjs)
+                {
+                    with(pjs)
+                    {
+                        function mountain(x, y, sx, sy, cap)
+                        {
+                            pushMatrix();
+                                translate(x || 0, y || 0);
+                                scale(sx || 1, sy || 1);
+
+                                fill(20, 144, 200);
+                                triangle(70, 240, -10, 380, 150, 380);
+                                fill(20, 164, 200, 140);
+                                triangle(70, 260, 9, 380, 140, 380);
+
+                                if(cap)
+                                {
+                                    fill(255, 255, 255, 170);
+                                    triangle(70, 240, 55, 264, 84, 264);
+                                }
+                            popMatrix();
+                        }   
+
+                        var high = backgrounds.backgrounds.high;
+                        high.clouds = [];
+                        high.clouds.add = function(x, y, width, height, round)
+                        {
+                            this.push({
+                                x : x,
+                                y : y,
+                                width : width,
+                                height : height,
+                                round : round,
+                                xVel : ((Math.random() > 0.5) ? -1 : 1) * random(0.1, 0.4)
+                            });
+
+                            if(Math.random() < 0.3)
+                            {
+                                this[this.length - 1].xVel = 0;
+                            }
+                        };
+
+                        high.snow = [];
+                        high.snow.add = function(x, y, diameter)
+                        {
+                            this.push({
+                                x : x,
+                                y : y,
+                                diameter : diameter,
+                                yVel : random(0.4, 1),
+                                gravity : random(0.02, 0.04),
+                                maxYVel : random(1.5, 2.4),
+                                xVel : random(-1, 1) / 2,
+                            });
+                        };
+
+                        size(600, 600);
+
+                        var pixels;
+                        draw = function()
+                        {
+                            background(29, 146, 190);
+
+                            this.loadPixels();
+
+                            pixels = this.imageData.data;
+
+                            for(var y = 0; y < 500; y++)
+                            {
+                                for(var x = 0; x < 600; x++)
+                                {
+                                    var i = (x + this.imageData.width * (y - 10)) * 4;
+
+                                    pixels[i] = 24;
+                                    pixels[i + 1] = (260 - y * 0.5);
+                                    pixels[i + 2] = ((365 + y - ((x + y) % 14 <= 4 ? 80 : -20)) * 260 / 600) + 120 - y * 0.4;
+                                }
+                            }
+
+                            this.updatePixels();
+                            noStroke();
+                        
+                            pushMatrix();
+                                translate(0, -5);
+
+                                //Adjustments
+                                scale(1, 1.08);
+                                translate(0, -70);
+                                mountain(0, 0, 1.3, 1.33, true);
+
+                                translate(-70, -65);
+                                mountain(200 - 33, 80, 1.2, 1.4, true);
+                                mountain(512, 96, 1.24, 1.3, true);
+                                mountain(400, -15, 1.5, 1.6, true);
+                                
+                                pushMatrix();
+                                    fill(20, 164, 200);
+                                    ellipse(190, 600, 300, 100);  
+
+                                    for(var i = 0; i < 7; i++)
+                                    {
+                                        ellipse(260 + i * 200, 600 + ((i % 2 === 0) ? 6 : 0), 300, 100);
+                                    }   
+
+                                    translate(-60, 70);
+                                    for(var i = 0; i < 7; i++)
+                                    {
+                                        ellipse(190 + i * 200, 600 + ((i % 2 === 0) ? 6 : 0), 300, 100);
+                                    }   
+                                popMatrix();
+
+                                translate(0, 20);
+                                fill(6, 177, 234);
+                                ellipse(190, 600, 300, 100);  
+
+                                for(var i = 0; i < 7; i++)
+                                {
+                                    ellipse(260 + i * 200, 600 + ((i % 2 === 0) ? 6 : 0), 300, 100);
+                                }   
+
+                                translate(-60, 70);
+                                for(var i = 0; i < 7; i++)
+                                {
+                                    ellipse(190 + i * 200, 600 + ((i % 2 === 0) ? 6 : 0), 300, 100);
+                                }
+
+                                
+                            popMatrix();
+
+                            pushMatrix()
+                                translate(0, 10);
+                                scale(6/4, 6/4);
+                                fill(10, 187+12, 240);
+                                beginShape();
+                                    vertex(0, 400);
+                                    vertex(0, 330+10);
+                                    
+                                    for(var i = 0; i < 400; i += 80)
+                                    {
+                                        vertex(i + 35, 320);
+                                        vertex(i + 60, 350);
+                                    }    
+                                    
+                                    vertex(400, 330+10);
+                                    vertex(400, 400);
+                                endShape();
+                            popMatrix();
+
+                            pushMatrix();
+                                scale(1, 1.08);
+                                translate(0, 200);
+                                fill(0, 146, 194, 160);
+                                beginShape();
+                                    vertex(0, 600);
+                                    vertex(0, 330);
+                                    
+                                    for(var i = 0; i < 600; i += 50)
+                                    {
+                                        vertex(i + 25, 300);
+                                        vertex(i + 50, 330);
+                                    }  
+
+                                    vertex(600, 330);
+                                    vertex(600, 400);
+                                endShape();
+                            popMatrix();
+
+                            noStroke();
+                            noLoop();
+                        };
+
+                        draw();
+                        backgrounds.backgrounds.high.img = get(0, 0, 600, 600);
+
+                        this.draw = undefined;
+                        noLoop();
+                    }
+                });
+
+                p = undefined;
+            },
+            load : function()
+            {
+                this.clouds.length = 0;
+                for(var i = 0; i < 16; i++)
+                {
+                    this.clouds.add(random(0, 400), random(160, 240) - 40, random(30, 70) * (4/6), random(10, 20) * (4/6), 7);
+                }
+
+                this.snow.length = 0;
+
+                for(var i = 0; i < 23; i++)
+                {
+                    this.snow.add(random(0, width), random(0, height * 0.4), 1.4);
+                }
+            },
+            drawBackground : function()
+            {
+                if(backgrounds.backgrounds.high.img !== undefined)
+                {
+                    image(backgrounds.backgrounds.high.img, 0, 0, width, height);
+
+                     fill(255, 255, 255, 200);
+
+                    // Render Update snow
+                    for(var i = this.snow.length - 1; i >= 0; i--)
+                    {
+                        ellipse(this.snow[i].x, this.snow[i].y, this.snow[i].diameter, this.snow[i].diameter);
+
+                        this.snow[i].yVel += this.snow[i].gravity;
+                        this.snow[i].yVel = min(this.snow[i].yVel, this.snow[i].maxYVel);
+                        this.snow[i].x += this.snow[i].xVel;
+                        this.snow[i].y += this.snow[i].yVel;
+
+                        if(this.snow[i].y > height)
+                        {
+                            this.snow.splice(i, 1);
+                        }
+                    }
+
+                    if(this.snow.length < 90)
+                    {
+                        this.snow.add(random(0, width), -2, 1.6);
+                    }
+
+                    fill(255, 255, 255, 100);
+
+                    // Render and update clouds (if they move)
+                    var clouds = backgrounds.backgrounds.high.clouds;
+                    for(var i = 0; i < clouds.length; i++)
+                    {
+                        rect(clouds[i].x, clouds[i].y, clouds[i].width, clouds[i].height, clouds[i].round);
+
+                        if(clouds[i].xVel)
+                        {
+                            clouds[i].x += clouds[i].xVel;
+
+                            if(clouds[i].x < -clouds[i].width)
+                            {
+                                clouds[i].x = width;
+                                clouds[i].xVel = -abs(clouds[i].xVel);
+                            }
+                            else if(clouds[i].x > width)
+                            {
+                                clouds[i].x = -clouds[i].width; 
+                                clouds[i].xVel = abs(clouds[i].xVel);
+                            }
+                        }
+                    }
+                }
+            },
+        }
     },
     load : function()
     {
@@ -5254,7 +5511,7 @@ var screenUtils = {
                     var cell = cameraGrid[place.col][place.row];
                     
                     textAlign(NORMAL, NORMAL);
-                    fill(0, 0, 0);
+                    fill(0, 0, 0, 150);
                     if(screenUtils.debugMenuWhite)
                     {
                         fill(255, 255, 255, 100);
@@ -6916,7 +7173,7 @@ var observer = {
             },
         },
     },
-    access : function(object1, object2, access)
+    accessSlow : function(object1, object2, access)
     {
         var info = observer.getType(
             object1.physics.shape,
@@ -6933,13 +7190,32 @@ var observer = {
         }
         return colliding;
     },
+    access : function(object1, object2, access)
+    {
+        if(observer.collisionTypes[object1.physics.shape + object2.physics.shape])
+        {
+            return observer.collisionTypes[object1.physics.shape + object2.physics.shape][access](object1, object2);
+        }else{
+            return observer.collisionTypes[object2.physics.shape + object1.physics.shape][access](object2, object1);
+        }
+    },
     colliding : function(object1, object2)
     {
-        return this.access(object1, object2, "colliding");
+        if(observer.collisionTypes[object1.physics.shape + object2.physics.shape])
+        {
+            return observer.collisionTypes[object1.physics.shape + object2.physics.shape].colliding(object1, object2);
+        }else{
+            return (observer.collisionTypes[object2.physics.shape + object1.physics.shape] || observer.collisionTypes.blank).colliding(object2, object1);
+        }
     },
     solveCollision : function(object1, object2)
     {
-        return this.access(object1, object2, "solveCollision");
+        if(observer.collisionTypes[object1.physics.shape + object2.physics.shape])
+        {
+            return observer.collisionTypes[object1.physics.shape + object2.physics.shape].solveCollision(object1, object2);
+        }else{
+            return (observer.collisionTypes[object2.physics.shape + object1.physics.shape] || observer.collisionTypes.blank).solveCollision(object2, object1);
+        }
     },
     boundingBoxesColliding : function(box1, box2)
     {
@@ -6948,7 +7224,7 @@ var observer = {
                (box1.yPos + box1.height > box2.yPos &&
                  box1.yPos < box2.yPos + box2.height));
     },
-    fastBoundingBoxesColliding : function(box1, box2) /*Will be used in the future!*/
+    fastBoundingBoxesColliding : function(box1, box2)
     {
         return (box1.minX < box2.maxX && box1.maxX > box2.minX && 
                 box1.minY < box2.maxY && box1.maxY > box2.minY);
@@ -23268,7 +23544,7 @@ function showError(e, fatal)
     fill(255, 255, 255, 100);
     textSize(width * 0.037);
     textAlign(CENTER, CENTER)
-    text("Oops! An " + ((!fatal) ? "error" : "fatal") + " occurred!", width / 2, height * 0.35);
+    text("Oops! An " + ((!fatal) ? "" : "fatal") + " error occurred!", width / 2, height * 0.35);
 
     textSize(width * 0.026);
     text(((!fatal) ? "Press any key to continue." : "Failure to continue,\n restarting ..."), width / 2, height * 0.55);

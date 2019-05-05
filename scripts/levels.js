@@ -2742,8 +2742,10 @@ var levels = {
     },
     "mountain2" : {
         theme : "winter",
+        background : "high",
         specialOneWays : true,
         removeArraysToSave : ["ice"],
+        debugMenuWhite : false,
         doors : {
             'a' : {
                 level : "mountain",
@@ -2760,8 +2762,8 @@ var levels = {
             "                                                                                           ",
             "                                                                                           ",
             "                                                                                           ",
-            "                                                                                  f       a",
-            "                                                                              iibbbbl  p  D",
+            "                                                                              8___f_      a",
+            "                                                                              iibbbbl__p__D",
             "                                                                                   iiiiibbb",
             "                                                                                           ",
             "                                                                                           ",
