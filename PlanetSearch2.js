@@ -779,7 +779,7 @@ var sketch = function(processing) /*Wrapper*/
 var game = {
     fps : 60, 
     loadFps : 160,
-    gameState : "play", //Default = "start"
+    gameState : "start", //Default = "start"
     version : "v0.8.7 beta",
     fpsType : "manual", //Default = "manual"
     debugMode : true, //Turn this to true to see the fps
@@ -793,7 +793,7 @@ var game = {
     }
 };
 var levelInfo = {
-    level : "mountain2", //Default = "intro"
+    level : "intro", //Default = "intro"
     xPos : 0,
     yPos : 0,
     width : width,
