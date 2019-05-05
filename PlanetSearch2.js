@@ -77,7 +77,7 @@ var sketch = function(processing) /*Wrapper*/
 /**   Hybrid Game Engine (Planet Search 2)  **/
 /**
     @Author Prolight
-    @Version 0.8.6 beta (86% complete)
+    @Version 0.8.7 beta (87% complete)
 
         64+ gameObjects!
 
@@ -702,6 +702,9 @@ var sketch = function(processing) /*Wrapper*/
         Added per level/configLevel music and a song/music on/off button.
         Updated IceDragon 1/2 done!
         Added 2 more levels
+        Fixed fps settings.
+
+    * 0.8.7
 
     Next :   
         v0.8.6 -> 
@@ -775,14 +778,14 @@ var game = {
     fps : 60, 
     loadFps : 160,
     gameState : "start", //Default = "start"
-    version : "v0.8.6 beta",
+    version : "v0.8.7 beta",
     fpsType : "manual", //Default = "manual"
     debugMode : true, //Turn this to true to see the fps
     showDebugPhysics : false,
     boundingBoxes : false,
     debugMenuWhite : true,
     
-    overrideDebugSettings : true,
+    overrideDebugSettings : false,
     sounds : {
         titleScreen: "PS2.mp3"
     }
@@ -808,6 +811,7 @@ var levelInfo = {
 };
 var loader = {
     firstLoad : true, //keep this to true or toggle it if you can't load the game
+    lastLevelStepRows : 20,
     levelStepRows : 20, //Loading boost (Turn this to 1 if you're having problems loading)
 };
 var fonts = {
@@ -6998,6 +7002,7 @@ var Camera = function(xPos, yPos, width, height)
         row : 0,
     };
 
+    this.lastSpeed = 0.125;
     this.speed = 0.125;
 
     this.getObject = function()
@@ -10325,7 +10330,7 @@ var Sign = function(xPos, yPos, width, height, colorValue, message, textColor, f
         {
             this.active = true;
 
-            if(object.controls.down())
+            if(keys['t'])
             {
                 talkHandler.start({
                     "start" : {
@@ -22438,6 +22443,9 @@ game.other = function()
     buttons.back2.draw();
     buttons.fps.draw();
     buttons.fpsType.draw();
+
+    buttons.fps.message = "Fps " + game.fps;
+    buttons.fpsType.message = ("Fps Type " + game.fpsType);
 };
 game.other.mousePressed = function()
 {
@@ -22455,6 +22463,7 @@ game.other.mousePressed = function()
     else if(buttons.fpsType.clicked())
     { 
         game.fpsType = (game.fpsType === "auto") ? "manual" : "auto";
+
         buttons.fpsType.message = ("Fps Type " + game.fpsType);
     }
 
@@ -23070,13 +23079,13 @@ game.inventoryMenu.keyPressed = function()
 
 game.applyFps = function()
 {   
-    if(this.fps === 30)
+    if(Number(this.fps) === 30)
     {
-        loader.levelStepRows *= 2;
-        cam.speed *= 2;
+        loader.levelStepRows = loader.lastLevelStepRows * 2;
+        cam.speed = cam.lastSpeed * 2;
     }else{
-        loader.levelStepRows /= 2;
-        cam.speed /= 2;
+        loader.levelStepRows = loader.lastLevelStepRows;
+        cam.speed = cam.lastSpeed;
     }
 
     frameRate(game.fps);

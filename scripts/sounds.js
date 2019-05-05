@@ -60,7 +60,7 @@ var sounds = {
         }
 
         var sound = this.getSound(str);
-        if(sound !== undefined)
+        if(sound !== undefined && sound.play)
         {
             sound.loop = loop || false;
             sound.play();
