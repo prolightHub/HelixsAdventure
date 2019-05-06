@@ -1,6 +1,6 @@
 var sketch = function(processing) /*Wrapper*/
 {
-    processing.size(400, 400);
+    processing.size(400, 400, processing.P2D);
     processing.background(0xFFF);
 
     var mouseIsPressed = false;
@@ -69,7 +69,7 @@ var sketch = function(processing) /*Wrapper*/
     
     processing.scaled = false;
 
-    processing.hint(processing.OPENGL);
+    processing.hint(processing.DISABLE_OPENGL_ERROR_REPORT);
 
     with(processing)
     {
@@ -708,6 +708,7 @@ var sketch = function(processing) /*Wrapper*/
         Sped up colliding and solveCollision functions in Observer!
         Added the "high" background!
         Finished level mountain and mountain2
+        Slightly improved performance.
 
     Next :   
         v0.8.6 -> 
@@ -864,10 +865,10 @@ const HALF_HEIGHT = height / 2;
 const BTN_COLOR = color(11, 68, 153, 200);
 
 //Smooth out textures
-smooth();
+// smooth();
 
 // No smoothing for performance
-// noSmooth();
+noSmooth();
 
 var keyIsPressed = false;
 
@@ -3553,12 +3554,11 @@ var backgrounds = {
                         };
 
                         high.snow = [];
-                        high.snow.add = function(x, y, diameter)
+                        high.snow.add = function(x, y)
                         {
                             this.push({
                                 x : x,
                                 y : y,
-                                diameter : diameter,
                                 yVel : random(0.4, 1),
                                 gravity : random(0.02, 0.04),
                                 maxYVel : random(1.5, 2.4),
@@ -3712,12 +3712,13 @@ var backgrounds = {
                 {
                     image(backgrounds.backgrounds.high.img, 0, 0, width, height);
 
-                     fill(255, 255, 255, 200);
+                    strokeWeight(1);
+                    stroke(255, 255, 255);
 
                     // Render Update snow
                     for(var i = this.snow.length - 1; i >= 0; i--)
                     {
-                        ellipse(this.snow[i].x, this.snow[i].y, this.snow[i].diameter, this.snow[i].diameter);
+                        point(this.snow[i].x, this.snow[i].y);
 
                         this.snow[i].yVel += this.snow[i].gravity;
                         this.snow[i].yVel = min(this.snow[i].yVel, this.snow[i].maxYVel);
@@ -3732,9 +3733,10 @@ var backgrounds = {
 
                     if(this.snow.length < 100)
                     {
-                        this.snow.add(random(0, width), -2, 1.6);
+                        this.snow.add(random(0, width), -2);
                     }
 
+                    noStroke();
                     fill(255, 255, 255, 100);
 
                     // Render and update clouds (if they move)

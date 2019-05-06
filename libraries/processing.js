@@ -17982,9 +17982,9 @@ module.exports = function setupParser(Processing, options) {
     * @see quad
     */
     Drawing2D.prototype.rect = function(x, y, width, height, tl, tr, br, bl) {
-      if (!width && !height) {
-        return;
-      }
+      // if (!width && !height) {
+      //   return;
+      // }
 
       // if (curRectMode === PConstants.CORNERS) {
       //   width -= x;
