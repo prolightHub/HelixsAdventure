@@ -2496,6 +2496,57 @@ var levels = {
 
         ]
     },
+    "locked_In" : {
+        theme : "winter",
+        doors : {
+            'a' : {
+                level : "icyPuzzles",
+                symbol : 'b',
+            },
+        },
+        chests : {
+            'a' : {
+                drops : [{
+                    contains : "coin",
+                    props : {
+                        coinAmt : 50,
+                    },
+                    total : true,
+                }, {
+                    contains : "iceSplicer",
+                    total : true,
+                    diameter : 35,
+                    offX : 180,
+                    offY : -120,
+                }],
+                save : true,
+                hidden : true,
+            },
+        },
+        plan : [
+            "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "bbbbiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
+            "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
+            "iiiiiiiiiiiiii          iiiiiiiiiiiiiiiiiii",
+            "iiiiiiii                        iiiiiiiiiii",
+            "iiii                              iiiiiiiii",
+            "iii                a               iiiiiiii",
+            "iii                [                 iiiiii",
+            "iii       h h    PPPPP   h h           iiii",
+            "iii                                    iiii",
+            "iii       PPP            PPP           aiii",
+            "iii2                                   Diii",
+            "iiii22           22           22  2iiiiiiii",
+            "iiiiii       2  iii      22  iii  iiiiiiiii",
+            "iiiiiii 222  iiiiiiii2 2iiiiiiiiiiiiiiiiiii",
+            "iii111iiiiiii1111111iiiiii11111111111111111",
+            "1111111111111111111111111111111111111111111",
+            "1111111111111111111111111111111111111111111",
+            "11111111bbbb1111111111111111111111111bbbbbb",
+            "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        ],
+    },
     "fold" : {
         theme : "winter",
         addArraysToSave : ["dirtyCat", "waterBeaker", "iceBeaker", "wisp"],
@@ -2665,6 +2716,7 @@ var levels = {
         theme : "winter",
         specialOneWays : true,
         removeArraysToSave : ["ice"],
+        background : "high",
         doors : {
             'a' : {
                 level : "fold2",
@@ -2701,6 +2753,7 @@ var levels = {
     },
     "mountain" : {
         theme : "winter",
+        background : "high",
         specialOneWays : true,
         removeArraysToSave : ["ice"],
         doors : {
@@ -2714,11 +2767,16 @@ var levels = {
             }
         },
         plan : [
+            "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiIIIiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
+            "                         iIIi          V IIiiI   V           III              iV                                   ",
+            "                           V               II                 Vi              I                                    ",
+            "                                                               V              I                                    ",
+            "                                                                              V                                    ",
             "                                                       s             s                                             ",
             "                                                       C             C                                             ",
-            "b     FFF                                                                                                          ",
-            "D             T                                                                                                    ",
-            "iiiU        Uiil                                                                                                   ",
+            "b     FFF                                                                                                s`        ",
+            "D             T                                                                                   s      C         ",
+            "iiiU        Uiil                                                                                  C                ",
             "WWWWWWWWWWWWiiiiiil                     2              c      2                                                    ",
             "WWWWWWWWWiiiiiiiiiiiil  T             PPPPPPP                PPPP                                                  ",
             "WWWWWWWWWIIIIIIIIIIIIbbbbbbl                       c                cc                                             ",
@@ -2744,7 +2802,6 @@ var levels = {
         theme : "winter",
         background : "high",
         specialOneWays : true,
-        removeArraysToSave : ["ice"],
         debugMenuWhite : false,
         doors : {
             'a' : {
@@ -2752,74 +2809,34 @@ var levels = {
                 symbol : 'b'
             }
         },
+        signs : {
+            'a' : {
+                message : "Time for a swim"
+            }
+        },
         plan : [
+            "bbbbbiiiiiiibbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbiiiiiiiiiiiiiiiiii",
+            "iiiiii IIIIiiiiIIIIIIIIiiiiiiiiiiiiiiiiiiiIIIIIiiiiiiiiiiiiiiiiiiiibbiiiiiiiiL  V        V ",
+            "         VVIII           V           V       V   IIIIIIIIIIIIIIiiiiiiiiiiL                 ",
+            "                                                            IIIiiiiiiiii                   ",
+            "                                                             IibiiiiiL                     ",
             "                                                                                           ",
-            "                                                                                           ",
-            "                                                                                           ",
-            "                                                                                           ",
-            "                                                                                           ",
-            "                                                                                           ",
-            "                                                                                           ",
-            "                                                                                           ",
-            "                                                                                           ",
-            "                                                                              8___f_      a",
-            "                                                                              iibbbbl__p__D",
-            "                                                                                   iiiiibbb",
-            "                                                                                           ",
-            "                                                                                           ",
-            "                                                                                           ",
+            "   h                                                                                       ",
+            "   h                 hh           hh                              a                        ",
+            " T h T                                                            S  T  f                  ",
+            "bgggggbbbbb   FFbbb  FF F   bbbF  FF   FFFFbbbWWWWWWWWWWWWWWWbbbbbbbbbbbbb QQ T___ _      a",
+            " bbbbbbb                                 bbbbWWWWWWWWWWWWWWWWWWWWWWIIIIIIIIIIIiiiiiil__p__D",
+            "                                         bbWWWWWWWWWWWWWWWWWWWWWWWWIIIIIIIIIIIiiiiiiiiiiiii",
+            "                                       bbbWWWWWWWWWWWWWWWWWWWWWWWIIIIIIIIIIIIIiiiiiiiiiiiii",
+            "                                     bbbWWWWWWWWWWWWWWWWWWWWWWWIIIIIIIIIIIIIbbiiiiiiiiiiiii",
+            "                                    bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbiiiiiiiiiiiiii",
+            "                                    bbWWWWWWWWWWWWWWWWWWWWWWWWWbbWWWWbbbbbbbbiiiiiiiiiiiiii",
+            "                                   WWWWIIbbbbbbbbbbbbbbbbbbbbbWWWWWWWWbbbbbbbiiiiiiiiiiiiii",
+            "                                   WbbbIIIIIIIIIIIbbbbbbbbbbbbbbbbbbbbbbbbbbbiiiiiiiiiiiiii",
+            "                                   Wibbbbbbbbbbbbbbbbbbbbbbbiiiiibbbbbbbbbbbbssssssssssssss",
+            "                                   Wibbbbbbbbbbbbbiiiiiiiiiibbbbbbbbbbbbbbbbsssssssssssssss",
+            "                                   WIIbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbssssssssssssssss",
         ]
-    },
-    "locked_In" : {
-        theme : "winter",
-        doors : {
-            'a' : {
-                level : "icyPuzzles",
-                symbol : 'b',
-            },
-        },
-        chests : {
-            'a' : {
-                drops : [{
-                    contains : "coin",
-                    props : {
-                        coinAmt : 50,
-                    },
-                    total : true,
-                }, {
-                    contains : "iceSplicer",
-                    total : true,
-                    diameter : 35,
-                    offX : 180,
-                    offY : -120,
-                }],
-                save : true,
-                hidden : true,
-            },
-        },
-        plan : [
-            "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
-            "bbbbiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
-            "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
-            "iiiiiiiiiiiiii          iiiiiiiiiiiiiiiiiii",
-            "iiiiiiii                        iiiiiiiiiii",
-            "iiii                              iiiiiiiii",
-            "iii                a               iiiiiiii",
-            "iii                [                 iiiiii",
-            "iii       h h    PPPPP   h h           iiii",
-            "iii                                    iiii",
-            "iii       PPP            PPP           aiii",
-            "iii2                                   Diii",
-            "iiii22           22           22  2iiiiiiii",
-            "iiiiii       2  iii      22  iii  iiiiiiiii",
-            "iiiiiii 222  iiiiiiii2 2iiiiiiiiiiiiiiiiiii",
-            "iii111iiiiiii1111111iiiiii11111111111111111",
-            "1111111111111111111111111111111111111111111",
-            "1111111111111111111111111111111111111111111",
-            "11111111bbbb1111111111111111111111111bbbbbb",
-            "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
-            "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
-        ],
     },
     "IceDragon" : {
         theme : "winter",

@@ -707,6 +707,7 @@ var sketch = function(processing) /*Wrapper*/
     * 0.8.7
         Sped up colliding and solveCollision functions in Observer!
         Added the "high" background!
+        Finished level mountain and mountain2
 
     Next :   
         v0.8.6 -> 
@@ -827,12 +828,17 @@ game.startMillis = millis();
 var fpsCatcher = {
     actualFps : game.fps,
     lastTime : 0,
+
+    speed : 1,
+    deltaTime : 1000 / 60,
     update : function()
     {        
+        this.deltaTime = (performance.now() - this.lastTime);
+        var delta = this.deltaTime / 1000;
+        this.speed = delta * 60;
+
         if(performance.now() % 15 >= 14)
         {
-            var delta = (performance.now() - this.lastTime) / 1000;
-
             this.actualFps = (1 / delta).toFixed(0);
         }
 
@@ -3715,8 +3721,8 @@ var backgrounds = {
 
                         this.snow[i].yVel += this.snow[i].gravity;
                         this.snow[i].yVel = min(this.snow[i].yVel, this.snow[i].maxYVel);
-                        this.snow[i].x += this.snow[i].xVel;
-                        this.snow[i].y += this.snow[i].yVel;
+                        this.snow[i].x += this.snow[i].xVel * fpsCatcher.speed;
+                        this.snow[i].y += this.snow[i].yVel * fpsCatcher.speed;
 
                         if(this.snow[i].y > height)
                         {
@@ -3724,7 +3730,7 @@ var backgrounds = {
                         }
                     }
 
-                    if(this.snow.length < 90)
+                    if(this.snow.length < 100)
                     {
                         this.snow.add(random(0, width), -2, 1.6);
                     }
@@ -3739,7 +3745,7 @@ var backgrounds = {
 
                         if(clouds[i].xVel)
                         {
-                            clouds[i].x += clouds[i].xVel;
+                            clouds[i].x += clouds[i].xVel * fpsCatcher.speed;
 
                             if(clouds[i].x < -clouds[i].width)
                             {
@@ -10100,7 +10106,7 @@ var Ice = function(xPos, yPos, width, height, colorValue, slipFactor, override)
                     this.yPos + this.height, this.xPos + this.width);
         };
 
-        screenUtils.loadImage(this, true, "ice_actual" + (millis() * Math.random()).toFixed(5), undefined, undefined, undefined, 225);
+        screenUtils.loadImage(this, true, "ice_actual" + (millis() * Math.random()).toFixed(5), undefined, undefined, undefined/*, 225*/);
     }else{
         Rect.call(this, xPos, yPos, width, height);
         this.color = colorValue || color(33, 198, 207);
