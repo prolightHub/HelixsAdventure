@@ -18337,6 +18337,7 @@ module.exports = function setupParser(Processing, options) {
       if(p.chrome)
       {
           canvasData.context.globalCompositeOperation = 'source-in';//"destination-in"
+          canvasData.context.globalAlpha = 1;
       }
 
       canvasDataCache.push(canvasData);

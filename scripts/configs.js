@@ -27,11 +27,12 @@ var configs = {
         level : {
             cold : true,
             background : "winter",
+            noSong: true,
             shade : {
                 r : 0,
                 g : 0,
                 b : 40,
-                a : 80,
+                a : 80
             },
             table : {
                 '1' : "superIce",

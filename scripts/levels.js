@@ -2575,7 +2575,7 @@ var levels = {
             "           PPPPP                                        PPPP                               ",
             "                                                                                           ",
             "a                                                                                         b",
-            "D  p  __ ____ _8______T   8 ____  TT____ ___8______  _QQ__________          ____   T   f  D",
+            "D  p  QQ ____ _8______T   8 ____  TT____ ___8______  _QQ__________          ____   T   f  D",
             "^^9^^^^^^^^^^^^9^^^^^^^^^^^^9^^^^^^^^^^^^9^^^^^^^^^^^9^^^^^^^^^^^^9^^^^^^^^^^^9^^^^^^^^^^^9",
             "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
             "wwwwwwwwwwwwwwwwwwwwwwwwwwIIIIwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww",
@@ -2715,6 +2715,7 @@ var levels = {
      "excape" : {
         theme : "winter",
         specialOneWays : true,
+        debugMenuWhite : false,
         removeArraysToSave : ["ice"],
         background : "high",
         doors : {
@@ -2755,6 +2756,7 @@ var levels = {
         theme : "winter",
         background : "high",
         specialOneWays : true,
+        debugMenuWhite : false,
         removeArraysToSave : ["ice"],
         doors : {
             'a' : {
@@ -2774,9 +2776,9 @@ var levels = {
             "                                                                              V                                    ",
             "                                                       s             s                                             ",
             "                                                       C             C                                             ",
-            "b     FFF                                                                                                s`        ",
+            "b     FFF                                                                                                s         ",
             "D             T                                                                                   s      C         ",
-            "iiiU        Uiil                                                                                  C                ",
+            "iiiU        Uiil                                                                                  C       `        ",
             "WWWWWWWWWWWWiiiiiil                     2              c      2                                                    ",
             "WWWWWWWWWiiiiiiiiiiiil  T             PPPPPPP                PPPP                                                  ",
             "WWWWWWWWWIIIIIIIIIIIIbbbbbbl                       c                cc                                             ",
@@ -2807,6 +2809,11 @@ var levels = {
             'a' : {
                 level : "mountain",
                 symbol : 'b'
+            },
+            'b' : {
+                level: "IceDragon",
+                symbol : 'a',
+                style : "boss"
             }
         },
         signs : {
@@ -2821,9 +2828,9 @@ var levels = {
             "                                                            IIIiiiiiiiii                   ",
             "                                                             IiiiiiiiL                     ",
             "                                                  b  b    b                                ",
-            "   h                                             bbbbbbbbbb                                ",
-            "   h                 hh           hh             bbbbbbbbbb       a                        ",
-            " T h T                                           bbbbbbbbbb       S  T  f                  ",
+            "        h                                        bbbbbbbbbb                                ",
+            "  bb    h            hh           hh             bbbbbbbbbb       a                        ",
+            "T DD T  h f                                      bbbbbbbbbb       S  T  f                  ",
             "bgggggbbbbb   FFbbb  FF F   bbbF  FF   FFFFbbbWWWbbbbbbbbbbWWWWbbbbbbbbbbb QQ T___ _      a",
             " bbbbbbb                                 bbbbWWWWWWWWWWWWWWWWWWWWWWIIIIIIIIIIIiiiiiil__p__D",
             "                                         bbWWWWWWWWWWWWWWWWWWWWWWWWIIIIIIIIIIIiiiiiiiiiiiii",
@@ -2840,9 +2847,17 @@ var levels = {
     },
     "IceDragon" : {
         theme : "winter",
+        background : "high",
+        debugMenuWhite : false,
         bosses : {
             'a' : {
                 name : "iceDragon"
+            }
+        },
+        doors: {
+            'a' : {
+                level: "mountain2",
+                symbol: 'b',
             }
         },
         plan : [
@@ -2851,6 +2866,8 @@ var levels = {
             "                                                                                                                                         ",
             "                                                                                                                                         ",
             "                                                                                                                                         ",
+            "                  a                                                                                                                      ",
+            "                  B                                                                                                                      ",
             "                                                                                                                                         ",
             "                                                                                                                                         ",
             "                                                                                                                                         ",
@@ -2868,13 +2885,11 @@ var levels = {
             "                                                                                                                                         ",
             "                                                                                                                                         ",
             "                                                                                                                                         ",
-            "                      a                                                                                                                  ",
-            "                      B                                                                                                                  ",
             "        p                                                                                                                                ",
             "                                                                                                                                         ",
             "                                                                                                                                         ",
-            "                                                                                                                                         ",
-            "                                                                                                                                         ",
+            "                                                                   aa                                                                    ",
+            "                                                                   DD                                                                    ",
             "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
             "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",

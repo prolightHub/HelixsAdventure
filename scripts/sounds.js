@@ -76,7 +76,13 @@ var sounds = {
             {
                 sound.currentTime = sound.duration;
             }
-            sound.pause();
+            try{
+                sound.pause();
+            }
+            catch(e)
+            {
+                console.log(e);
+            }
         } 
     },
     getMainVolume : function()
