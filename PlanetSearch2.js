@@ -16038,11 +16038,15 @@ var IceDragon = function(xPos, yPos, width, height)
                 var y1 = Math.min(newPointerLeft ? newPointerLeft.yPos : Infinity, 
                                   newPointerRight ? newPointerRight.yPos : Infinity);
 
-                object.xPos = (y1 === newPointerLeft.yPos) ? newPointerLeft.xPos : newPointerRight.xPos - object.width;
-                object.yPos = y1 - object.height;
+                if(object.yPos + object.height - object.yVel <= y1)
+                {
 
-                object.yVel = Math.min(object.yVel, 1);
-                object.inAir = (object.yVel >= 2);
+                    object.xPos = (y1 === newPointerLeft.yPos) ? newPointerLeft.xPos : newPointerRight.xPos - object.width;
+                    object.yPos = y1 - object.height;
+
+                    object.yVel = Math.min(object.yVel, 1);
+                    object.inAir = (object.yVel >= 2);
+                }
 
                 object.updateBoundingBox();
             }
@@ -17437,7 +17441,7 @@ var Player = function(xPos, yPos, width, height, colorValue)
         this.lastUpdate();
     };
 
-    this.hoverModeEnabled = true;
+    this.hoverModeEnabled = false;
     this.hoverMode = false;
     this.lastHoverTime = 0;
 
