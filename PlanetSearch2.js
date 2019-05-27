@@ -786,7 +786,7 @@ var sketch = function(processing) /*Wrapper*/
 var game = {
     fps : 60, 
     loadFps : 160,
-    gameState : "start", //Default = "start"
+    gameState : "play", //Default = "start"
     version : "v0.8.7 beta",
     fpsType : "manual", //Default = "manual"
     debugMode : true, //Turn this to true to see the fps
@@ -800,7 +800,7 @@ var game = {
     }
 };
 var levelInfo = {
-    level : "intro", //Default = "intro"
+    level : "IceDragon", //Default = "intro"
     xPos : 0,
     yPos : 0,
     width : width,
@@ -15310,7 +15310,7 @@ var IceDragon = function(xPos, yPos, width, height)
             element.yVel = sin(a) * element.speed;
 
             element.xPos += element.xVel;
-            element.yPos += element.yVel;
+            element.yPos += element.yVel;   
         
             // {
                 // var line2 = trackNodes[element.trackNodesI - 2];
@@ -16038,15 +16038,12 @@ var IceDragon = function(xPos, yPos, width, height)
                 var y1 = Math.min(newPointerLeft ? newPointerLeft.yPos : Infinity, 
                                   newPointerRight ? newPointerRight.yPos : Infinity);
 
-                if(object.yPos + object.height - object.yVel <= y1)
-                {
+                object.xPos = (y1 === newPointerLeft.yPos) ? newPointerLeft.xPos : newPointerRight.xPos - object.width;
 
-                    object.xPos = (y1 === newPointerLeft.yPos) ? newPointerLeft.xPos : newPointerRight.xPos - object.width;
-                    object.yPos = y1 - object.height;
+                object.yPos = y1 - object.height;
 
-                    object.yVel = Math.min(object.yVel, 1);
-                    object.inAir = (object.yVel >= 2);
-                }
+                object.yVel = Math.min(object.yVel, 1);
+                object.inAir = (object.yVel >= 2);
 
                 object.updateBoundingBox();
             }
@@ -17441,7 +17438,7 @@ var Player = function(xPos, yPos, width, height, colorValue)
         this.lastUpdate();
     };
 
-    this.hoverModeEnabled = false;
+    this.hoverModeEnabled = true;
     this.hoverMode = false;
     this.lastHoverTime = 0;
 
