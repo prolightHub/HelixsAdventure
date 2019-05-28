@@ -459,6 +459,30 @@ var levels = {
             "                                                                       "
         ]
     },
+    "generated": {
+        plan : [
+            "                                                                                          ",
+            "                                                                                          ",
+            "                                                                                          ",
+            "                                                                                          ",
+            "                                                                                          ",
+            "                                                                                          ",
+            "                                                                                          ",
+            "                                                                                          ",
+            "                                                                                          ",
+            "                                                                                          ",
+            "                                                                                          ",
+            "                                                                                          ",
+            "                                                                                          ",
+            " E   p  E  T E   E                                                                        ",
+            "gggggggggggggggggg                                                                       E",
+            "ddddddddddddddddddg    T  Tggg       g         E                    T   gggggggggggggggggg",
+            "ddddddbdbbdddddddddgg  g  gdddgg   ggdgggggggggggg  TEE  gggg ggggggggggdddddddddddddddddd",
+            "ddddbdbbbbdbbdbbddbdd  d  dddbdd   ddbdddddddddddd  gggggddddgdddddddddddbbbdbddddddddbddd",
+            "bbbbbbbbbbbbbbbbbbbdb  b  dbbbdd   bbbdbbdddbbbbdb  dddddbbddddddbdbbddbbddbbbbdbbdddbbbdb",
+            "bbbbbbbbbbbbbbbbbbbbd  b  bbbbdd   bbbdbdbbbbdbbdb  bddbdbbbbdbbbdbbddddbbbbbbbbbbbbbbbbbb"
+        ]
+    },
     "smooth" : {
         theme : "overworld", 
         background : "spaceFromEarth",
@@ -2824,7 +2848,7 @@ var levels = {
         plan : [
             "bbbbbiiiiiiibbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbiiiiiiiiiiiiiiiiii",
             "iiiiii IIIIiiiiIIIIIIIIiiiiiiiiiiiiiiiiiiiIIIIIiiiiiiiiiiiiiiiiiiiibbiiiiiiiiL  V        V ",
-            "         VVIII           V           V       V   IIIIIIIIIIIIIIiiiiiiiiiiL                 ",
+            "           III           V           V       V   IIIIIIIIIIIIIIiiiiiiiiiiL                 ",
             "                                                            IIIiiiiiiiii                   ",
             "                                                             IiiiiiiiL                     ",
             "                                                  b  b    b                                ",
@@ -2858,6 +2882,19 @@ var levels = {
             'a' : {
                 level: "mountain2",
                 symbol: 'b',
+            },
+            'b' : {
+                level : "outerMountain",
+                symbol : 'a',
+                hidden : true,
+                locked : true,
+                magic : true
+            },
+            'd' : {
+                level : "IceDragon",
+                symbol : 'd',
+                locked : true,
+                hidden : true
             }
         },
         plan : [
@@ -2880,44 +2917,64 @@ var levels = {
             "                                                                                                                                         ",
             "                                                                                                                                         ",
             "                                                                                                                                         ",
+            "                               p                                                                                                         ",
+            "                                                                                                                                         ",
+            "                                       a                                                                                                 ",
+            "                                       B                                                                                                 ",
             "                                                                                                                                         ",
             "                                                                                                                                         ",
             "                                                                                                                                         ",
             "                                                                                                                                         ",
-            "                                                                                                                                         ",
-            "        p                                                                                                                                ",
-            "                                                                                                                                         ",
-            "                                                                                                                                         ",
-            "             a                                                     aa                                                                    ",
-            "             B                                                     DD                                                                    ",
-            "    111111111111111111111    11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111    ",
-            "    iiiiiiiiiiiiiiiiiiiii    iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii    ",
-            "    iiiiiiiiiiiiiiiiiiiii    iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii    ",
-            "    iiiiiiiiiiiiiiiiiiiii    iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii    " 
+            "                                                                   aa                    db                                              ",
+            "                                                                   DD                    DD                                              ",
+            "    111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111    ",
+            "    iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii    ",
+            "    iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii    ",
+            "    iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii    " 
         ],
     },
-    "generated": {
+    "outerMountain" : {
+        theme : "winter",
+        background : "high",
+        debugMenuWhite : false,
+        specialOneWays : true,
+        doors : {
+            'a' : {
+                level : "IceDragon",
+                symbol : 'b',
+                magic : true
+            }
+        },
+        special : {
+            'a' : {
+                arrayName : "crystal",
+                shape : "circle",
+                diameter : 20,
+                arguments : {
+                    '4' : {
+                        kind : "winter"
+                    },
+                }
+            },
+        },
         plan : [
-            "                                                                                          ",
-            "                                                                                          ",
-            "                                                                                          ",
-            "                                                                                          ",
-            "                                                                                          ",
-            "                                                                                          ",
-            "                                                                                          ",
-            "                                                                                          ",
-            "                                                                                          ",
-            "                                                                                          ",
-            "                                                                                          ",
-            "                                                                                          ",
-            "                                                                                          ",
-            " E   p  E  T E   E                                                                        ",
-            "gggggggggggggggggg                                                                       E",
-            "ddddddddddddddddddg    T  Tggg       g         E                    T   gggggggggggggggggg",
-            "ddddddbdbbdddddddddgg  g  gdddgg   ggdgggggggggggg  TEE  gggg ggggggggggdddddddddddddddddd",
-            "ddddbdbbbbdbbdbbddbdd  d  dddbdd   ddbdddddddddddd  gggggddddgdddddddddddbbbdbddddddddbddd",
-            "bbbbbbbbbbbbbbbbbbbdb  b  dbbbdd   bbbdbbdddbbbbdb  dddddbbddddddbdbbddbbddbbbbdbbdddbbbdb",
-            "bbbbbbbbbbbbbbbbbbbbd  b  bbbbdd   bbbdbdbbbbdbbdb  bddbdbbbbdbbbdbbddddbbbbbbbbbbbbbbbbbb"
+            "                                                                           ",
+            "                                                                           ",
+            "                                                                           ",
+            "                                                                           ",
+            "                                                                           ",
+            "                                                                           ",
+            "                                                                           ",
+            "                                                                           ",
+            "                                                                           ",
+            "                                                                           ",
+            "   a       a                                                               ",
+            "   D       $                                                               ",
+            "IIIIIIIIIIIIIiiiiIIIIIIIIIIIIIIiiiiiiiiIIIIiiiiiiiiiiiiiiIIIIIIiiiiiiiiiiii",
+            "111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "111111111111111111111111111111111111111111111111111111111111111111111111111"
         ]
     },
     "test" : {

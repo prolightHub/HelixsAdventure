@@ -715,6 +715,7 @@ var sketch = function(processing) /*Wrapper*/
         Updated some text for a power-up.
         Voxelizers now can't damage you if you have a bubbleShield.
         Fixed enemy edge detection!
+        Updated ice dragon collision to work on both sides. Now all I have to do to is put it on the track.
 
     Next :   
         v0.8.6 -> 
@@ -787,9 +788,9 @@ var sketch = function(processing) /*Wrapper*/
 var game = {
     fps : 60, 
     loadFps : 160,
-    gameState : "start", //Default = "start"
+    gameState : "play", //Default = "start"
     version : "v0.8.7 beta",
-    fpsType : "manual", //Default = "manual"
+    fpsType : "auto", //Default = "manual"
     debugMode : true, //Turn this to true to see the fps
     showDebugPhysics : false,
     boundingBoxes : false,
@@ -801,7 +802,7 @@ var game = {
     }
 };
 var levelInfo = {
-    level : "intro", //Default = "intro"
+    level : "IceDragon", //Default = "intro"
     xPos : 0,
     yPos : 0,
     width : width,
@@ -10746,6 +10747,11 @@ var Door = function(xPos, yPos, width, height, colorValue)
     this.lastDraw = this.draw;
     this.draw = function()
     {
+        if(this.goto.hidden)
+        {
+            return;
+        }
+
         if(!this.magic)
         {
             this.lastDraw();
@@ -10808,7 +10814,7 @@ var Door = function(xPos, yPos, width, height, colorValue)
 
     this.onCollide = function(object)
     {
-        if(object.openDoor !== undefined && object.openDoor())
+        if(!this.goto.hidden && object.openDoor !== undefined && object.openDoor())
         {
             if(object.goto.keysHolding !== undefined)
             {
@@ -12571,38 +12577,6 @@ var Enemy = function(xPos, yPos, width, height, colorValue, props, complexDraw, 
         }, false);
         self.cast = gameObjects.getObject("cast").getLast();
     };
-    
-    // this.groundBelow = 0;
-
-    // this.addCastForGroundCheck = function(self, arrayName)
-    // {
-    //     gameObjects.getObject("cast").add(self.xPos + self.halfWidth, self.yPos + self.halfHeight - 1, 3, arrayName, function(object)
-    //     {
-    //         if(!object.physics)
-    //         {
-    //             return;
-    //         }
-
-    //         if(/*object.physics.shape === "rect" &&*/ object.type !== "lifeform" && object.arrayName !== self.arrayName)
-    //         {
-    //             self.groundBelow = 1;
-              
-    //             if(self.block)
-    //             {
-    //                 self.block.nextToBlock = false;
-    //             }
-    //         }
-    //     },
-    //     function(cast)
-    //     {
-    //         cast.xPos = self.xPos + self.halfWidth;  
-    //         cast.yPos = self.yPos + self.halfHeight - 1;
-    //     }, false, Infinity);
-    //     self.groundCast = gameObjects.getObject("cast").getLast();
-    //     self.groundCast.setPos(self.groundCast);
-    //     self.groundCast.yVel = 10;
-    //     cameraGrid.addReference(self.groundCast);
-    // };
 
     this.props = props || {
         charging : true,
@@ -12768,27 +12742,6 @@ var Enemy = function(xPos, yPos, width, height, colorValue, props, complexDraw, 
         cameraGrid.addReference(this.detector);
 
         gameObjects.applyCollision(this.detector);
-
-        //If this is approaching the edge of the block, go the other way
-        // if(this.groundBelow < -1 && this.block !== undefined)
-        // {
-        //     this.handledEdge = true;
-        //     if(!this.onHandleEdges(this.block))
-        //     {
-        //         var inBetweenX = this.xPos + this.halfWidth;
-        //         if(inBetweenX <= this.block.xPos)
-        //         {
-        //             this.handleLeft();
-        //         }
-        //         else if(inBetweenX >= this.block.xPos + this.block.width && !this.block.nextToBlock && 
-        //                this.marginRight < this.block.xPos + this.block.width)
-        //         {
-        //             this.handleRight();
-        //         }
-        //     }
-        // }else{
-        //     this.handledEdge = false;
-        // }
     };
     this.handleBorders = function()
     {
@@ -12812,15 +12765,10 @@ var Enemy = function(xPos, yPos, width, height, colorValue, props, complexDraw, 
             this.cast.remove();
         }
 
-        if(this.detector)
+        if(this.detector !== undefined)
         {
             this.detector.remove();
         }
-
-        // if(this.groundCast !== undefined && this.groundCast.remove !== undefined)
-        // {
-        //     this.groundCast.remove();
-        // }
 
         this.lastRemove();
     };
@@ -12914,16 +12862,6 @@ var Enemy = function(xPos, yPos, width, height, colorValue, props, complexDraw, 
             this.boundingBox.height = this.height;
             this.halfHeight = this.height / 2;
         }
-
-        // if(this.props.handleEdge && !this.initCheck)
-        // {
-        //     this.addCastForGroundCheck(this, this.arrayName);
-        //     this.initCheck = true;
-        // }
-
-        // this.groundCast = this.xPos + this.halfWidth;
-
-        // this.groundBelow--;
 
         this.lastUpdate();
     };
@@ -15303,7 +15241,7 @@ var IceDragon = function(xPos, yPos, width, height)
     Boss.call(this, xPos, yPos, width, height, color(15, 120, 220, 220), {
         charging : true,
         handleEdge : true
-    }, false, 35);
+    }, false, 4);
 
     this.physics.solidObject = true;
 
@@ -15316,7 +15254,271 @@ var IceDragon = function(xPos, yPos, width, height)
     this.apart = 50;
     this.separation = this.apart * this.apart;
     this.dragonLength = 7;
-    // this.gravity = 0;
+    this.gravity = 0;
+
+    this.nodes = [];
+    this.nodes.draw = function()
+    {
+        noStroke();
+        fill(255, 255, 255, 80);
+        beginShape();
+            for(var i = this.length - 1; i >= 0; i--)
+            {
+                vertex(this[i].xPos, this[i].yPos);
+            }
+        endShape(CLOSE);
+    };
+
+    this.nodes.getSides = function(pointer)
+    {
+        var sides = [];
+        var ra = physics.formulas.resolveAngle;
+
+        for(var i = 0; i < this.length - 1; i++)
+        {
+            var point0 = this[i + 1], point1 = this[i];
+
+            var s = physics.formulas.crossProduct(pointer, point1, point0);
+
+            var side = physics.formulas.sign(s);
+
+            var a = degrees(atan2(point1.yPos - point0.yPos, point1.xPos - point0.xPos));
+
+            var n1 = ra(a - ra(degrees(atan2(point0.yPos - pointer.yPos, point0.xPos - pointer.xPos))));
+            var n2 = ra(a - ra(degrees(atan2(point1.yPos - pointer.yPos, point1.xPos - pointer.xPos))));
+    
+            sides[i] = 0;
+
+            if(side > 0)
+            {
+                if(n1 < 270 && n2 > 270)
+                {
+                    sides[i] = side;
+                }
+            }else{
+                if(n1 > 90 && n2 < 90)
+                {
+                    sides[i] = side;
+                }
+            }
+        }
+
+        return sides;
+    };
+    this.nodes.applyCollision = function(object)
+    {
+        var pointerLeftDown = {
+            xPos : object.xPos,
+            yPos : object.yPos + object.height,
+        };
+
+        var pointerRightDown = {
+            xPos : object.xPos + object.width,
+            yPos : object.yPos + object.height,
+        };
+
+        var iSides = this.getSides(pointerLeftDown);
+        var jSides = this.getSides(pointerRightDown);
+
+        var i = iSides.indexOf(-1);
+        var j = jSides.indexOf(-1);
+
+        if(i !== -1 && !observer.collisionTypes.rectrect.colliding(object, physics.formulas.createBoundingBoxForLine(this[i], this[i + 1])))
+        {
+            i = -1;
+        }
+
+        if(j !== -1 && !observer.collisionTypes.rectrect.colliding(object, physics.formulas.createBoundingBoxForLine(this[j], this[j + 1])))
+        {
+            j = -1;
+        }
+
+        if(i !== -1 || j !== -1)
+        {
+            var newPointerLeft = (i === -1) ? false : physics.formulas.closestPointOnLine(pointerLeftDown, this[i], this[i + 1]);
+            var newPointerRight = (j === -1) ? false : physics.formulas.closestPointOnLine(pointerRightDown, this[j], this[j + 1]);
+
+            var y1 = Math.min(newPointerLeft ? newPointerLeft.yPos : Infinity, 
+                              newPointerRight ? newPointerRight.yPos : Infinity);
+
+            object.xPos = (y1 === newPointerLeft.yPos) ? newPointerLeft.xPos : newPointerRight.xPos - object.width;
+
+            object.yPos = y1 - object.height;
+
+            object.yVel = Math.min(object.yVel, 1);
+            object.inAir = (object.yVel >= 2);
+
+            object.updateBoundingBox();
+        }
+    };
+
+    this.nodes2 = [];
+    this.nodes2.getSides = function(pointer)
+    {
+        var sides = [];
+        var ra = physics.formulas.resolveAngle;
+
+        for(var i = 0; i < this.length - 1; i++)
+        {
+            var point0 = this[i], point1 = this[i + 1];
+
+            var s = physics.formulas.crossProduct(pointer, point1, point0);
+
+            var side = physics.formulas.sign(s);
+
+            var a = degrees(atan2(point1.yPos - point0.yPos, point1.xPos - point0.xPos));
+
+            var n1 = ra(a - ra(degrees(atan2(point0.yPos - pointer.yPos, point0.xPos - pointer.xPos))));
+            var n2 = ra(a - ra(degrees(atan2(point1.yPos - pointer.yPos, point1.xPos - pointer.xPos))));
+    
+            sides[i] = 0;
+
+            if(side > 0)
+            {
+                if(n1 < 270 && n2 > 270)
+                {
+                    sides[i] = side;
+                }
+            }else{
+                if(n1 > 90 && n2 < 90)
+                {
+                    sides[i] = side;
+                }
+            }
+        }
+
+        return sides;
+    };
+    this.nodes2.applyCollision = function(object)
+    {
+        var pointerLeftDown = {
+            xPos : object.xPos,
+            yPos : object.yPos,
+        };
+
+        var pointerRightDown = {
+            xPos : object.xPos + object.width,
+            yPos : object.yPos,
+        };
+
+        var iSides = this.getSides(pointerLeftDown);
+        var jSides = this.getSides(pointerRightDown);
+
+        var i = iSides.indexOf(1);
+        var j = jSides.indexOf(1);
+
+        if(i !== -1 && !observer.collisionTypes.rectrect.colliding(object, physics.formulas.createBoundingBoxForLine(this[i + 1], this[i])))
+        {
+            i = -1;
+        }
+
+        if(j !== -1 && !observer.collisionTypes.rectrect.colliding(object, physics.formulas.createBoundingBoxForLine(this[j + 1], this[j])))
+        {
+            j = -1;
+        }
+
+        if(i !== -1 || j !== -1)
+        {
+            var newPointerLeft = (i === -1) ? false : physics.formulas.closestPointOnLine(pointerLeftDown, this[i], this[i + 1]);
+            var newPointerRight = (j === -1) ? false : physics.formulas.closestPointOnLine(pointerRightDown, this[j], this[j + 1]);
+
+            var y1 = Math.max(newPointerLeft ? newPointerLeft.yPos : 0, 
+                              newPointerRight ? newPointerRight.yPos : 0);
+
+            object.xPos = (y1 === newPointerLeft.yPos) ? newPointerLeft.xPos : newPointerRight.xPos - object.width;
+            object.yPos = y1;
+
+            object.yVel = 0;
+            object.inAir = true;
+
+            object.updateBoundingBox();
+        }
+    };
+
+    this.createNodes = function()
+    {
+        for(var i = 8 - 1; i >= 0; i--)
+        {
+            this.nodes.push({
+                xPos : 800 + i * 60,
+                yPos : 630 + random(-10, 10)
+            });
+        }
+
+        this.nodes.push({
+            xPos : 760,
+            yPos : 645
+        });
+
+        this.nodes2.push({
+            xPos : 760,
+            yPos : 645
+        });
+
+        for(var i = 0; i < 8; i++)
+        {
+            this.nodes2.push({
+                xPos : 800 + i * 60,
+                yPos : 690 + random(-10, 10)
+            });
+        }
+    };
+
+    this.createNodes();
+
+    this.connectHead = function()
+    {
+        var point0 = this.nodes[0];
+        var point1 = this.nodes2[0];
+
+        if(point0 && point1)
+        {
+            // console.log(point0, point1);
+
+            this.xPos = point0.xPos;
+            this.yPos = point0.yPos;// + Math.abs(point0.yPos - point1.yPos) / 2 + this.halfHeight;
+        }
+
+        // cameraGrid.removeReference(this);
+        // cameraGrid.addReference(this);
+    };
+
+    this.allNodes = [];
+    var option = observer.collisionTypes["pointpolygon"];
+
+    this.colliding = function(object)
+    {
+        var oNodes = [{
+            xPos: object.boundingBox.xPos,
+            yPos: object.boundingBox.yPos
+        }, {
+            xPos: object.boundingBox.xPos + object.boundingBox.width,
+            yPos: object.boundingBox.yPos
+        }, {
+            xPos: object.boundingBox.xPos,
+            yPos: object.boundingBox.yPos + object.boundingBox.height
+        }, {
+            xPos: object.boundingBox.xPos + object.boundingBox.width,
+            yPos: object.boundingBox.yPos + object.boundingBox.height
+        }];
+
+        var obj = { 
+            points: this.allNodes 
+        };
+        return oNodes.some(function(element)
+        {
+            return option.colliding(element, obj);
+        });
+    };
+
+    this.applyCollision = function(object)
+    {
+        if(this.colliding(object))
+        {
+            this.nodes.applyCollision(object);
+            this.nodes2.applyCollision(object);
+        }
+    };
 
     this.draw = function(isRemote)
     {
@@ -15329,6 +15531,46 @@ var IceDragon = function(xPos, yPos, width, height)
         stroke(255, 255, 255);
         rect(this.xPos, this.yPos, this.width, this.height, 5);
         noStroke();
+
+        var nodes = this.nodes.slice().concat(this.nodes2);
+        nodes.draw = this.nodes.draw;
+        nodes.draw();
+
+        this.allNodes = nodes;
+    };
+
+    this._lastRemove = this.remove;
+
+    this.remove = function()
+    { 
+        this.lastRemove();
+
+        if(!this.addedHeart && gameObjects.getObject("player").input(0).maxHp < 20)
+        {
+            gameObjects.getObject("heart").add(
+                this.xPos + this.halfWidth,
+                levelInfo.yPos + levelInfo.height - 400, 
+                levelInfo.unitWidth, 5);
+
+            var heart = gameObjects.getObject("heart").getLast();
+
+            heart.falling = true;
+            heart.gravity = 5;
+
+            heart.minimumYPos = levelInfo.yPos + levelInfo.height - 200;
+
+            cameraGrid.addReference(heart);
+
+            this.addedHeart = true;
+        }
+    };
+
+    var _lastUpdate = this.update;
+    this.update = function()
+    {
+        _lastUpdate.apply(this, arguments);
+
+        this.connectHead();
     };
 
     // this.onCollide = function(object)
@@ -20224,17 +20466,64 @@ var levelScripts = {
     },
     "IceDragon" : {
         afterLoad: function()
-        {
+        {   
+            if(levels[levelInfo.level].save.roomDefeated)
+            {
+                // Make sure we can still travel through all the doors.
+                levels[levelInfo.level].doors.a.locked = false;
+
+                levels[levelInfo.level].doors.b.hidden = false;
+                levels[levelInfo.level].doors.b.locked = false;
+
+                this.stop = true;
+
+                // Make sure the ice dragon is removed from the level.
+                var iceDragon = gameObjects.getObject("iceDragon").input(0);
+
+                if(iceDragon && iceDragon.draw)
+                {
+                    iceDragon.remove();
+                }
+
+                return;
+            }
+
             levels[levelInfo.level].doors.a.locked = true;
+
         },
         apply : function()
         {
             var iceDragon = gameObjects.getObject("iceDragon").input(0);
 
             // Prevent game from crashing if there is no ice dragon which there should be.
-            if(iceDragon === undefined || iceDragon.draw === undefined)
+            if(iceDragon.fake)
             {
                 this.stop = true;
+ 
+                cam.attach(function()
+                {
+                    var object = gameObjects.getObject("door")[2];
+                    
+                    if(!game.cutScening)
+                    {
+                        // Set variables after defeating the room!
+                        levels[levelInfo.level].doors.a.locked = false;
+
+                        levels[levelInfo.level].doors.b.hidden = false;
+                        levels[levelInfo.level].doors.b.locked = false;  
+
+                        levels[levelInfo.level].save.roomDefeated = true;
+                    }
+
+                    game.cutScening = true;
+
+                    return object;
+                },
+                false, 1600, function()
+                {
+                    game.cutScening = false;
+                });
+
                 return;
             }
         },
@@ -20243,13 +20532,17 @@ var levelScripts = {
             var iceDragon = gameObjects.getObject("iceDragon").input(0);
 
             // Prevent game from crashing if there is no ice dragon which there should be.
-            if(iceDragon === undefined || iceDragon.draw === undefined)
+            if(iceDragon.fake)
             {
                 this.stop = true;
                 return;
             }
 
             iceDragon.draw(true);
+
+            var player = gameObjects.getObject("player")[0];
+
+            iceDragon.applyCollision(player);
         },
     },
 };
