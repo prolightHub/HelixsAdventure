@@ -714,7 +714,8 @@ var sketch = function(processing) /*Wrapper*/
         Made the noSong option available.
         Updated some text for a power-up.
         Voxelizers now can't damage you if you have a bubbleShield.
-    
+        Fixed enemy edge detection!
+
     Next :   
         v0.8.6 -> 
             Do something about the underwater level. It doesn't make sense for the player to not have the oxygen bar.
@@ -786,7 +787,7 @@ var sketch = function(processing) /*Wrapper*/
 var game = {
     fps : 60, 
     loadFps : 160,
-    gameState : "play", //Default = "start"
+    gameState : "start", //Default = "start"
     version : "v0.8.7 beta",
     fpsType : "manual", //Default = "manual"
     debugMode : true, //Turn this to true to see the fps
@@ -800,7 +801,7 @@ var game = {
     }
 };
 var levelInfo = {
-    level : "IceDragon", //Default = "intro"
+    level : "intro", //Default = "intro"
     xPos : 0,
     yPos : 0,
     width : width,
@@ -7894,7 +7895,14 @@ gameObjects.applyCollision = function(objectA)
                     continue;
                 }
 
-                //Test boundingBoxes
+                // May need to use this in certain cases.
+                /*if(object.physics.movement === "dynamic" || object.physics.changes)
+                {
+                    cameraGrid.removeReference(object);
+                    cameraGrid.addReference(object);
+                }*/
+
+                // Test boundingBoxes
                 if(!objectA.boundingBox.off && !objectB.boundingBox.off && 
                    !observer.boundingBoxesColliding(objectA.boundingBox, objectB.boundingBox))
                 {
@@ -12564,37 +12572,37 @@ var Enemy = function(xPos, yPos, width, height, colorValue, props, complexDraw, 
         self.cast = gameObjects.getObject("cast").getLast();
     };
     
-    this.groundBelow = 0;
+    // this.groundBelow = 0;
 
-    this.addCastForGroundCheck = function(self, arrayName)
-    {
-        gameObjects.getObject("cast").add(self.xPos + self.halfWidth, self.yPos + self.halfHeight - 1, 3, arrayName, function(object)
-        {
-            if(object.physics === undefined)
-            {
-                return;
-            }
+    // this.addCastForGroundCheck = function(self, arrayName)
+    // {
+    //     gameObjects.getObject("cast").add(self.xPos + self.halfWidth, self.yPos + self.halfHeight - 1, 3, arrayName, function(object)
+    //     {
+    //         if(!object.physics)
+    //         {
+    //             return;
+    //         }
 
-            if(/*object.physics.shape === "rect" &&*/ object.type !== "lifeform" && object.arrayName !== self.arrayName)
-            {
-                self.groundBelow = 1;
+    //         if(/*object.physics.shape === "rect" &&*/ object.type !== "lifeform" && object.arrayName !== self.arrayName)
+    //         {
+    //             self.groundBelow = 1;
               
-                if(self.block)
-                {
-                    self.block.nextToBlock = false;
-                }
-            }
-        },
-        function(cast)
-        {
-            cast.xPos = self.xPos + self.halfWidth;  
-            cast.yPos = self.yPos + self.halfHeight - 1;
-        }, false, Infinity);
-        self.groundCast = gameObjects.getObject("cast").getLast();
-        self.groundCast.setPos(self.groundCast);
-        self.groundCast.yVel = 10;
-        cameraGrid.addReference(self.groundCast);
-    };
+    //             if(self.block)
+    //             {
+    //                 self.block.nextToBlock = false;
+    //             }
+    //         }
+    //     },
+    //     function(cast)
+    //     {
+    //         cast.xPos = self.xPos + self.halfWidth;  
+    //         cast.yPos = self.yPos + self.halfHeight - 1;
+    //     }, false, Infinity);
+    //     self.groundCast = gameObjects.getObject("cast").getLast();
+    //     self.groundCast.setPos(self.groundCast);
+    //     self.groundCast.yVel = 10;
+    //     cameraGrid.addReference(self.groundCast);
+    // };
 
     this.props = props || {
         charging : true,
@@ -12704,6 +12712,26 @@ var Enemy = function(xPos, yPos, width, height, colorValue, props, complexDraw, 
 
     this.onHandleEdges = function() {};
 
+    this.addEdgeDetector = function()
+    {
+        var w = 5;
+        this.detector = gameObjects.getObject("dynamicRect").add(this.xPos + this.halfWidth - w / 2, this.yPos + this.height, w, 2, color(0, 0, 0, 100));
+        cameraGrid.addReference(this.detector);
+
+        this.detector.physics.solidObject = false;
+        this.detector.physics.movement = "dynamic";
+        this.detector.onCollide = function(object)
+        {
+            if(object.type !== "lifeform" && object.arrayName !== self.arrayName && 
+                object.arrayName !== "slope" && object.physics.solidObject)
+            {               
+                self.hasObjectBelow = true;
+            }
+        };
+
+        this.detector.draw = function() {};
+    };
+
     this.handleEdges = function()
     {
         if(!this.props.handleEdge)
@@ -12711,26 +12739,56 @@ var Enemy = function(xPos, yPos, width, height, colorValue, props, complexDraw, 
             return;
         }
 
-        //If this is approaching the edge of the block, go the other way
-        if(this.groundBelow < -1 && this.block !== undefined)
+        if(!this.hasObjectBelow && this.lastHasObjectBelow)
         {
-            this.handledEdge = true;
-            if(!this.onHandleEdges(this.block))
+            if(this.xDir === "left")
             {
-                var inBetweenX = this.xPos + this.halfWidth;
-                if(inBetweenX <= this.block.xPos)
-                {
-                    this.handleLeft();
-                }
-                else if(inBetweenX >= this.block.xPos + this.block.width && !this.block.nextToBlock && 
-                       this.marginRight < this.block.xPos + this.block.width)
-                {
-                    this.handleRight();
-                }
+                this.xDir = "right";
             }
-        }else{
-            this.handledEdge = false;
+            else if(this.xDir === "right")
+            {
+                this.xDir = "left";
+            }
         }
+
+        this.lastHasObjectBelow = this.hasObjectBelow;
+        this.hasObjectBelow = false;
+
+        if(!this.detector)
+        {
+            return this.addEdgeDetector();
+        }
+
+        this.detector.xPos = this.xPos + this.halfWidth - this.detector.halfWidth;
+        this.detector.yPos = this.yPos + this.height;
+
+        this.detector.updateBoundingBox();
+        
+        cameraGrid.removeReference(this.detector);
+        cameraGrid.addReference(this.detector);
+
+        gameObjects.applyCollision(this.detector);
+
+        //If this is approaching the edge of the block, go the other way
+        // if(this.groundBelow < -1 && this.block !== undefined)
+        // {
+        //     this.handledEdge = true;
+        //     if(!this.onHandleEdges(this.block))
+        //     {
+        //         var inBetweenX = this.xPos + this.halfWidth;
+        //         if(inBetweenX <= this.block.xPos)
+        //         {
+        //             this.handleLeft();
+        //         }
+        //         else if(inBetweenX >= this.block.xPos + this.block.width && !this.block.nextToBlock && 
+        //                this.marginRight < this.block.xPos + this.block.width)
+        //         {
+        //             this.handleRight();
+        //         }
+        //     }
+        // }else{
+        //     this.handledEdge = false;
+        // }
     };
     this.handleBorders = function()
     {
@@ -12754,10 +12812,15 @@ var Enemy = function(xPos, yPos, width, height, colorValue, props, complexDraw, 
             this.cast.remove();
         }
 
-        if(this.groundCast !== undefined && this.groundCast.remove !== undefined)
+        if(this.detector)
         {
-            this.groundCast.remove();
+            this.detector.remove();
         }
+
+        // if(this.groundCast !== undefined && this.groundCast.remove !== undefined)
+        // {
+        //     this.groundCast.remove();
+        // }
 
         this.lastRemove();
     };
@@ -12852,15 +12915,15 @@ var Enemy = function(xPos, yPos, width, height, colorValue, props, complexDraw, 
             this.halfHeight = this.height / 2;
         }
 
-        if(this.props.handleEdge && !this.initCheck)
-        {
-            this.addCastForGroundCheck(this, this.arrayName);
-            this.initCheck = true;
-        }
+        // if(this.props.handleEdge && !this.initCheck)
+        // {
+        //     this.addCastForGroundCheck(this, this.arrayName);
+        //     this.initCheck = true;
+        // }
 
-        this.groundCast = this.xPos + this.halfWidth;
+        // this.groundCast = this.xPos + this.halfWidth;
 
-        this.groundBelow--;
+        // this.groundBelow--;
 
         this.lastUpdate();
     };
@@ -15239,6 +15302,7 @@ var IceDragon = function(xPos, yPos, width, height)
 {
     Boss.call(this, xPos, yPos, width, height, color(15, 120, 220, 220), {
         charging : true,
+        handleEdge : true
     }, false, 35);
 
     this.physics.solidObject = true;
@@ -15252,963 +15316,7 @@ var IceDragon = function(xPos, yPos, width, height)
     this.apart = 50;
     this.separation = this.apart * this.apart;
     this.dragonLength = 7;
-    this.gravity = 0;
-
-    this.loadPoints = function()
-    {
-        this.points = [];
-        this.points.add = function(xPos, yPos, speed)
-        {
-            this.push({
-                xPos : xPos,
-                yPos : yPos,
-                speed : speed || 0.6,
-                diameter : 5,
-                trackNodesI : 0,
-                trackHeading : 1,
-                xVel: 0,
-                yVel: 0
-            });
-        };
-        this.points.draw = function()
-        {
-            this.forEach(function(element, index, array)
-            {
-                fill(255, 255, 255, 100);
-                ellipse(element.xPos, element.yPos, element.diameter, element.diameter);
-            });
-        };
-        this.points.moveAlongTrack = function(element, index, trackNodes)
-        {
-            var line0 = trackNodes[element.trackNodesI];
-            var line1 = trackNodes[element.trackNodesI + 1];
-
-            if(trackNodes.loops)
-            {
-                if(!line0)
-                {
-                    line0 = trackNodes[trackNodes.length - 1];
-                }
-                if(!line1)
-                {
-                    line1 = trackNodes[0];
-                }
-            }
-            else if(element.trackHeading < 0)
-            {
-                var temp = line0;
-                line0 = line1;
-                line1 = temp;
-            }
-
-            var lineHeight = line1.yPos - line0.yPos,
-                lineWidth = line1.xPos - line0.xPos;
-
-            var a = atan2(lineHeight, lineWidth);
-
-            element.xVel = cos(a) * element.speed
-            element.yVel = sin(a) * element.speed;
-
-            element.xPos += element.xVel;
-            element.yPos += element.yVel;   
-        
-            // {
-                // var line2 = trackNodes[element.trackNodesI - 2];
-                // var line3 = trackNodes[element.trackNodesI - 1];
-
-                // if(self.trackNodes.loops)
-                // {
-                //     if(!line2)
-                //     {
-                //         line2 = trackNodes[self.trackNodes.length - 1];
-                //     }
-                //     if(!line3)
-                //     {
-                //         line3 = self.trackNodes[0];
-                //     }
-                // }
-                // else if(element.trackHeading < 0)
-                // {
-                //     var temp = line2;
-                //     line2 = line3;
-                //     line3 = temp;
-                // }
-
-                // element.lastAngle = atan2(line3.yPos - line2.yPos, line3.xPos - line2.xPos);
-                element.angle = a;
-            // }
-            
-            if(Math.pow(element.xPos - line0.xPos, 2) + Math.pow(element.yPos - line0.yPos, 2) > lineWidth * lineWidth + lineHeight * lineHeight)
-            {
-                element.trackNodesI += element.trackHeading;
-
-                if(trackNodes.loops)
-                {
-                    if(element.trackNodesI < 0)
-                    {
-                        element.trackNodesI = trackNodes.length - 1;
-                    }
-                    if(element.trackNodesI > trackNodes.length - 1)
-                    {
-                        element.trackNodesI = 0;
-                    }
-                }
-                else if(element.trackHeading < 0 && element.trackNodesI < 0 || 
-                        element.trackHeading > 0 && element.trackNodesI >= self.trackNodes.length - 1)
-                {
-                    element.trackHeading = -element.trackHeading;
-                    element.trackNodesI += element.trackHeading;
-                }
-            }
-        };
-        this.points.lastAddTime = 0;
-        this.points.update = function(trackNodes)
-        {
-            if(this[0])
-            {
-                this.moveAlongTrack(this[0], 0, trackNodes);
-            }
-
-            for(var i = 1; i < this.length; i++)
-            {
-                var last = this[i - 1];
-
-                if(last)
-                {
-                    this.moveAlongTrack(this[i], i, trackNodes);
-                    
-                    if(Math.pow(this[i].xPos - last.xPos, 2) + Math.pow(this[i].yPos - last.yPos, 2) > self.separation)
-                    {
-                        if(!this[i].oldSpeed) // Double use this variable
-                        {
-                            this[i].oldSpeed = this[i].speed;
-                            this[i].speed = this[i].oldSpeed * 3;
-                        }
-                    }
-                    else if(this[i].oldSpeed)
-                    {
-                        this[i].speed = this[i].oldSpeed;
-                        delete this[i].oldSpeed; // Double use this variable
-                    }
-                }
-            } 
-
-            // if(self.trackNodes.length > 1 && (keys['>'] || keys["z"] || keys["i"]) && millis() - this.lastAddTime > 300)
-            // {
-            //     if(keys["z"])
-            //     {
-            //         self.trackNodes.pop();
-            //     }
-            //     else if(keys["i"])
-            //     {
-            //         console.log(self.trackNodes);
-            //     }else{
-            //         this.add(self.trackNodes[0].xPos, self.trackNodes[0].yPos);       
-            //     }
-            //     this.lastAddTime = millis();
-            // }
-        };
-
-        this.points2 = [];
-
-        for(var i in this.points)
-        {
-            if(typeof this.points[i] === "function")
-            {
-                this.points2[i] = this.points[i];
-            }
-        }
-    };
-
-    this.loadTrackNodes = function()
-    {
-        this.toAddTrackNodes = [
-            {xPos: 4026, yPos: 838},
-            {xPos: 4034.6666666666665, yPos: 841.3333333333333},
-            {xPos: 4060, yPos: 845.3333333333333},
-            {xPos: 4071.3333333333335, yPos: 842.6666666666666},
-            {xPos: 4087.3333333333335, yPos: 835.3333333333333},
-            {xPos: 4094.6666666666665, yPos: 831.3333333333333},
-            {xPos: 4096.666666666667, yPos: 827.3333333333333},
-            {xPos: 4099.333333333333, yPos: 820},
-            {xPos: 4100.666666666667, yPos: 817.3333333333333},
-            {xPos: 4100.666666666667, yPos: 817.3333333333333},
-            {xPos: 4100.666666666667, yPos: 817.3333333333333},
-            {xPos: 4100.666666666667, yPos: 817.3333333333333},
-            {xPos: 4100.666666666667, yPos: 817.3333333333333},
-            {xPos: 4100.666666666667, yPos: 817.3333333333333},
-            {xPos: 4100.666666666667, yPos: 816.6666666666666},
-            {xPos: 4100.666666666667, yPos: 816.6666666666666},
-            {xPos: 4100.666666666667, yPos: 816.6666666666666},
-            {xPos: 4100.666666666667, yPos: 816.6666666666666},
-            {xPos: 4100.666666666667, yPos: 816.6666666666666},
-            {xPos: 4100.666666666667, yPos: 816.0572916666666},
-            {xPos: 4100.666666666667, yPos: 791.5631889506795},
-            {xPos: 4100.666666666667, yPos: 755.1197094956354},
-            {xPos: 4100.666666666667, yPos: 716.5702708893095},
-            {xPos: 4100.666666666667, yPos: 677.6496778668403},
-            {xPos: 4100.666666666667, yPos: 638.6636725591709},
-            {xPos: 4100.666666666667, yPos: 599.6661389849123},
-            {xPos: 4088, yPos: 553.9999070013237},
-            {xPos: 4088, yPos: 514.9999836099055},
-            {xPos: 4084.6666666666665, yPos: 463.99999711140833},
-            {xPos: 4087.3333333333335, yPos: 415.66666615758106},
-            {xPos: 4090.6666666666665, yPos: 370.6666665494797},
-            {xPos: 4095.3333333333335, yPos: 320.33333331268034},
-            {xPos: 4095.3333333333335, yPos: 279.99999999636015},
-            {xPos: 4076.6666666666665, yPos: 226.99999999935852},
-            {xPos: 4076.6666666666665, yPos: 187.33333333322025},
-            {xPos: 4080.6666666666665, yPos: 149.33333333333331},
-            {xPos: 4080.6666666666665, yPos: 146},
-            {xPos: 4080.6666666666665, yPos: 146},
-            {xPos: 4085.3333333333335, yPos: 119.33333333333333},
-            {xPos: 4083.3333333333335, yPos: 103.33333333333333},
-            {xPos: 4067.3333333333335, yPos: 78},
-            {xPos: 4039.3333333333335, yPos: 64},
-            {xPos: 4005.3333333333335, yPos: 51.33333333333333},
-            {xPos: 4005.3333333333335, yPos: 51.33333333333333},
-            {xPos: 3992, yPos: 51.33333333333333},
-            {xPos: 3986, yPos: 52},
-            {xPos: 3968.4967188962323, yPos: 54.666666666666664},
-            {xPos: 3932.1873515943657, yPos: 54.666666666666664},
-            {xPos: 3887.937575235474, yPos: 62},
-            {xPos: 3839.85670063433, yPos: 76},
-            {xPos: 3785.570606515366, yPos: 111.33333333333333},
-            {xPos: 3730.58167782483, yPos: 164},
-            {xPos: 3682.919708233055, yPos: 209.33333333333331},
-            {xPos: 3626.589948578983, yPos: 260.66666666666663},
-            {xPos: 3567.593324270904, yPos: 292},
-            {xPos: 3507.9299984028535, yPos: 311.3333333333333},
-            {xPos: 3461.5999997185368, yPos: 311.3333333333333},
-            {xPos: 3417.2699999504143, yPos: 311.3333333333333},
-            {xPos: 3366.939999991282, yPos: 324.66666666666663},
-            {xPos: 3319.9433333318198, yPos: 330.66666666666663},
-            {xPos: 3275.650145833091, yPos: 330.66666666666663},
-            {xPos: 3235.6448398109524, yPos: 330.66666666666663},
-            {xPos: 3206.548773833141, yPos: 330.66666666666663},
-            {xPos: 3189.955725599671, yPos: 331.3333333333333},
-            {xPos: 3185.528483653567, yPos: 348.36533912022907},
-            {xPos: 3184.623596850579, yPos: 382.5918014518004},
-            {xPos: 3184.464119525088, yPos: 420.28053922038333},
-            {xPos: 3184.4360132279667, yPos: 459.0494422555554},
-            {xPos: 3156.2416904092292, yPos: 481.79292647531304},
-            {xPos: 3135.118387401387, yPos: 487.7298247620176},
-            {xPos: 3071.872314481858, yPos: 469.44281087698204},
-            {xPos: 3028.438306213761, yPos: 469.62721430365656},
-            {xPos: 2987.599549204518, yPos: 450.32638024559196},
-            {xPos: 2951.29737921569, yPos: 432.99877458723756},
-            {xPos: 2917.6389506458436, yPos: 414.333117366486},
-            {xPos: 2882.6431483951037, yPos: 400.33329527131815},
-            {xPos: 2852.9799674065066, yPos: 375.6666599586139},
-            {xPos: 2824.649994255757, yPos: 349.6666654844389},
-            {xPos: 2794.98666565434, yPos: 318.9999997916441},
-            {xPos: 2764.6566664882944, yPos: 292.9999999632793},
-            {xPos: 2725.659999968606, yPos: 278.9999999935283},
-            {xPos: 2673.9966666611776, yPos: 278.33333333219275},
-            {xPos: 2631.6666666657447, yPos: 370.999999999799},
-            {xPos: 2588.6699999998846, yPos: 444.3333333332979},
-            {xPos: 2526.340000000028, yPos: 502.9999999999938},
-            {xPos: 2482.010000000055, yPos: 507.7710876464833},
-            {xPos: 2438.3456004543914, yPos: 537.8982973835133},
-            {xPos: 2402.136266582387, yPos: 575.3345560889043},
-            {xPos: 2377.778577041074, yPos: 613.3922955262938},
-            {xPos: 2363.4102342373217, yPos: 616.9059705219781},
-            {xPos: 2352.776755414847, yPos: 597.103534015628},
-            {xPos: 2354.312630887936, yPos: 563.9991000103661},
-            {xPos: 2356.897500209341, yPos: 547.6077613580019},
-            {xPos: 2358.216417571736, yPos: 541.6562851901637},
-            {xPos: 2354.2138768998175, yPos: 515.3510232064516},
-            {xPos: 2354.190929131587, yPos: 481.5535971374586},
-            {xPos: 2345.4934830593616, yPos: 443.4704992001756},
-            {xPos: 2313.84346164302, yPos: 395.2987607627079},
-            {xPos: 2271.795170916094, yPos: 359.6370547137331},
-            {xPos: 2230.5339662150013, yPos: 334.8350755470377},
-            {xPos: 2185.6081707319595, yPos: 326.38216056159746},
-            {xPos: 2133.290661075263, yPos: 302.0673520091909},
-            {xPos: 2086.962862374409, yPos: 267.3452034570402},
-            {xPos: 2043.8696006794, yPos: 255.33542532492362},
-            {xPos: 2009.3539915572462, yPos: 217.3337020261053},
-            {xPos: 1986.922553802347, yPos: 216.66673164511147},
-            {xPos: 1965.76762680028, yPos: 205.33334478513984},
-            {xPos: 1954.9975157844406, yPos: 198.6666686849339},
-            {xPos: 1943.732807579996, yPos: 198.66666702236628},
-            {xPos: 1883.8997582626318, yPos: 205.33333339602183},
-            {xPos: 1833.5552187956116, yPos: 210.0000000110482},
-            {xPos: 1788.9084698585666, yPos: 210.00000000194717},
-            {xPos: 1744.6401393883652, yPos: 210.00000000034316},
-            {xPos: 1700.3210080314304, yPos: 210.00000000006042},
-            {xPos: 1655.992923521988, yPos: 210.00000000001057},
-            {xPos: 1611.663261108202, yPos: 210.00000000000188},
-            {xPos: 1567.3333206044238, yPos: 210.00000000000034},
-            {xPos: 1501.6699977567089, yPos: 210.66666666666688},
-            {xPos: 1438.6733329380274, yPos: 213.33333333333354},
-            {xPos: 1394.3433332637157, yPos: 213.33333333333354},
-            {xPos: 1350.0133333211145, yPos: 213.33333333333354},
-            {xPos: 1305.6833333312295, yPos: 213.33333333333354},
-            {xPos: 1261.3533333330113, yPos: 213.33333333333354},
-            {xPos: 1217.023333333324, yPos: 213.33333333333354},
-            {xPos: 1172.6933333333784, yPos: 213.33333333333354},
-            {xPos: 1128.3633333333871, yPos: 213.33333333333354},
-            {xPos: 1084.0333333333874, yPos: 213.33333333333354},
-            {xPos: 1039.7033333333864, yPos: 213.33333333333354},
-            {xPos: 995.3733333333854, yPos: 213.33333333333354},
-            {xPos: 951.0433333333848, yPos: 213.33333333333354},
-            {xPos: 906.713333333385, yPos: 213.33333333333354},
-            {xPos: 862.3833333333854, yPos: 213.33333333333354},
-            {xPos: 818.0533333333858, yPos: 213.33333333333354},
-            {xPos: 773.7233333333862, yPos: 213.33333333333354},
-            {xPos: 729.3933333333866, yPos: 213.33333333333354},
-            {xPos: 685.063333333387, yPos: 213.33333333333354},
-            {xPos: 641.4000000000541, yPos: 226.66666666666688},
-            {xPos: 602.4033333333879, yPos: 270.0000000000002},
-            {xPos: 558.7400000000549, yPos: 289.33333333333354},
-            {xPos: 518.4100000000553, yPos: 312.0000000000002},
-            {xPos: 484.7466666667224, yPos: 350.66666666666686},
-            {xPos: 452.4166666667227, yPos: 408.66666666666686},
-            {xPos: 422.22133333338627, yPos: 445.3333333333386},
-            {xPos: 422.22133333338815, yPos: 444.0000000000009},
-            {xPos: 422.2213333333884, yPos: 444.0000000000002},
-            {xPos: 412.334666666722, yPos: 484.66666666666686},
-            {xPos: 408.334666666722, yPos: 489.3333333333335},
-            {xPos: 395.6680000000554, yPos: 502.66666666666686},
-            {xPos: 390.334666666722, yPos: 508.00000000000017},
-            {xPos: 366.334666666722, yPos: 513.3333333333335},
-            {xPos: 357.6680000000554, yPos: 515.3333333333335},
-            {xPos: 339.0013333333887, yPos: 516.0000000000002},
-            {xPos: 337.6680000000554, yPos: 515.3333333333335},
-            {xPos: 337.6680000000554, yPos: 515.3333333333335},
-            {xPos: 325.6680000000554, yPos: 506.66666666666686},
-            {xPos: 319.0013333333887, yPos: 498.66666666666686},
-            {xPos: 317.0013333333887, yPos: 494.66666666666686},
-            {xPos: 314.334666666722, yPos: 490.66666666666686},
-            {xPos: 313.6680000000554, yPos: 480.00000000000017},
-            {xPos: 313.6680000000554, yPos: 477.3333333333335},
-            {xPos: 313.0013333333887, yPos: 468.00000000000017},
-            {xPos: 309.6680000000554, yPos: 456.00000000000017},
-            {xPos: 307.6680000000554, yPos: 446.66666666666686},
-            {xPos: 307.0013333333887, yPos: 446.00000000000017},
-            {xPos: 307.0013333333887, yPos: 446.00000000000017},
-            {xPos: 307.0013333333887, yPos: 446.00000000000017},
-            {xPos: 307.6680000000554, yPos: 438.00000000000017},
-            {xPos: 308.334666666722, yPos: 426.00000000000017},
-            {xPos: 309.0013333333887, yPos: 408.66666666666686},
-            {xPos: 306.334666666722, yPos: 390.00000000000017},
-            {xPos: 305.6680000000554, yPos: 380.66666666666686},
-            {xPos: 305.0013333333887, yPos: 360.66666666666686},
-            {xPos: 304, yPos: 353.3333333333335},
-            {xPos: 302, yPos: 350.66666666666686},
-            {xPos: 298, yPos: 346.66666666666686},
-            {xPos: 298, yPos: 344.66666666666686},
-            {xPos: 288, yPos: 340.00000000000017},
-            {xPos: 270, yPos: 338.00000000000017},
-            {xPos: 258.66666666666663, yPos: 338.00000000000017},
-            {xPos: 250, yPos: 336.00000000000017},
-            {xPos: 233.33333333333331, yPos: 331.3333333333335},
-            {xPos: 219.33333333333331, yPos: 330.66666666666686},
-            {xPos: 210.66666666666666, yPos: 330.00000000000017},
-            {xPos: 198, yPos: 330.66666666666686},
-            {xPos: 180, yPos: 330.66666666666686},
-            {xPos: 150, yPos: 330.00000000000017},
-            {xPos: 142.66666666666666, yPos: 332.00000000000017},
-            {xPos: 126.66666666666666, yPos: 338.66666666666686},
-            {xPos: 119.33333333333333, yPos: 341.3333333333335},
-            {xPos: 113.33333333333333, yPos: 344.00000000000017},
-            {xPos: 108, yPos: 350.00000000000017},
-            {xPos: 96.66666666666666, yPos: 368.66666666666686},
-            {xPos: 91.33333333333333, yPos: 378.66666666666686},
-            {xPos: 88.66666666666666, yPos: 393.3333333333335},
-            {xPos: 83.33333333333333, yPos: 413.3333333333335},
-            {xPos: 77.33333333333333, yPos: 436.00000000000017},
-            {xPos: 72, yPos: 465.3333333333335},
-            {xPos: 66.66666666666666, yPos: 487.3333333333335},
-            {xPos: 64.66666666666666, yPos: 500.66666666666686},
-            {xPos: 62.666666666666664, yPos: 510.66666666666686},
-            {xPos: 60.666666666666664, yPos: 526.0000000000002},
-            {xPos: 60, yPos: 551.3333333333335},
-            {xPos: 58.666666666666664, yPos: 564.0000000000002},
-            {xPos: 58.666666666666664, yPos: 572.0000000000002},
-            {xPos: 63.33333333333333, yPos: 576.0000000000002},
-            {xPos: 66, yPos: 576.6666666666667},
-            {xPos: 68, yPos: 578.6666666666667},
-            {xPos: 72, yPos: 582.0000000000002},
-            {xPos: 88.66666666666666, yPos: 595.3333333333335},
-            {xPos: 88.66666666666666, yPos: 595.3333333333335},
-            {xPos: 90.66666666666666, yPos: 622.0000000000002},
-            {xPos: 90.66666666666666, yPos: 628.0000000000002},
-            {xPos: 90.66666666666666, yPos: 629.3333333333335},
-            {xPos: 115.33333333333333, yPos: 699.7438599937373},
-            {xPos: 120, yPos: 703.9548578639725},
-            {xPos: 134, yPos: 744.658710812855},
-            {xPos: 144.66666666666666, yPos: 773.3319311929952},
-            {xPos: 158, yPos: 796.6664195533368},
-            {xPos: 172, yPos: 819.3332897820596},
-            {xPos: 204.66666666666666, yPos: 839.9999923245199},
-            {xPos: 223.33333333333331, yPos: 843.9999986472727},
-            {xPos: 249.33333333333331, yPos: 850.6666664282618},
-            {xPos: 268, yPos: 856.6666666246501},
-            {xPos: 281.3333333333333, yPos: 857.3333333259284},
-            {xPos: 291.3333333333333, yPos: 857.3333333320284},
-            {xPos: 304.66666666666663, yPos: 855.99999999977},
-            {xPos: 304.66666666666663, yPos: 855.9999999999594},
-            {xPos: 304.66666666666663, yPos: 855.9999999999927},
-            {xPos: 306, yPos: 855.9999999999987},
-            {xPos: 306, yPos: 855.9999999999997},
-            {xPos: 308.66666666666663, yPos: 856.6666666666663},
-            {xPos: 310.66666666666663, yPos: 856.6666666666663},
-            {xPos: 316.38140950520824, yPos: 856.6666666666663},
-            {xPos: 353.6340022633223, yPos: 856.6666666666663},
-            {xPos: 398.79587914431437, yPos: 857.333333333333},
-            {xPos: 447.4691823064071, yPos: 855.9999999999997},
-            {xPos: 503.0755260287744, yPos: 845.333333333333},
-            {xPos: 553.5442266359737, yPos: 837.333333333333},
-            {xPos: 588.731905818281, yPos: 833.333333333333},
-            {xPos: 616.9193645857844, yPos: 829.333333333333},
-            {xPos: 629.5036260566626, yPos: 827.333333333333},
-            {xPos: 630.8768511863871, yPos: 827.333333333333},
-            {xPos: 639.8122702532135, yPos: 827.333333333333},
-            {xPos: 671.5042320499363, yPos: 827.333333333333},
-            {xPos: 713.5599143529937, yPos: 827.333333333333},
-            {xPos: 758.8224217460796, yPos: 827.9999999999997},
-            {xPos: 806.4151134823346, yPos: 841.333333333333},
-            {xPos: 850.7326636013843, yPos: 842.6666666666663},
-            {xPos: 897.0604694333288, yPos: 851.9999999999997},
-            {xPos: 942.7234160663008, yPos: 852.6666666666663},
-            {xPos: 987.0533479141968, yPos: 852.6666666666663},
-            {xPos: 1036.7166692363974, yPos: 848.6666666666663},
-            {xPos: 1085.7133337862206, yPos: 843.333333333333},
-            {xPos: 1134.7100000798143, yPos: 835.9999999999997},
-            {xPos: 1181.0400000140635, yPos: 833.333333333333},
-            {xPos: 1225.3700000024755, yPos: 833.333333333333},
-            {xPos: 1269.700000000434, yPos: 833.333333333333},
-            {xPos: 1314.6966666667417, yPos: 837.9999999999997},
-            {xPos: 1359.0266666666794, yPos: 837.9999999999997},
-            {xPos: 1403.3566666666693, yPos: 841.333333333333},
-            {xPos: 1447.6866666666688, yPos: 841.333333333333},
-            {xPos: 1492.6833333333363, yPos: 841.333333333333},
-            {xPos: 1540.346666666671, yPos: 828.6666666666663},
-            {xPos: 1586.6766666666717, yPos: 815.333333333333},
-            {xPos: 1633.006666666673, yPos: 801.9999999999997},
-            {xPos: 1681.3366666666739, yPos: 777.9999999999997},
-            {xPos: 1727.0000000000084, yPos: 771.9999999999997},
-            {xPos: 1771.996666666676, yPos: 768.6666666666663},
-            {xPos: 1809.6600000000105, yPos: 778.6666666666663},
-            {xPos: 1849.9900000000116, yPos: 796.6666666666663},
-            {xPos: 1893.653333333346, yPos: 799.9999999999997},
-            {xPos: 1939.3166666666802, yPos: 807.333333333333},
-            {xPos: 1983.6466666666815, yPos: 807.333333333333},
-            {xPos: 2026.6433333333491, yPos: 815.333333333333},
-            {xPos: 2067.6400000000167, yPos: 825.9999999999997},
-            {xPos: 2109.970000000018, yPos: 831.333333333333},
-            {xPos: 2153.6333333333523, yPos: 832.6666666666663},
-            {xPos: 2197.9633333333536, yPos: 832.6666666666663},
-            {xPos: 2242.293333333353, yPos: 832.6666666666663},
-            {xPos: 2286.623333333351, yPos: 832.6666666666663},
-            {xPos: 2330.9533333333493, yPos: 832.6666666666663},
-            {xPos: 2379.950000000014, yPos: 802.6666666666663},
-            {xPos: 2424.280000000012, yPos: 785.333333333333},
-            {xPos: 2468.61000000001, yPos: 781.333333333333},
-            {xPos: 2540.5894177508753, yPos: 767.3333333333333},
-            {xPos: 2550.1393100551636, yPos: 766.6666666666666},
-            {xPos: 2583.1209667976905, yPos: 766.6666666666666},
-            {xPos: 2625.432950155274, yPos: 766.6666666666666},
-            {xPos: 2669.407294734212, yPos: 774},
-            {xPos: 2711.0079473265278, yPos: 788.6666666666666},
-            {xPos: 2754.6602338008447, yPos: 802.6666666666666},
-            {xPos: 2798.9882869014896, yPos: 804.6666666666666},
-            {xPos: 2846.651277113117, yPos: 818.6666666666666},
-            {xPos: 2896.9812166413176, yPos: 830},
-            {xPos: 2957.311205983761, yPos: 842.6666666666666},
-            {xPos: 3013.6412041054714, yPos: 841.3333333333333},
-            {xPos: 3075.304537107773, yPos: 829.3333333333333},
-            {xPos: 3129.6345370494305, yPos: 815.3333333333333},
-            {xPos: 3185.29787037248, yPos: 799.3333333333333},
-            {xPos: 3237.6278703706657, yPos: 792},
-            {xPos: 3284.624537037011, yPos: 791.3333333333333},
-            {xPos: 3328.9545370369533, yPos: 795.3333333333333},
-            {xPos: 3373.284537036941, yPos: 798.6666666666666},
-            {xPos: 3414.947870370272, yPos: 810.6666666666666},
-            {xPos: 3455.9445370369367, yPos: 823.3333333333333},
-            {xPos: 3499.6078703702683, yPos: 827.3333333333333},
-            {xPos: 3543.2712037035994, yPos: 834},
-            {xPos: 3587.6012037035975, yPos: 836},
-            {xPos: 3631.9312037035957, yPos: 836},
-            {xPos: 3678.2612037035938, yPos: 834.6666666666666},
-            {xPos: 3723.9245370369254, yPos: 828},
-            {xPos: 3771.587870370257, yPos: 818},
-            {xPos: 3818.5845370369216, yPos: 808.6666666666666},
-            {xPos: 3863.581203703586, yPos: 806.6666666666666},
-            {xPos: 3907.9112037035843, yPos: 806},
-            {xPos: 3952.2412037035824, yPos: 810.6666666666666},
-            {xPos: 3995.2378703702475, yPos: 820.6666666666666},
-        ];
-
-        this.toAddTrackNodes.length = 3;
-
-        for(var i = 0; i < 100; i++)
-        {
-            var last = this.toAddTrackNodes[this.toAddTrackNodes.length - 1];
-            this.toAddTrackNodes.pop();
-            this.toAddTrackNodes.unshift(last);
-        }
-
-        this.trackNodes = [];
-        this.trackNodes.loops = true;
-        this.trackNodes.draw = function()
-        {
-            strokeWeight(2);
-            stroke(0, 0, 0, 100);
-            for(var i = 1; i < this.length; i++)
-            {
-                line(this[i].xPos, this[i].yPos, this[i - 1].xPos, this[i - 1].yPos);
-            }
-
-            if(this.loops && this.length > 1)
-            {
-                line(this[0].xPos, this[0].yPos, this[this.length - 1].xPos, this[this.length - 1].yPos);
-            }
-            noStroke();
-        };
-        this.trackNodes.add = function(x, y)
-        {
-            this.push({
-                xPos: x,
-                yPos: y
-            });
-        };
-        this.trackNodes.getLength = function()
-        {
-            var distance = 0;
-            for(var i = 1; i < this.length; i++)
-            {
-                distance += Math.sqrt(Math.pow(this[i - 1].xPos - this[i].xPos, 2) + Math.pow(this[i - 1].yPos - this[i].yPos, 2));
-            }
-            return distance;
-        };
-
-        // Just because I'm too lazy to remove values after the decimal point.
-        for(var i = 0; i < this.toAddTrackNodes.length; i++)
-        {
-            this.trackNodes.push({
-                xPos : Math.round(this.toAddTrackNodes[i].xPos), 
-                yPos : Math.round(this.toAddTrackNodes[i].yPos)
-            });
-        }
-
-        var trackNodes = [];
-        for(var i = 0; i < this.trackNodes.length; i++)
-        {
-            trackNodes.push({
-                x: this.trackNodes[i].xPos,
-                y: this.trackNodes[i].yPos
-            });
-        }
-
-        this.trackNodes2 = [];
-        this.trackNodes2.loops = true;
-        this.trackNodes2.draw = this.trackNodes.draw;
-        this.trackNodes2.getLength = this.trackNodes.getLength;
-
-        // var trackNodes2 = getParallelLines(trackNodes, -this.apart);
-
-        // for(var i = 0; i < trackNodes2.length; i++)
-        // {
-        //     this.trackNodes2.push({
-        //         xPos: trackNodes2[i].x,
-        //         yPos: trackNodes2[i].y
-        //     });
-        // }
-        this.trackNodes2.add = function(x, y)
-        {
-            this.push({
-                xPos: x,
-                yPos: y
-            });
-        };
-
-        console.log(this.trackNodes2);
-
-        // this.points.add(this.trackNodes[0].xPos, this.trackNodes[0].yPos, 1);
-        // for(var i = 0; i < this.points.length * 333; i++)
-        // {
-        //     this.points.update();
-        // }
-
-        // for(var i = this.points.length - 1; i >= 0; i--)
-        // {
-        //     var curAngle = radians(physics.formulas.resolveAngle(degrees(this.points[i].angle) + 90));
-
-        //     this.trackNodes2.push({
-        //         xPos : (this.trackNodes[i].xPos) - cos(curAngle) * 50, 
-        //         yPos : (this.trackNodes[i].yPos) - sin(curAngle) * 50
-        //     });
-        // }
-
-        // var nodes = this.trackNodes;
-        // for(var i = 0; i < this.trackNodes.length; i++)
-        // {
-        //     var line0 = nodes[i + 1];
-        //     var line1 = nodes[i + 2];
-
-        //     if(!line0)
-        //     {
-        //         line0 = nodes[nodes.length - 1];
-        //     }
-        //     if(!line1)
-        //     {
-        //         line1 = nodes[0];
-        //     }
-
-        //     var angle = atan2(line1.yPos - line0.yPos, line1.xPos - line0.xPos);
-        //     var curAngle = (physics.formulas.resolveAngle(angle));
-
-        //     // angle += 90;
-
-        //     this.trackNodes2.push({
-        //         xPos : (this.trackNodes[i].xPos) - cos(curAngle) * 50, 
-        //         yPos : (this.trackNodes[i].yPos) - sin(curAngle) * 50
-        //     });
-        // }
-    };
-
-    this.loadNodes = function()
-    {
-        this.nodes = [];
-        this.nodes.draw = function()
-        {
-            noStroke();
-            fill(255, 255, 255, 80);
-            beginShape();
-                for(var i = this.length - 1; i >= 0; i--)
-                {
-                    vertex(this[i].xPos, this[i].yPos);
-                }
-            endShape(CLOSE);
-        };
-        this.nodes.colliding = function(object)
-        {
-            var oNodes = [{
-                xPos: object.boundingBox.xPos,
-                yPos: object.boundingBox.yPos
-            }, {
-                xPos: object.boundingBox.xPos + object.boundingBox.width,
-                yPos: object.boundingBox.yPos
-            }, {
-                xPos: object.boundingBox.xPos,
-                yPos: object.boundingBox.yPos + object.boundingBox.height
-            }, {
-                xPos: object.boundingBox.xPos + object.boundingBox.width,
-                yPos: object.boundingBox.yPos + object.boundingBox.height
-            }];
-
-            return oNodes.some(function(element, index, array)
-            {
-                return (observer.collisionTypes["pointpolygon"].colliding(element, {
-                    points: self.nodes
-                }));;
-            });
-        };
-        this.nodes.getSides = function(pointer)
-        {
-            var sides = [];
-            var ra = physics.formulas.resolveAngle;
-
-            for(var i = 0; i < this.length - 1; i++)
-            {
-                var point0 = this[i], point1 = this[i + 1];
-
-                var s = physics.formulas.crossProduct(pointer, point1, point0);
-
-                // if(abs(s) / 100 > (Math.sqrt(abs(point1.xPos - point0.xPos)) + Math.sqrt(abs(point1.yPos - point0.yPos))) * 3)
-                // {
-                //     sides[i] = 0;
-                //     continue;
-                // }
-
-                var side = physics.formulas.sign(s);
-
-                var a = degrees(atan2(point1.yPos - point0.yPos, point1.xPos - point0.xPos));
-
-                var n1 = ra(a - ra(degrees(atan2(point0.yPos - pointer.yPos, point0.xPos - pointer.xPos))));
-                var n2 = ra(a - ra(degrees(atan2(point1.yPos - pointer.yPos, point1.xPos - pointer.xPos))));
-        
-                sides[i] = 0;
-
-                if(side > 0)
-                {
-                    if(n1 < 270 && n2 > 270)
-                    {
-                        sides[i] = side;
-                    }
-                }else{
-                    if(n1 > 90 && n2 < 90)
-                    {
-                        sides[i] = side;
-                    }
-                }
-
-                if(sides[i] && !pointer.side)
-                {
-                    pointer.side = point0.side;
-                }
-            }
-
-            return sides;
-        };
-        this.nodes.applyCollision = function(object)
-        {
-            var pointerLeftUp = {
-                xPos : object.xPos,
-                yPos : object.yPos,
-            };
-
-            var pointerRightUp = {
-                xPos : object.xPos + object.width,
-                yPos : object.yPos,
-            };
-
-            var aSides = this.getSides(pointerLeftUp);
-            var bSides = this.getSides(pointerRightUp);
-
-            var a = aSides.indexOf(-1);
-            var b = bSides.indexOf(-1);
-
-            if(a !== -1 && !observer.collisionTypes.rectrect.colliding(object, physics.formulas.createBoundingBoxForLine(this[a], this[a + 1])))
-            {
-                a = -1;
-            }
-
-            if(b !== -1 && !observer.collisionTypes.rectrect.colliding(object, physics.formulas.createBoundingBoxForLine(this[b], this[b + 1])))
-            {
-                b = -1;
-            }
-
-            if(mouseIsPressed)
-            {
-                console.log(pointerRightUp.side);
-            }
-
-            if(a !== -1 || b !== -1)
-            {
-                var newPointerLeft = (a === -1) ? false : physics.formulas.closestPointOnLine(pointerLeftUp, this[a], this[a + 1]);
-                var newPointerRight = (b === -1) ? false : physics.formulas.closestPointOnLine(pointerRightUp, this[b], this[b + 1]);
-
-                var y1 = Math.min(newPointerLeft ? newPointerLeft.yPos : Infinity, 
-                                  newPointerRight ? newPointerRight.yPos : Infinity);
-
-                object.xPos = (y1 === newPointerLeft.yPos) ? newPointerLeft.xPos : newPointerRight.xPos - object.width;
-                object.yPos = y1;
-
-                object.yVel = 1;
-                // object.inAir = true;
-
-                object.updateBoundingBox();
-            }
-
-            var pointerLeftDown = {
-                xPos : object.xPos,
-                yPos : object.yPos + object.height,
-            };
-
-            var pointerRightDown = {
-                xPos : object.xPos + object.width,
-                yPos : object.yPos + object.height,
-            };
-
-            var iSides = this.getSides(pointerLeftDown);
-            var jSides = this.getSides(pointerRightDown);
-
-            var i = iSides.indexOf(-1);
-            var j = jSides.indexOf(-1);
-
-            if(i !== -1 && !observer.collisionTypes.rectrect.colliding(object, physics.formulas.createBoundingBoxForLine(this[i], this[i + 1])))
-            {            
-                i = -1;
-            }
-
-            if(j !== -1 && !observer.collisionTypes.rectrect.colliding(object, physics.formulas.createBoundingBoxForLine(this[j], this[j + 1])))
-            {
-                j = -1;
-            }
-
-            if(i !== -1 || j !== -1)
-            {
-                var newPointerLeft = (i === -1) ? false : physics.formulas.closestPointOnLine(pointerLeftDown, this[i], this[i + 1]);
-                var newPointerRight = (j === -1) ? false : physics.formulas.closestPointOnLine(pointerRightDown, this[j], this[j + 1]);
-
-                var y1 = Math.min(newPointerLeft ? newPointerLeft.yPos : Infinity, 
-                                  newPointerRight ? newPointerRight.yPos : Infinity);
-
-                object.xPos = (y1 === newPointerLeft.yPos) ? newPointerLeft.xPos : newPointerRight.xPos - object.width;
-
-                object.yPos = y1 - object.height;
-
-                object.yVel = Math.min(object.yVel, 1);
-                object.inAir = (object.yVel >= 2);
-
-                object.updateBoundingBox();
-            }
-        };
-    };
-
-    this.loadPoints();
-    this.loadTrackNodes();
-    this.loadNodes();
-
-    var added = 0;
-    this.lastAddTime = millis();
-
-    // for(var i = 0; i < this.dragonLength * 2 - 2; i++)
-    // {
-    //     this.nodes.push({
-    //         xPos : 0,
-    //         yPos : 0,
-    //     });
-    // }
-
-    this.dragNodes = function()
-    {
-        // Adds points
-        // if(added < this.dragonLength && millis() - this.lastAddTime > 400)
-        // {
-        //     this.points.add(this.trackNodes[0].xPos, this.trackNodes[0].yPos, 1);
-        //     added++;
-        //     this.lastAddTime = millis();
-        // }
-
-        // this.lastNodes = this.nodes;
-        this.nodes.length = 0;
-
-        // for(var i = this.points2.length - 1; i >= 0; i--)
-        // {
-        //     this.nodes.push({
-        //         xPos : this.points2[i].xPos, 
-        //         yPos : this.points2[i].yPos,
-        //         side : "in"
-        //     });
-        // }
-
-        // for(var i = 0; i < this.points.length; i++)
-        // {
-        //     this.nodes.push({
-        //         xPos : this.points[i].xPos, 
-        //         yPos : this.points[i].yPos,
-        //         side : "out"
-        //     });
-        // }
-
-        for(var x = 0; x < 500; x += 80)
-        {
-            this.nodes.push({
-                xPos : 400 + x,
-                yPos : 700
-            });
-        }
-
-        // this.nodes.reverse();
-
-        for(var x = 520; x >= 0; x -= 80)
-        {
-            this.nodes.push({
-                xPos : 400 + x,
-                yPos : 780
-            });
-        }
-
-        // The point of the intersection.
-        // var int_point, point2;
-        // for(var i = 0; i < this.points2.length; i++)
-        // {
-        //     point2 = this.points2[i];
-
-        //     var j = this.points2[i].trackNodesI;
-
-        //     var last = (j - 1) % (this.trackNodes.length - 1);
-
-        //     var a = atan2(this.trackNodes[i].yPos - this.trackNodes[last].yPos, 
-        //                   this.trackNodes[i].xPos - this.trackNodes[last].xPos) + 90;
-
-        //     int_point = o_intersect(
-        //         point2.xPos, point2.yPos, point2.xPos + cos(a) * 100, point2.yPos + sin(a) * 100, 
-        //         this.trackNodes2[i].xPos, this.trackNodes2[i].yPos, this.trackNodes2[last].xPos, this.trackNodes2[last].yPos);
-
-        //     if(int_point)
-        //     {
-        //         console.log(int_point);
-
-        //         this.nodes.push({
-        //             xPos : intPoint.x,
-        //             yPos : intPoint.y,
-        //             side : "out"
-        //         });
-        //     }
-        // }
-
-        //trackNodesI
-
-        if(keys[" "])
-        {
-            console.log(this.points2[0]);
-        }
-
-        // var j = this.points.length * 2 - 1;
-        // for(var i = this.points.length - 1; i >= 0; i--)
-        // {
-        //     var curAngle = radians(physics.formulas.resolveAngle(degrees(this.points[i].angle) + 90));
-
-        //     this.nodes[j - i] = {
-        //         xPos : this.points[i].xPos - cos(curAngle) * 50, 
-        //         yPos : this.points[i].yPos - sin(curAngle) * 50,
-        //     };
-        // }
-    };
-
-    var _lastUpdate = this.update;
-    this.update = function(isRemote)
-    {
-        if(!isRemote)
-        {
-            this.updateBoundingBox();
-            return;
-        }
-
-        this.dragNodes();
-        _lastUpdate.apply(this, arguments);
-
-        // if(keys["u"])
-        // {
-        //     this.percentage += 0.05;
-        //     console.log(this.percentage);
-        // }
-        // else if(keys["i"])
-        // {
-        //     this.percentage -= 0.05;
-        //     console.log(this.percentage);
-        // }
-
-        // this.percentage = this.percentage % 100;
-    };
-
-    // this.percentage = 50;
-
-    // function placePointOnTrack(amt, nodes)
-    // {
-    //     var point = {};
-
-    //     if(!nodes.total_length)
-    //     {
-    //         var tl = 0;
-
-    //         for(var i = 1; i < nodes.length; i++)
-    //         {
-    //             tl += Math.sqrt(Math.pow(nodes[i].xPos - nodes[i - 1].xPos, 2) + 
-    //                             Math.pow(nodes[i].yPos - nodes[i - 1].yPos, 2));
-    //         }
-
-    //         nodes.total_length = tl;
-    //     }
-
-    //     return point;
-    // }
+    // this.gravity = 0;
 
     this.draw = function(isRemote)
     {
@@ -16217,70 +15325,16 @@ var IceDragon = function(xPos, yPos, width, height)
             return;
         }
 
-        this.nodes.draw();
-
         fill(255, 255, 255, 80);
         stroke(255, 255, 255);
         rect(this.xPos, this.yPos, this.width, this.height, 5);
-
-        // Fix for now
-        if(this.points.length < 2)
-        {
-            return;
-        }
-
-        // var maxIndex = this.points.length - 1;
-        // var i, j, k, l, angle, intersection, nPoint = {};
-
-        // var offset = 90 * (Math.PI / 180);
-        // for(var i = 0; i < this.points.length; i++)
-        // {
-        //     // k = (i + 1) % (this.points.length - 1);//maxIndex;
-        //     // k = (this.points[i].trackNodesI + 1) % this.trackNodes2.length;
-
-        //     j = this.points[i].trackNodesI % this.trackNodes2.length;
-        //     k = l = (j + 1) % this.trackNodes2.length;
-
-        //     angle = atan2(this.trackNodes2[j].yPos - this.trackNodes2[k].yPos, 
-        //                   this.trackNodes2[j].xPos - this.trackNodes2[k].xPos) + offset;
-
-        //     nPoint.xPos = this.points[i].xPos + cos(angle) * 100;
-        //     nPoint.yPos = this.points[i].yPos + sin(angle) * 100;
-
-        //     stroke(255, 255, 255);
-        //     strokeWeight(1);
-        //     line(this.points[i].xPos, this.points[i].yPos, nPoint.xPos, nPoint.yPos);
-
-        //     intersection = o_intersect(this.points[i].xPos, this.points[i].yPos, nPoint.xPos, nPoint.yPos,
-        //                                this.trackNodes2[j].xPos, this.trackNodes2[j].yPos, 
-        //                                this.trackNodes2[l].xPos, this.trackNodes2[l].yPos);
-
-        //     if(!intersection)
-        //     {
-        //         intersection = physics.formulas.closestPointOnLine(this.points[i], this.trackNodes2[j], this.trackNodes2[l]);
-        //     }else{
-        //         intersection.xPos = intersection.x;
-        //         intersection.yPos = intersection.y;
-        //     }
-
-        //     fill(34, 100, 196);
-        //     strokeWeight(4);
-        //     point(intersection.xPos, intersection.yPos);
-        // }
-
-        // var place = placePointOnTrack(this.percentage, this.trackNodes);
-        // fill(34, 100, 196);
-        // strokeWeight(4);
-        // point(place.xPos, place.yPos);
-
-
         noStroke();
     };
 
-    this.onCollide = function(object)
-    {
-        // Just an override, still this function is unused.
-    };
+    // this.onCollide = function(object)
+    // {
+    //     // Just an override, still this function is unused.
+    // };
 };
 gameObjects.addObject("iceDragon", createArray(IceDragon));
 
@@ -21183,25 +20237,6 @@ var levelScripts = {
                 this.stop = true;
                 return;
             }
-
-            try{
-                cameraGrid.removeReference(iceDragon);
-                iceDragon.update(true);
-                cameraGrid.addReference(iceDragon);
-
-                var player = gameObjects.getObject("player").input(0);
-                if(iceDragon.nodes.colliding(player))
-                {
-                    iceDragon.nodes.applyCollision(player);
-
-                    player.xPos += iceDragon.points[0].xVel;
-                    player.yPos += iceDragon.points[0].yVel;
-                }
-            }
-            catch(e) {}
-
-            iceDragon.points.update(iceDragon.trackNodes);
-            iceDragon.points2.update(iceDragon.trackNodes2);
         },
         draw : function()
         {
@@ -21215,92 +20250,6 @@ var levelScripts = {
             }
 
             iceDragon.draw(true);
-            iceDragon.trackNodes.draw();
-            iceDragon.trackNodes2.draw();
-            iceDragon.points.draw();
-            iceDragon.points2.draw();
-
-            if(mouseIsPressed && mouseButton === RIGHT && (millis() - this.lastPressTime > 200 || !this.lastPressTime))
-            {
-                iceDragon.lastTrackNodes2 = iceDragon.trackNodes2;
-
-                iceDragon.trackNodes2.add(
-                    (cam.focusXPos - cam.halfWidth) + mouseX, 
-                    (cam.focusYPos - cam.halfHeight) + mouseY);
-                this.lastPressTime = millis();
-            }
-
-            if(keys['?'])
-            {
-                iceDragon.trackNodes2 = iceDragon.lastTrackNodes2;
-            }
-
-            if(keys['/'] || keys['?'])
-            {
-                // iceDragon.trackNodes.length = 0;
-                // for(var i = 0; i < iceDragon.trackNodes2.length; i++)
-                // {
-                //     iceDragon.trackNodes.push({
-                //         xPos: iceDragon.trackNodes2[i].xPos,
-                //         yPos: iceDragon.trackNodes2[i].yPos - 60
-                //     });
-                // }
-
-                var trackNodes2 = [];
-                for(var i = 0; i < iceDragon.trackNodes2.length; i++)
-                {
-                    trackNodes2.push({
-                        x: iceDragon.trackNodes2[i].xPos,
-                        y: iceDragon.trackNodes2[i].yPos
-                    });
-                }
-
-                iceDragon.trackNodes.length = 0;        
-
-                var trackNodes = getParallelLines(trackNodes2, iceDragon.apart);
-
-                for(var i = 0; i < trackNodes.length; i++)
-                {
-                    iceDragon.trackNodes.push({
-                        xPos: trackNodes[i].x,
-                        yPos: trackNodes[i].y
-                    });
-                }
-            }
-
-            if(keys['>'] && (!this.lastAddTime || millis() - this.lastAddTime > 500))
-            {
-                // var out 
-               
-                // Tracknodes: outer, tracknode2: inner
-
-                var speed = iceDragon.trackNodes2.getLength() * 0.6 / iceDragon.trackNodes.getLength();
-                console.log(speed);
-
-                iceDragon.points.add(iceDragon.trackNodes[0].xPos, iceDragon.trackNodes[0].yPos);
-                iceDragon.points2.add(iceDragon.trackNodes2[0].xPos, iceDragon.trackNodes2[0].yPos, speed);
-
-                this.lastAddTime = millis();
-            }
-
-            if(keys['-'])
-            {
-                iceDragon.points.length = 0;
-                iceDragon.points2.length = 0;
-                iceDragon.nodes.length = 0;
-            }
-
-            if(keys['_'])
-            {
-                iceDragon.trackNodes.length = 0;
-                iceDragon.trackNodes2.length = 0;
-            }
-
-            if(keys['='])
-            {
-                console.log("1", iceDragon.trackNodes);
-                console.log("2", iceDragon.trackNodes2);
-            }
         },
     },
 };
