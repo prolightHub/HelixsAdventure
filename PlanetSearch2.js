@@ -716,6 +716,7 @@ var sketch = function(processing) /*Wrapper*/
         Voxelizers now can't damage you if you have a bubbleShield.
         Fixed enemy edge detection!
         Updated ice dragon collision to work on both sides. Now all I have to do to is put it on the track.
+        Re-added dragon track.
 
     Next :   
         v0.8.6 -> 
@@ -15236,12 +15237,72 @@ var NinjaBoss = function(xPos, yPos, width, height)
 };
 gameObjects.addObject("ninjaBoss", createArray(NinjaBoss));
 
+function createTrack()
+{
+    var track = [];
+    track.add = function(xPos, yPos)
+    {
+        this.push({
+            xPos : xPos,
+            yPos : yPos,
+        });
+    };
+    track.draw = function()
+    {
+        stroke(0, 0, 0, 100);
+        strokeWeight(1.6);
+        for(var i = 1; i < this.length; i++)
+        {
+            line(this[i].xPos, this[i].yPos, this[i - 1].xPos, this[i - 1].yPos);
+        }
+
+        if(this.length > 1)
+        {
+            line(this[0].xPos, this[0].yPos, this[this.length - 1].xPos, this[this.length - 1].yPos);
+        }
+    };
+    track.stepPoint = function(point)
+    {
+        var line0 = this[point.index];
+        var line1 = this[point.index + 1];
+
+        if(!line0)
+        {
+            line0 = this[this.length - 1];
+        }
+        if(!line1)
+        {
+            line1 = this[0];
+        }
+
+        var lineHeight = line1.yPos - line0.yPos,
+            lineWidth = line1.xPos - line0.xPos;
+
+        var a = atan2(lineHeight, lineWidth);
+
+        point.xVel = cos(a) * point.speed
+        point.yVel = sin(a) * point.speed;
+
+        point.xPos += point.xVel;
+        point.yPos += point.yVel;
+
+        if(Math.pow(point.xPos - line0.xPos, 2) + Math.pow(point.yPos - line0.yPos, 2) > 
+            lineWidth * lineWidth + lineHeight * lineHeight)
+        {
+            point.index += point.heading;
+            point.index %= this.length;
+        }
+    };
+
+    return track;
+}
+
 var IceDragon = function(xPos, yPos, width, height)
 {
     Boss.call(this, xPos, yPos, width, height, color(15, 120, 220, 220), {
         charging : true,
         handleEdge : true
-    }, false, 4);
+    }, false, 35);
 
     this.physics.solidObject = true;
 
@@ -15256,183 +15317,255 @@ var IceDragon = function(xPos, yPos, width, height)
     this.dragonLength = 7;
     this.gravity = 0;
 
-    this.nodes = [];
-    this.nodes.draw = function()
+    this.createTracks = function()
     {
-        noStroke();
-        fill(255, 255, 255, 80);
-        beginShape();
+        this.track = createTrack(true);
+        this.track2 = createTrack(true);
+    };
+
+    this.setupPoints = function()
+    {
+        this.points = [];
+        this.points.add = function(xPos, yPos, speed)
+        {
+            this.push({
+                xPos : xPos,
+                yPos : yPos,
+                speed : speed || 0.7,
+
+                heading : 1,
+                index : 0,
+
+                xVel : 0,
+                yVel : 0
+            });
+        };
+        this.points.draw = function()
+        {
+            noFill();
+            strokeWeight(0.8)
+            stroke(230, 230, 230, 160);
             for(var i = this.length - 1; i >= 0; i--)
             {
-                vertex(this[i].xPos, this[i].yPos);
+                ellipse(this[i].xPos, this[i].yPos, 6, 6);
             }
-        endShape(CLOSE);
-    };
-
-    this.nodes.getSides = function(pointer)
-    {
-        var sides = [];
-        var ra = physics.formulas.resolveAngle;
-
-        for(var i = 0; i < this.length - 1; i++)
+            noStroke();
+        };
+        this.points.update = function(track)
         {
-            var point0 = this[i + 1], point1 = this[i];
-
-            var s = physics.formulas.crossProduct(pointer, point1, point0);
-
-            var side = physics.formulas.sign(s);
-
-            var a = degrees(atan2(point1.yPos - point0.yPos, point1.xPos - point0.xPos));
-
-            var n1 = ra(a - ra(degrees(atan2(point0.yPos - pointer.yPos, point0.xPos - pointer.xPos))));
-            var n2 = ra(a - ra(degrees(atan2(point1.yPos - pointer.yPos, point1.xPos - pointer.xPos))));
-    
-            sides[i] = 0;
-
-            if(side > 0)
+            if(this[0])
             {
-                if(n1 < 270 && n2 > 270)
-                {
-                    sides[i] = side;
-                }
-            }else{
-                if(n1 > 90 && n2 < 90)
-                {
-                    sides[i] = side;
-                }
+                track.stepPoint(this[0]);
             }
-        }
 
-        return sides;
-    };
-    this.nodes.applyCollision = function(object)
-    {
-        var pointerLeftDown = {
-            xPos : object.xPos,
-            yPos : object.yPos + object.height,
-        };
-
-        var pointerRightDown = {
-            xPos : object.xPos + object.width,
-            yPos : object.yPos + object.height,
-        };
-
-        var iSides = this.getSides(pointerLeftDown);
-        var jSides = this.getSides(pointerRightDown);
-
-        var i = iSides.indexOf(-1);
-        var j = jSides.indexOf(-1);
-
-        if(i !== -1 && !observer.collisionTypes.rectrect.colliding(object, physics.formulas.createBoundingBoxForLine(this[i], this[i + 1])))
-        {
-            i = -1;
-        }
-
-        if(j !== -1 && !observer.collisionTypes.rectrect.colliding(object, physics.formulas.createBoundingBoxForLine(this[j], this[j + 1])))
-        {
-            j = -1;
-        }
-
-        if(i !== -1 || j !== -1)
-        {
-            var newPointerLeft = (i === -1) ? false : physics.formulas.closestPointOnLine(pointerLeftDown, this[i], this[i + 1]);
-            var newPointerRight = (j === -1) ? false : physics.formulas.closestPointOnLine(pointerRightDown, this[j], this[j + 1]);
-
-            var y1 = Math.min(newPointerLeft ? newPointerLeft.yPos : Infinity, 
-                              newPointerRight ? newPointerRight.yPos : Infinity);
-
-            object.xPos = (y1 === newPointerLeft.yPos) ? newPointerLeft.xPos : newPointerRight.xPos - object.width;
-
-            object.yPos = y1 - object.height;
-
-            object.yVel = Math.min(object.yVel, 1);
-            object.inAir = (object.yVel >= 2);
-
-            object.updateBoundingBox();
-        }
-    };
-
-    this.nodes2 = [];
-    this.nodes2.getSides = function(pointer)
-    {
-        var sides = [];
-        var ra = physics.formulas.resolveAngle;
-
-        for(var i = 0; i < this.length - 1; i++)
-        {
-            var point0 = this[i], point1 = this[i + 1];
-
-            var s = physics.formulas.crossProduct(pointer, point1, point0);
-
-            var side = physics.formulas.sign(s);
-
-            var a = degrees(atan2(point1.yPos - point0.yPos, point1.xPos - point0.xPos));
-
-            var n1 = ra(a - ra(degrees(atan2(point0.yPos - pointer.yPos, point0.xPos - pointer.xPos))));
-            var n2 = ra(a - ra(degrees(atan2(point1.yPos - pointer.yPos, point1.xPos - pointer.xPos))));
-    
-            sides[i] = 0;
-
-            if(side > 0)
+            for(var i = 1; i < this.length; i++)
             {
-                if(n1 < 270 && n2 > 270)
+                track.stepPoint(this[i]);
+
+                // Keep points from becoming too far apart.
+                if(Math.pow(this[i].xPos - this[i - 1].xPos, 2) + Math.pow(this[i].yPos - this[i - 1].yPos, 2) > self.separation)
                 {
-                    sides[i] = side;
-                }
-            }else{
-                if(n1 > 90 && n2 < 90)
-                {
-                    sides[i] = side;
+                    this[i].xPos += this[i].xVel;
+                    this[i].yPos += this[i].yVel;
                 }
             }
-        }
+        };
 
-        return sides;
+        this.points2 = [];
+        this.points2.add = this.points.add;
+        this.points2.draw = this.points.draw;
+        this.points2.update = this.points.update;
     };
-    this.nodes2.applyCollision = function(object)
+
+    this.addPoint = function()
     {
-        var pointerLeftDown = {
-            xPos : object.xPos,
-            yPos : object.yPos,
+        this.points.add(this.track[0].xPos, this.track[0].yPos);
+        if(this.track2[0])
+        {
+            this.points2.add(this.track2[0].xPos, this.track2[0].yPos);
+        }
+    };
+
+    this.setupNodes = function()
+    {
+        this.nodes = [];
+        this.nodes.draw = function()
+        {
+            noStroke();
+            fill(255, 255, 255, 80);
+            beginShape();
+                for(var i = this.length - 1; i >= 0; i--)
+                {
+                    vertex(this[i].xPos, this[i].yPos);
+                }
+            endShape(CLOSE);
         };
 
-        var pointerRightDown = {
-            xPos : object.xPos + object.width,
-            yPos : object.yPos,
+        this.nodes.getSides = function(pointer)
+        {
+            var sides = [];
+            var ra = physics.formulas.resolveAngle;
+
+            for(var i = 0; i < this.length - 1; i++)
+            {
+                var point0 = this[i + 1], point1 = this[i];
+
+                var s = physics.formulas.crossProduct(pointer, point1, point0);
+
+                var side = physics.formulas.sign(s);
+
+                var a = degrees(atan2(point1.yPos - point0.yPos, point1.xPos - point0.xPos));
+
+                var n1 = ra(a - ra(degrees(atan2(point0.yPos - pointer.yPos, point0.xPos - pointer.xPos))));
+                var n2 = ra(a - ra(degrees(atan2(point1.yPos - pointer.yPos, point1.xPos - pointer.xPos))));
+        
+                sides[i] = 0;
+
+                if(side > 0)
+                {
+                    if(n1 < 270 && n2 > 270)
+                    {
+                        sides[i] = side;
+                    }
+                }else{
+                    if(n1 > 90 && n2 < 90)
+                    {
+                        sides[i] = side;
+                    }
+                }
+            }
+
+            return sides;
+        };
+        this.nodes.applyCollision = function(object)
+        {
+            var pointerLeftDown = {
+                xPos : object.xPos,
+                yPos : object.yPos + object.height,
+            };
+
+            var pointerRightDown = {
+                xPos : object.xPos + object.width,
+                yPos : object.yPos + object.height,
+            };
+
+            var iSides = this.getSides(pointerLeftDown);
+            var jSides = this.getSides(pointerRightDown);
+
+            var i = iSides.indexOf(-1);
+            var j = jSides.indexOf(-1);
+
+            if(i !== -1 && !observer.collisionTypes.rectrect.colliding(object, physics.formulas.createBoundingBoxForLine(this[i], this[i + 1])))
+            {
+                i = -1;
+            }
+
+            if(j !== -1 && !observer.collisionTypes.rectrect.colliding(object, physics.formulas.createBoundingBoxForLine(this[j], this[j + 1])))
+            {
+                j = -1;
+            }
+
+            if(i !== -1 || j !== -1)
+            {
+                var newPointerLeft = (i === -1) ? false : physics.formulas.closestPointOnLine(pointerLeftDown, this[i], this[i + 1]);
+                var newPointerRight = (j === -1) ? false : physics.formulas.closestPointOnLine(pointerRightDown, this[j], this[j + 1]);
+
+                var y1 = Math.min(newPointerLeft ? newPointerLeft.yPos : Infinity, 
+                                  newPointerRight ? newPointerRight.yPos : Infinity);
+
+                object.xPos = (y1 === newPointerLeft.yPos) ? newPointerLeft.xPos : newPointerRight.xPos - object.width;
+
+                object.yPos = y1 - object.height;
+
+                object.yVel = Math.min(object.yVel, 1);
+                object.inAir = (object.yVel >= 2);
+
+                object.updateBoundingBox();
+            }
         };
 
-        var iSides = this.getSides(pointerLeftDown);
-        var jSides = this.getSides(pointerRightDown);
-
-        var i = iSides.indexOf(1);
-        var j = jSides.indexOf(1);
-
-        if(i !== -1 && !observer.collisionTypes.rectrect.colliding(object, physics.formulas.createBoundingBoxForLine(this[i + 1], this[i])))
+        this.nodes2 = [];
+        this.nodes2.getSides = function(pointer)
         {
-            i = -1;
-        }
+            var sides = [];
+            var ra = physics.formulas.resolveAngle;
 
-        if(j !== -1 && !observer.collisionTypes.rectrect.colliding(object, physics.formulas.createBoundingBoxForLine(this[j + 1], this[j])))
+            for(var i = 0; i < this.length - 1; i++)
+            {
+                var point0 = this[i], point1 = this[i + 1];
+
+                var s = physics.formulas.crossProduct(pointer, point1, point0);
+
+                var side = physics.formulas.sign(s);
+
+                var a = degrees(atan2(point1.yPos - point0.yPos, point1.xPos - point0.xPos));
+
+                var n1 = ra(a - ra(degrees(atan2(point0.yPos - pointer.yPos, point0.xPos - pointer.xPos))));
+                var n2 = ra(a - ra(degrees(atan2(point1.yPos - pointer.yPos, point1.xPos - pointer.xPos))));
+        
+                sides[i] = 0;
+
+                if(side > 0)
+                {
+                    if(n1 < 270 && n2 > 270)
+                    {
+                        sides[i] = side;
+                    }
+                }else{
+                    if(n1 > 90 && n2 < 90)
+                    {
+                        sides[i] = side;
+                    }
+                }
+            }
+
+            return sides;
+        };
+        this.nodes2.applyCollision = function(object)
         {
-            j = -1;
-        }
+            var pointerLeftDown = {
+                xPos : object.xPos,
+                yPos : object.yPos,
+            };
 
-        if(i !== -1 || j !== -1)
-        {
-            var newPointerLeft = (i === -1) ? false : physics.formulas.closestPointOnLine(pointerLeftDown, this[i], this[i + 1]);
-            var newPointerRight = (j === -1) ? false : physics.formulas.closestPointOnLine(pointerRightDown, this[j], this[j + 1]);
+            var pointerRightDown = {
+                xPos : object.xPos + object.width,
+                yPos : object.yPos,
+            };
 
-            var y1 = Math.max(newPointerLeft ? newPointerLeft.yPos : 0, 
-                              newPointerRight ? newPointerRight.yPos : 0);
+            var iSides = this.getSides(pointerLeftDown);
+            var jSides = this.getSides(pointerRightDown);
 
-            object.xPos = (y1 === newPointerLeft.yPos) ? newPointerLeft.xPos : newPointerRight.xPos - object.width;
-            object.yPos = y1;
+            var i = iSides.indexOf(1);
+            var j = jSides.indexOf(1);
 
-            object.yVel = 0;
-            object.inAir = true;
+            if(i !== -1 && !observer.collisionTypes.rectrect.colliding(object, physics.formulas.createBoundingBoxForLine(this[i + 1], this[i])))
+            {
+                i = -1;
+            }
 
-            object.updateBoundingBox();
-        }
+            if(j !== -1 && !observer.collisionTypes.rectrect.colliding(object, physics.formulas.createBoundingBoxForLine(this[j + 1], this[j])))
+            {
+                j = -1;
+            }
+
+            if(i !== -1 || j !== -1)
+            {
+                var newPointerLeft = (i === -1) ? false : physics.formulas.closestPointOnLine(pointerLeftDown, this[i], this[i + 1]);
+                var newPointerRight = (j === -1) ? false : physics.formulas.closestPointOnLine(pointerRightDown, this[j], this[j + 1]);
+
+                var y1 = Math.max(newPointerLeft ? newPointerLeft.yPos : 0, 
+                                  newPointerRight ? newPointerRight.yPos : 0);
+
+                object.xPos = (y1 === newPointerLeft.yPos) ? newPointerLeft.xPos : newPointerRight.xPos - object.width;
+                object.yPos = y1;
+
+                object.yVel = 0;
+                object.inAir = true;
+
+                object.updateBoundingBox();
+            }
+        };
     };
 
     this.createNodes = function()
@@ -15464,6 +15597,10 @@ var IceDragon = function(xPos, yPos, width, height)
         }
     };
 
+    this.createTracks();
+    this.setupPoints();
+
+    this.setupNodes();
     this.createNodes();
 
     this.connectHead = function()
@@ -15471,16 +15608,8 @@ var IceDragon = function(xPos, yPos, width, height)
         var point0 = this.nodes[0];
         var point1 = this.nodes2[0];
 
-        if(point0 && point1)
-        {
-            // console.log(point0, point1);
-
-            this.xPos = point0.xPos;
-            this.yPos = point0.yPos;// + Math.abs(point0.yPos - point1.yPos) / 2 + this.halfHeight;
-        }
-
-        // cameraGrid.removeReference(this);
-        // cameraGrid.addReference(this);
+        this.xPos = point0.xPos;
+        this.yPos = point0.yPos;
     };
 
     this.allNodes = [];
@@ -15537,10 +15666,31 @@ var IceDragon = function(xPos, yPos, width, height)
         nodes.draw();
 
         this.allNodes = nodes;
+
+        this.track.draw();
+        this.track2.draw();
+
+        this.points.draw();
+        this.points.update(this.track);
+
+        this.points2.draw();
+        this.points2.update(this.track2);
+    };
+
+    var _lastUpdate = this.update;
+    this.update = function()
+    {
+        _lastUpdate.apply(this, arguments);
+
+        this.connectHead();
+    };
+
+    this.onCollide = function(object)
+    {
+        // Just an override, still this function is unused.
     };
 
     this._lastRemove = this.remove;
-
     this.remove = function()
     { 
         this.lastRemove();
@@ -15564,19 +15714,6 @@ var IceDragon = function(xPos, yPos, width, height)
             this.addedHeart = true;
         }
     };
-
-    var _lastUpdate = this.update;
-    this.update = function()
-    {
-        _lastUpdate.apply(this, arguments);
-
-        this.connectHead();
-    };
-
-    // this.onCollide = function(object)
-    // {
-    //     // Just an override, still this function is unused.
-    // };
 };
 gameObjects.addObject("iceDragon", createArray(IceDragon));
 
@@ -20531,7 +20668,7 @@ var levelScripts = {
         {
             var iceDragon = gameObjects.getObject("iceDragon").input(0);
 
-            // Prevent game from crashing if there is no ice dragon which there should be.
+            // Prevent game from crashing if there is no ice dragon, which there should be.
             if(iceDragon.fake)
             {
                 this.stop = true;
@@ -20540,8 +20677,45 @@ var levelScripts = {
 
             iceDragon.draw(true);
 
-            var player = gameObjects.getObject("player")[0];
+            // this should probably be in update.
 
+            if(mouseIsPressed && mouseButton === RIGHT && (!this.lastAddTime || millis() - this.lastAddTime > 300))
+            {
+                iceDragon.track.add(cam.focusXPos - cam.halfWidth + mouseX, cam.focusYPos - cam.halfHeight + mouseY);
+                this.lastAddTime = millis();
+            }
+
+            if(keys["/"])
+            {
+                var track = [];
+                for(var i = 0; i < iceDragon.track.length; i++)
+                {
+                    track.push({
+                        x: iceDragon.track[i].xPos,
+                        y: iceDragon.track[i].yPos
+                    });
+                }
+
+                iceDragon.track2.length = 0;        
+
+                var track2 = getParallelLines(track, iceDragon.apart);
+
+                for(var i = 0; i < track2.length; i++)
+                {
+                    iceDragon.track2.push({
+                        xPos: track2[i].x,
+                        yPos: track2[i].y
+                    });
+                }
+            }
+
+            if(keys[">"] && (!this.lastAddPointTime || millis() - this.lastAddPointTime > 240))
+            {
+                iceDragon.addPoint();
+                this.lastAddPointTime = millis();
+            }
+
+            var player = gameObjects.getObject("player")[0];
             iceDragon.applyCollision(player);
         },
     },
