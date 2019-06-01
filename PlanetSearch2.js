@@ -25,7 +25,7 @@ var sketch = function(processing) /*Wrapper*/
 
     function getImage(s)
     {
-        var url = "https ://www.kasandbox.org/programming-images/" + s + ".png";
+        var url = "https://www.kasandbox.org/programming-images/" + s + ".png";
         processing.externals.sketch.imageCache.add(url);
         return processing.loadImage(url);
     }
@@ -70,6 +70,8 @@ var sketch = function(processing) /*Wrapper*/
     processing.scaled = false;
 
     processing.hint(processing.DISABLE_OPENGL_ERROR_REPORT);
+
+    window.ctx = processing.externals.context;
 
     with(processing)
     {
@@ -716,10 +718,18 @@ var sketch = function(processing) /*Wrapper*/
         Voxelizers now can't damage you if you have a bubbleShield.
         Fixed enemy edge detection!
         Updated ice dragon collision to work on both sides. Now all I have to do to is put it on the track.
+
+    * 0.8.8
         Re-added dragon track.
+        Finished making points work at same speed (relative) for both loops.
+        Finished dragon collision. 
+        Now I just have to make it move correctly.
+        Finished dragon physics and movement.
+        Now rendering.
+        Improved image rendering for better fps
 
     Next :   
-        v0.8.6 -> 
+        Maybe will do: 
             Do something about the underwater level. It doesn't make sense for the player to not have the oxygen bar.
             Fix the bubble shields. Maybe make bubble shield allows you to go underwater?
 
@@ -789,7 +799,7 @@ var sketch = function(processing) /*Wrapper*/
 var game = {
     fps : 60, 
     loadFps : 160,
-    gameState : "play", //Default = "start"
+    gameState : "start", //Default = "start"
     version : "v0.8.7 beta",
     fpsType : "auto", //Default = "manual"
     debugMode : true, //Turn this to true to see the fps
@@ -803,7 +813,7 @@ var game = {
     }
 };
 var levelInfo = {
-    level : "IceDragon", //Default = "intro"
+    level : "intro", //Default = "intro"
     xPos : 0,
     yPos : 0,
     width : width,
@@ -857,6 +867,8 @@ var fpsCatcher = {
 
 // Reload when crashing?
 game.reload = false;
+
+const RAD_TO_DEG = (180 / Math.PI);
 
 //Constants
 var PI_MULT = PI / 180;
@@ -3723,13 +3735,12 @@ var backgrounds = {
                 {
                     image(backgrounds.backgrounds.high.img, 0, 0, width, height);
 
-                    strokeWeight(1);
-                    stroke(255, 255, 255);
+                    ctx.fillStyle = "rgb(255, 255, 255)";
 
                     // Render Update snow
                     for(var i = this.snow.length - 1; i >= 0; i--)
                     {
-                        point(this.snow[i].x, this.snow[i].y);
+                        ctx.fillRect(floor(this.snow[i].x), floor(this.snow[i].y), 1, 1);
 
                         this.snow[i].yVel += this.snow[i].gravity;
                         this.snow[i].yVel = min(this.snow[i].yVel, this.snow[i].maxYVel);
@@ -3742,7 +3753,7 @@ var backgrounds = {
                         }
                     }
 
-                    if(this.snow.length < 100)
+                    if(this.snow.length < 50)
                     {
                         this.snow.add(random(0, width), -2);
                     }
@@ -5439,6 +5450,30 @@ var debugTool = {
 
 var screenUtils = {
     fade : new graphics.Fade(color(0, 0, 0)),
+
+    getSourceImg: function(img)
+    {
+        var cd_canvas = document.createElement("canvas");
+        var cd_ctx = cd_canvas.getContext('2d');
+
+        // Set width, height and operation
+        cd_canvas.globalCompositeOperation = 'source-over';
+        cd_canvas.width = img.width;
+        cd_canvas.height = img.height;
+
+        // cd_ctx.clearRect(0, 0, img.width, img.height);
+        cd_ctx.putImageData(img.toImageData(), 0, 0);
+
+        return cd_canvas;
+    },
+    speedUpImage: function(img)
+    {
+        img.sourceImg = this.getSourceImg(img);
+        // img.__isDirty = false;
+
+        return img;
+    },
+
     load : function() {},
     shakeScreen : function(intensity, time)
     {
@@ -5863,7 +5898,7 @@ var screenUtils = {
             this.needsScreenShot = false;
         }
     },
-    //Use this after defining the draw method in a gameObject
+    // Use this after defining the draw method in a gameObject
     letImage : function(object, name, pro)
     {
         object.imageName = name;
@@ -5882,7 +5917,7 @@ var screenUtils = {
         if(constImage && storedImages[name || object.arrayName] !== undefined)
         {
             screenUtils.letImage(object, name || object.arrayName);
-            return;
+            return storedImages[name || object.arrayName];
         }
 
         /*We cannot replace pixels in ka mode due to the 
@@ -9134,7 +9169,7 @@ var Water = function(xPos, yPos, width, height, colorValue)
     {
         noStroke();
         fill(this.color);
-        rect(this.xPos, this.yPos, this.width, this.height);
+        fastRect(this.xPos, this.yPos, this.width, this.height);
 
         if(this.freezing && !this.showNoFreeze)
         {
@@ -9354,6 +9389,9 @@ var Tree = function(xPos, yPos, width, height, type)
             this.setAfter = function()
             {
                 this.loadDraw();
+
+                screenUtils.speedUpImage(this._img);
+
                 this.draw = function()
                 {
                     image(this._img, this.xPos, this.yPos);
@@ -9525,10 +9563,10 @@ var FallingBlock = function(xPos, yPos, width, height, colorValue)
     this.draw = function()
     {
         fill(this.color);
-        rect(this.xPos, this.yPos, this.width, this.height);
-        rect(this.xPos + this.width * 0.15, this.yPos + this.height * 0.15, this.width * 0.7, this.height * 0.7);
+        fastRect(this.xPos, this.yPos, this.width, this.height);
+        fastRect(this.xPos + this.width * 0.15, this.yPos + this.height * 0.15, this.width * 0.7, this.height * 0.7);
     };
-    
+
     this.update = function()
     {
         if(this.activated)
@@ -10075,6 +10113,7 @@ var Dirt = function(xPos, yPos, width, height, colorValue)
     this.noGrass = true;
     this.arrayName = "dirt";
     Ground.call(this, xPos, yPos, width, height, colorValue);
+    screenUtils.speedUpImage(storedImages[this.imageName]);
 };
 gameObjects.addObject("dirt", createArray(Dirt));
 
@@ -10083,6 +10122,7 @@ var Block = function(xPos, yPos, width, height, colorValue)
     this.noGrass = true;
     this.arrayName = "block";
     Ground.call(this, xPos, yPos, width, height, colorValue, "block" + colorValue);
+    screenUtils.speedUpImage(storedImages[this.imageName]);
 };
 gameObjects.addObject("block", createArray(Block));
 
@@ -10252,6 +10292,9 @@ var Ice = function(xPos, yPos, width, height, colorValue, slipFactor, override)
             popMatrix();
         }
     };
+
+    // Define a sourceImg in this PImage 
+    screenUtils.speedUpImage(storedImages[this.imageName]);
 
     this.shatter = function(wl, hl, life)
     {
@@ -10499,7 +10542,7 @@ var Spring = function(xPos, yPos, width, height, colorValue)
     this.draw = function()
     {
         fill(this.color);
-        rect(this.xPos, this.yPos, this.width, this.height);
+        rect(this.xPos, this.yPos, this.width, this.height);        
         fill(0, 0, 0, 50);
         rect(this.xPos + this.width * 0.15, this.yPos + this.height * 0.15, this.width * 0.65, this.height * 0.65);
         fill(0, 0, 0, 60);
@@ -15240,6 +15283,117 @@ gameObjects.addObject("ninjaBoss", createArray(NinjaBoss));
 function createTrack()
 {
     var track = [];
+    track.perimeter = 0;
+
+    // Pretty self-explanatory
+    track.getPerimeter = function()
+    {
+        this.perimeter = 0;
+
+        for(var i = 1; i < this.length; i++)
+        {
+            this.perimeter += Math.sqrt(Math.pow(this[i - 1].xPos - this[i].xPos, 2) + Math.pow(this[i - 1].yPos - this[i].yPos, 2));
+        }
+
+        var l = this.length - 1;
+        this.perimeter += Math.sqrt(Math.pow(this[l].xPos - this[0].xPos, 2) + Math.pow(this[l].yPos - this[0].yPos, 2));
+
+        return this.perimeter;
+    };
+    track.getDistAlong = function(point, index)
+    {
+        var dist = 0;
+
+        for(var i = 0; i < index; i++)
+        {
+            dx = this[i + 1].xPos - this[i].xPos;
+            dy = this[i + 1].yPos - this[i].yPos;
+            dist += Math.sqrt(dx * dx + dy * dy);
+        }
+
+        dx = point.xPos - this[index].xPos;
+        dy = point.yPos - this[index].yPos;
+        dist += Math.sqrt(dx * dx + dy * dy);
+
+        return dist;
+
+        // var dist = 0;
+        // index %= this.length;
+
+        // index--;
+
+        // var dx, dy;
+
+        // if(index > 0)
+        // {
+        //     for(var i = 1; i < index; i++)
+        //     {
+        //         dx = this[i - 1].xPos - this[i].xPos;
+        //         dy = this[i - 1].yPos - this[i].yPos;
+        //         dist += Math.sqrt(dx * dx + dy * dy);
+        //     }
+        // }
+        // else if(index < 0)
+        // {
+        //     index = this.length + index;
+        // }
+        // if(index !== 0)
+        // {
+        //     var l = this.length - 1;
+        //     dx = this[l].xPos - this[0].xPos;
+        //     dy = this[l].yPos - this[0].yPos;
+        //     dist += Math.sqrt(dx * dx + dy * dy);
+        // }
+
+        // dx = point.xPos - this[index].xPos;
+        // dy = point.yPos - this[index].yPos;
+        // return dist + Math.sqrt(dx * dx + dy * dy);
+    };
+    track.putPointAlong = function(length)
+    {
+        var point = {};
+
+        var i = 0;
+        var dist = 0;
+
+        var lastDist;
+        var dx, dy, l;
+
+        while(dist < length && i < this.length)
+        {
+            if(i + 1 >= this.length)
+            {
+                var l = this.length - 1;
+                dx = this[0].xPos - this[l].xPos;
+                dy = this[0].yPos - this[l].yPos;
+            }else{
+                dx = this[i + 1].xPos - this[i].xPos;
+                dy = this[i + 1].yPos - this[i].yPos;
+            }
+
+            dist += (lastDist = Math.sqrt(dx * dx + dy * dy));
+
+            i++;
+        }
+
+        var a;
+
+        if(i >= this.length)
+        {
+            var l = this.length - 1;
+            a = atan2(this[0].yPos - this[l].yPos, 
+                      this[0].xPos - this[l].xPos);
+        }else{
+            a = atan2(this[i].yPos - this[i - 1].yPos, 
+                      this[i].xPos - this[i - 1].xPos);
+        }
+
+        var offset = lastDist - (dist - length);
+        point.xPos = this[i - 1].xPos + cos(a) * offset;
+        point.yPos = this[i - 1].yPos + sin(a) * offset;
+
+        return point;
+    };
     track.add = function(xPos, yPos)
     {
         this.push({
@@ -15306,15 +15460,21 @@ var IceDragon = function(xPos, yPos, width, height)
 
     this.physics.solidObject = true;
 
-    this.physics.sides = {
-        up : true
-    };
+    this.physics.movement = "static";
+    this.physics.changes = true;
+
+    // this.physics.sides = {
+    //     left : true,
+    //     right : true,
+    //     up : true,
+    //     down:  true
+    // };
 
     var self = this;
 
-    this.apart = 50;
+    this.apart = 90;
     this.separation = this.apart * this.apart;
-    this.dragonLength = 7;
+    this.dragonLength = 18;
     this.gravity = 0;
 
     this.createTracks = function()
@@ -15331,7 +15491,7 @@ var IceDragon = function(xPos, yPos, width, height)
             this.push({
                 xPos : xPos,
                 yPos : yPos,
-                speed : speed || 0.7,
+                speed : speed || 0.6,
 
                 heading : 1,
                 index : 0,
@@ -15374,15 +15534,60 @@ var IceDragon = function(xPos, yPos, width, height)
         this.points2 = [];
         this.points2.add = this.points.add;
         this.points2.draw = this.points.draw;
-        this.points2.update = this.points.update;
+        this.points2.update = function(track)
+        {
+            if(this[0])
+            {
+                track.stepPoint(this[0]);
+            }
+
+            for(var i = 1; i < this.length; i++)
+            {
+                track.stepPoint(this[i]);
+
+                // Keep points from becoming too far apart.
+                if(Math.pow(this[i].xPos - this[i - 1].xPos, 2) + Math.pow(this[i].yPos - this[i - 1].yPos, 2) > self.separation2)
+                {
+                    this[i].xPos += this[i].xVel;
+                    this[i].yPos += this[i].yVel;
+                }
+            }
+        };
+    };
+
+    this.setTracksToLoad = function()
+    {
+        this.setTrack1 = [{"xPos":852.8068647221817,"yPos":812.6325423367903},{"xPos":886.2713980086756,"yPos":813.0697113666338},{"xPos":919.6151086973339,"yPos":813.0515590848212},{"xPos":956.2825961684364,"yPos":813.0501233169432},{"xPos":974.6637868021165,"yPos":792.6762994697699},{"xPos":1032.0302668025543,"yPos":789.3368247831376},{"xPos":1096.2330981112354,"yPos":789.0726866139732},{"xPos":1160.9766555783012,"yPos":789.0517944141645},{"xPos":1225.7629821725209,"yPos":789.0501419304882},{"xPos":1290.5526916218319,"yPos":773.0582136757089},{"xPos":1355.342668640516,"yPos":768.4461282881948},{"xPos":1420.1326668227935,"yPos":749.4943359447054},{"xPos":1484.9226666790205,"yPos":744.4806236949503},{"xPos":1549.7126666676504,"yPos":744.0840604930585},{"xPos":1614.5026666667522,"yPos":744.0526940393689},{"xPos":1679.292666666683,"yPos":744.0502130869952},{"xPos":1744.082666666679,"yPos":744.0500168542703},{"xPos":1808.8726666666807,"yPos":744.0500013331007},{"xPos":1872.997066212351,"yPos":744.0500001054426},{"xPos":1987.9280266245262,"yPos":758},{"xPos":1994.7133057269089,"yPos":758},{"xPos":2003.2621900981064,"yPos":758},{"xPos":2025.0200635499023,"yPos":758},{"xPos":2082.389972309239,"yPos":758},{"xPos":2146.593074818091,"yPos":758},{"xPos":2211.3366537359307,"yPos":758},{"xPos":2276.1229820268113,"yPos":758},{"xPos":2340.9126916103164,"yPos":758},{"xPos":2405.7026686396107,"yPos":758},{"xPos":2470.492666822723,"yPos":758},{"xPos":2535.2826666790133,"yPos":758},{"xPos":2600.0726666676437,"yPos":758},{"xPos":2664.862666666742,"yPos":758},{"xPos":2729.652666666668,"yPos":758},{"xPos":2794.442666666661,"yPos":758},{"xPos":2859.232666666658,"yPos":758},{"xPos":2924.0226666666554,"yPos":758},{"xPos":2988.8126666666526,"yPos":758},{"xPos":3053.60266666665,"yPos":758},{"xPos":3118.392666666647,"yPos":758},{"xPos":3183.1826666666443,"yPos":758},{"xPos":3247.9726666666415,"yPos":758},{"xPos":3310.0959999999723,"yPos":744},{"xPos":3382.219333333303,"yPos":758},{"xPos":3447.0093333333,"yPos":760.6666666666666},{"xPos":3505.1326666666305,"yPos":749.3333333333333},{"xPos":3575.255999999961,"yPos":754.6666666666666},{"xPos":3640.712666666625,"yPos":754.6666666666666},{"xPos":3705.502666666622,"yPos":752},{"xPos":3772.2926666666194,"yPos":753.3333333333333},{"xPos":3848.41599999995,"yPos":756.6666666666666},{"xPos":3907.2059999999474,"yPos":752.6666666666666},{"xPos":3982,"yPos":724},{"xPos":4033.3333333333335,"yPos":693.7166666680288},{"xPos":4060.6666666666665,"yPos":661.716666666667},{"xPos":4063.3333333333335,"yPos":621.0500000000004},{"xPos":4063.3333333333335,"yPos":543.1356880107536},{"xPos":4063.3333333333335,"yPos":479.2179440808018},{"xPos":4006,"yPos":392.54513202563487},{"xPos":3975.3333333333335,"yPos":350.71645051704036},{"xPos":3933.3333333333335,"yPos":303.3833310264359},{"xPos":3880.6666666666665,"yPos":262.7166666451236},{"xPos":3790.3024153611937,"yPos":266.0730993146895},{"xPos":3710.8451278137914,"yPos":263.3833528329425},{"xPos":3583.8295670323014,"yPos":264.7166666716158},{"xPos":3497.8880139926882,"yPos":264.71666666670717},{"xPos":3389.9981777137577,"yPos":263.38333333333355},{"xPos":3237.8306583662466,"yPos":266.05000000000024},{"xPos":3082.892583481355,"yPos":267.38333333333355},{"xPos":2920.086915843062,"yPos":272.7166666666669},{"xPos":2812.8771040515276,"yPos":273.38333333333355},{"xPos":2665.6646961309175,"yPos":281.38333333333355},{"xPos":2534.776166371423,"yPos":286.7166666666669},{"xPos":2389.9586813461456,"yPos":275.38333333333355},{"xPos":2254.974481465487,"yPos":275.38333333333355},{"xPos":2085.6619119367233,"yPos":281.38333333333355},{"xPos":1938.8818755104453,"yPos":288.05000000000024},{"xPos":1760.0756912510974,"yPos":298.05000000000024},{"xPos":1240.349553837066,"yPos":265.05000000000024},{"xPos":1183.3283125645912,"yPos":242.38333333333355},{"xPos":1085.6731129783814,"yPos":245.05000000000024},{"xPos":1003.7978200724177,"yPos":275.05000000000024},{"xPos":951.0377865437742,"yPos":261.71666680629795},{"xPos":875.978193149433,"yPos":243.05000000030023},{"xPos":766.3905522909068,"yPos":259.0500000000022},{"xPos":665.8429512558963,"yPos":274.38333333333344},{"xPos":579.3525024135563,"yPos":344.38333333333344},{"xPos":452.2408574005513,"yPos":415.95507819639244},{"xPos":373.928283403028,"yPos":523.4245453778697},{"xPos":372.7878952859347,"yPos":609.2456391540254},{"xPos":373.45267361714866,"yPos":735.0507174539042},{"xPos":398.1193335222641,"yPos":815.3833528322928},{"xPos":449.92466666669293,"yPos":842.0000000000005},{"xPos":507.25800000002624,"yPos":846.6666666666671}];
+        this.setTrack2 = [{"xPos":852.1537378319043,"yPos":862.6282764074607},{"xPos":885.9584300488362,"yPos":863.0698891553247},{"xPos":919.6296975812608,"yPos":863.0515585519032},{"xPos":978.5151968710644,"yPos":863.049252806018},{"xPos":998.0473269017698,"yPos":841.3997207089777},{"xPos":1033.587120295757,"yPos":839.3308428484839},{"xPos":1096.3440179346367,"yPos":839.0726534243281},{"xPos":1160.985360534176,"yPos":839.0517942083949},{"xPos":1231.8430879319926,"yPos":839.0499868634809},{"xPos":1298.3757366377872,"yPos":822.6278520252945},{"xPos":1364.237459794662,"yPos":817.9394742090666},{"xPos":1429.177030215504,"yPos":798.943930328532},{"xPos":1487.0071509855093,"yPos":794.4688016736038},{"xPos":1549.877786911019,"yPos":794.0839864136567},{"xPos":1614.5157270942273,"yPos":794.0526935759136},{"xPos":1679.2936996910153,"yPos":794.0502130840957},{"xPos":1744.082748384813,"yPos":794.0500168542521},{"xPos":1808.8726727514006,"yPos":794.0500013331006},{"xPos":1869.9737308702188,"yPos":794.0500001633242},{"xPos":1984.9046908055202,"yPos":808},{"xPos":2044.7133057269089,"yPos":808},{"xPos":2053.2621900981067,"yPos":808},{"xPos":2075.0200635499023,"yPos":808},{"xPos":2132.389972309239,"yPos":808},{"xPos":2196.593074818091,"yPos":808},{"xPos":2261.3366537359307,"yPos":808},{"xPos":2326.1229820268113,"yPos":808},{"xPos":2390.9126916103164,"yPos":808},{"xPos":2455.7026686396107,"yPos":808},{"xPos":2520.492666822723,"yPos":808},{"xPos":2585.2826666790133,"yPos":808},{"xPos":2650.0726666676437,"yPos":808},{"xPos":2714.862666666742,"yPos":808},{"xPos":2779.652666666668,"yPos":808},{"xPos":2844.442666666661,"yPos":808},{"xPos":2909.232666666658,"yPos":808},{"xPos":2974.0226666666554,"yPos":808},{"xPos":3038.8126666666526,"yPos":808},{"xPos":3103.60266666665,"yPos":808},{"xPos":3168.392666666647,"yPos":808},{"xPos":3233.1826666666443,"yPos":808},{"xPos":3253.5368494502404,"yPos":808},{"xPos":3310.8604357009067,"yPos":795.0816621638243},{"xPos":3376.3943980996296,"yPos":807.8025866022698},{"xPos":3450.817587594216,"yPos":810.8657420066877},{"xPos":3508.0740024122874,"yPos":799.7014470946356},{"xPos":3573.357329997795,"yPos":804.6666666666666},{"xPos":3641.7411966356954,"yPos":804.6666666666666},{"xPos":3706.0322783735164,"yPos":802.0205347846756},{"xPos":3770.6997971170777,"yPos":803.3114968796712},{"xPos":3849.021265158182,"yPos":806.7410834296168},{"xPos":3918.0902302061268,"yPos":802.0417151664464},{"xPos":4003.801513383262,"yPos":769.190727327723},{"xPos":4065.929538798416,"yPos":732.5392266217953},{"xPos":4109.472726773275,"yPos":681.5618358197918},{"xPos":4113.333333333334,"yPos":622.687585778899},{"xPos":4113.333333333334,"yPos":493.1356880107536},{"xPos":4113.333333333334,"yPos":464.177123032028},{"xPos":4047.0366680807388,"yPos":363.9541275554738},{"xPos":4014.279352452673,"yPos":319.273845300597},{"xPos":3967.6125054722106,"yPos":266.68128710116935},{"xPos":3896.8984335798887,"yPos":212.07928529077037},{"xPos":3790.2201699714024,"yPos":216.04167532815012},{"xPos":3711.428800278833,"yPos":213.3744711488458},{"xPos":3583.567143063332,"yPos":214.71666667160085},{"xPos":3498.196959320705,"yPos":214.71666666672482},{"xPos":3389.8690360353103,"yPos":213.3779193293191},{"xPos":3237.177467244573,"yPos":216.05376972447087},{"xPos":3081.8587678821546,"yPos":217.39037855547477},{"xPos":2919.1127558280286,"yPos":222.72175763795084},{"xPos":2811.364195287829,"yPos":223.39177442552938},{"xPos":2663.290173505368,"yPos":231.43859731900804},{"xPos":2535.7121542321484,"yPos":236.63703681588956},{"xPos":2391.9121805059167,"yPos":225.38333333333355},{"xPos":2254.0888240268714,"yPos":225.38333333333355},{"xPos":2083.64216561295,"yPos":231.423522513203},{"xPos":1936.351509019083,"yPos":238.1133812605741},{"xPos":1760.2645660356598,"yPos":247.96130367516014},{"xPos":1251.441465113462,"yPos":215.6535917444513},{"xPos":1192.2425552311029,"yPos":192.12127418367572},{"xPos":1076.1417825932356,"yPos":195.29163338297604},{"xPos":1001.0862322772803,"yPos":222.79280534293184},{"xPos":963.1966743151803,"yPos":213.21748730230732},{"xPos":878.493781310744,"yPos":192.15261591523307},{"xPos":759.0098391127294,"yPos":209.59749437192528},{"xPos":644.9156345872816,"yPos":226.99666104901792},{"xPos":551.1614082077006,"yPos":302.875511655213},{"xPos":418.23481101580455,"yPos":377.7214354787905},{"xPos":324.1442000519296,"yPos":506.84332882106656},{"xPos":322.7861399398643,"yPos":609.0455549616613},{"xPos":323.49230773338,"yPos":742.6833262077067},{"xPos":356.51199275224775,"yPos":850.219503668841},{"xPos":435.93742477579747,"yPos":891.026860209138},{"xPos":503.20164745488796,"yPos":896.5018550783662}];
+    };
+
+    this.loadTracks = function()
+    {
+        this.setTracksToLoad();
+        for(var i = 0; i < this.setTrack1.length; i++)
+        {
+            this.track.push(this.setTrack1[i]);
+        }
+
+        for(var i = 0; i < this.setTrack2.length; i++)
+        {
+            this.track2.push(this.setTrack2[i]);
+        }
+
+        this.track.getPerimeter();
+        this.track2.getPerimeter();
     };
 
     this.addPoint = function()
     {
         this.points.add(this.track[0].xPos, this.track[0].yPos);
+        var minimum = this.track.getPerimeter();
+        var maximum = this.track2.getPerimeter();
+        self.separation2 = maximum * self.separation / minimum;
+
         if(this.track2[0])
         {
-            this.points2.add(this.track2[0].xPos, this.track2[0].yPos);
+            this.points2.add(this.track2[0].xPos, this.track2[0].yPos, maximum * this.points[0].speed / minimum);
         }
     };
 
@@ -15425,12 +15630,12 @@ var IceDragon = function(xPos, yPos, width, height)
                 {
                     if(n1 < 270 && n2 > 270)
                     {
-                        sides[i] = side;
+                        sides[i] = side + 10;
                     }
                 }else{
                     if(n1 > 90 && n2 < 90)
                     {
-                        sides[i] = side;
+                        sides[i] = side + 10;
                     }
                 }
             }
@@ -15439,6 +15644,64 @@ var IceDragon = function(xPos, yPos, width, height)
         };
         this.nodes.applyCollision = function(object)
         {
+            // Top
+
+            var pointerLeftDown = {
+                xPos : object.xPos,
+                yPos : object.yPos,
+            };
+
+            var pointerRightDown = {
+                xPos : object.xPos + object.width,
+                yPos : object.yPos,
+            };
+
+            var iSides = this.getSides(pointerLeftDown);
+            var jSides = this.getSides(pointerRightDown);
+
+            var i = iSides.indexOf(-1 + 10);
+            var j = jSides.indexOf(-1 + 10);
+
+            if(i !== -1 && !observer.collisionTypes.rectrect.colliding(object, physics.formulas.createBoundingBoxForLine(this[i + 1], this[i])))
+            {
+                i = -1;
+            }
+
+            if(j !== -1 && !observer.collisionTypes.rectrect.colliding(object, physics.formulas.createBoundingBoxForLine(this[j + 1], this[j])))
+            {
+                j = -1;
+            }
+
+            if(i !== -1 || j !== -1)
+            {
+                var newPointerLeft = (i === -1) ? false : physics.formulas.closestPointOnLine(pointerLeftDown, this[i], this[i + 1]);
+                var newPointerRight = (j === -1) ? false : physics.formulas.closestPointOnLine(pointerRightDown, this[j], this[j + 1]);
+
+                var y1 = Math.max(newPointerLeft ? newPointerLeft.yPos : 0, 
+                                  newPointerRight ? newPointerRight.yPos : 0);
+
+                var nXPos = (y1 === newPointerLeft.yPos) ? newPointerLeft.xPos : newPointerRight.xPos - object.width;
+                var nYPos = y1;
+
+                var dx = object.xPos - nXPos;
+                var dy = object.yPos - nYPos;
+
+                if(dx * dx + dy * dy < self.separation * 0.3)
+                {
+                    object.xPos = nXPos;
+                    object.yPos = max(nYPos, object.yPos);
+
+                    object.yVel = 0;
+                    object.inAir = true;
+
+                    object.updateBoundingBox();
+
+                    return;
+                }
+            }
+
+            // Bottom
+
             var pointerLeftDown = {
                 xPos : object.xPos,
                 yPos : object.yPos + object.height,
@@ -15452,8 +15715,8 @@ var IceDragon = function(xPos, yPos, width, height)
             var iSides = this.getSides(pointerLeftDown);
             var jSides = this.getSides(pointerRightDown);
 
-            var i = iSides.indexOf(-1);
-            var j = jSides.indexOf(-1);
+            var i = iSides.indexOf(-1 + 10);
+            var j = jSides.indexOf(-1 + 10);
 
             if(i !== -1 && !observer.collisionTypes.rectrect.colliding(object, physics.formulas.createBoundingBoxForLine(this[i], this[i + 1])))
             {
@@ -15475,7 +15738,7 @@ var IceDragon = function(xPos, yPos, width, height)
 
                 object.xPos = (y1 === newPointerLeft.yPos) ? newPointerLeft.xPos : newPointerRight.xPos - object.width;
 
-                object.yPos = y1 - object.height;
+                object.yPos = min(y1 - object.height, object.yPos);
 
                 object.yVel = Math.min(object.yVel, 1);
                 object.inAir = (object.yVel >= 2);
@@ -15523,6 +15786,64 @@ var IceDragon = function(xPos, yPos, width, height)
         };
         this.nodes2.applyCollision = function(object)
         {
+            // Bottom
+
+            var pointerLeftDown = {
+                xPos : object.xPos,
+                yPos : object.yPos + object.height,
+            };
+
+            var pointerRightDown = {
+                xPos : object.xPos + object.width,
+                yPos : object.yPos + object.height,
+            };
+
+            var iSides = this.getSides(pointerLeftDown);
+            var jSides = this.getSides(pointerRightDown);
+
+            var i = iSides.indexOf(1);
+            var j = jSides.indexOf(1);
+
+            if(i !== -1 && !observer.collisionTypes.rectrect.colliding(object, physics.formulas.createBoundingBoxForLine(this[i], this[i + 1])))
+            {
+                i = -1;
+            }
+
+            if(j !== -1 && !observer.collisionTypes.rectrect.colliding(object, physics.formulas.createBoundingBoxForLine(this[j], this[j + 1])))
+            {
+                j = -1;
+            }
+
+            if(i !== -1 || j !== -1)
+            {
+                var newPointerLeft = (i === -1) ? false : physics.formulas.closestPointOnLine(pointerLeftDown, this[i], this[i + 1]);
+                var newPointerRight = (j === -1) ? false : physics.formulas.closestPointOnLine(pointerRightDown, this[j], this[j + 1]);
+
+                var y1 = Math.min(newPointerLeft ? newPointerLeft.yPos : Infinity, 
+                                  newPointerRight ? newPointerRight.yPos : Infinity);
+
+                var nXPos = (y1 === newPointerLeft.yPos) ? newPointerLeft.xPos : newPointerRight.xPos - object.width;
+                var nYPos = y1 - object.height;
+
+                var dx = object.xPos - nXPos;
+                var dy = object.yPos - nYPos;
+
+                if(dx * dx + dy * dy < self.separation * 0.3)
+                {
+                    object.xPos = nXPos;
+                    object.yPos = nYPos;
+
+                    object.yVel = Math.min(object.yVel, 1);
+                    object.inAir = (object.yVel >= 2);
+
+                    object.updateBoundingBox();
+
+                    return;
+                }
+            }
+
+            // Top
+
             var pointerLeftDown = {
                 xPos : object.xPos,
                 yPos : object.yPos,
@@ -15597,20 +15918,114 @@ var IceDragon = function(xPos, yPos, width, height)
         }
     };
 
-    this.createTracks();
-    this.setupPoints();
+    (() =>
+    {
+        this.createTracks();
+        this.loadTracks();
 
-    this.setupNodes();
-    this.createNodes();
+        this.setupPoints();
+
+        this.setupNodes();
+        // this.createNodes();
+    })();
+
+    this.connectNodesToPoints = function()
+    {
+        this.nodes.length = 0;
+
+        for(var i = this.points2.length - 1; i >= 0; i--)
+        {
+            this.nodes.push(this.points2[i]);
+        }
+
+        this.nodes2.length = 0;
+
+        for(var i = 0; i < this.points.length; i++) 
+        {
+            this.nodes2.push(this.points[i]);
+        }
+    };
+
+    var DEG_TO_RAD = (Math.PI / 180);
 
     this.connectHead = function()
     {
-        var point0 = this.nodes[0];
+        var point0 = this.nodes[this.nodes.length - 1];
         var point1 = this.nodes2[0];
 
-        this.xPos = point0.xPos;
-        this.yPos = point0.yPos;
+        if(!point0 || !point1)
+        {
+            return;
+        }
+
+        var angle = atan2(point1.yPos - point0.yPos, point1.xPos - point0.xPos);
+
+        var angle_offset = 75 * DEG_TO_RAD;
+
+        var a0 = angle - Math.PI / 2 - angle_offset, 
+            a1 = angle - Math.PI / 2 + angle_offset;
+
+        var s = 150;
+
+        var point = o_intersect(point0.xPos, point0.yPos, 
+                    point0.xPos - cos(a0) * s, point0.yPos - sin(a0) * s, 
+
+                    point1.xPos, point1.yPos, 
+                    point1.xPos - cos(a1) * s, point1.yPos - sin(a1) * s);
+
+        try{
+            this.xPos = point.x - this.halfWidth;
+            this.yPos = point.y - this.halfHeight;
+        }
+        catch(e)
+        {
+
+        }
+
+        stroke(255, 255, 255, 100);
+        strokeWeight(2);
+
+        line(point0.xPos, point0.yPos, 
+            point0.xPos - cos(a0) * s, point0.yPos - sin(a0) * s);
+
+        line(point1.xPos, point1.yPos, 
+            point1.xPos - cos(a1) * s, point1.yPos - sin(a1) * s);
+
+        this.updateBoundingBox();
     };
+
+    // this.connectTail = function()
+    // {
+    //     if(this.points2.length === 0 || this.points2.length === 0)
+    //     {
+    //         return;
+    //     }
+
+    //     var l1 = this.points.length - 1;
+    //     var l2 = this.points2.length - 1;
+
+    //     var p1 = this.points[l1];
+    //     var p2 = this.points2[l2];
+
+    //     var dx = p2.xPos - p1.xPos;
+    //     var dy = p2.yPos - p1.yPos;
+
+    //     var amt = this.apart * 1.4; //Math.sqrt(dx * dx + dy + dy) / 2;
+
+    //     var opp = this.apart;  
+
+    //     var angle = atan2(dy, dx);
+
+    //     this.nodes.unshift({
+    //         xPos: p2.xPos - cos(angle - Math.PI / 4) * amt,
+    //         yPos: p2.yPos - sin(angle - Math.PI / 4) * amt
+    //     });
+
+    //     this.nodes2.unshift({
+    //         xPos: p2.xPos - cos(angle - Math.PI / 4) * amt,
+    //         yPos: p2.yPos - sin(angle - Math.PI / 4) * amt
+    //     });
+    // };
 
     this.allNodes = [];
     var option = observer.collisionTypes["pointpolygon"];
@@ -15618,17 +16033,17 @@ var IceDragon = function(xPos, yPos, width, height)
     this.colliding = function(object)
     {
         var oNodes = [{
-            xPos: object.boundingBox.xPos,
-            yPos: object.boundingBox.yPos
+            xPos : object.boundingBox.xPos,
+            yPos : object.boundingBox.yPos
         }, {
-            xPos: object.boundingBox.xPos + object.boundingBox.width,
-            yPos: object.boundingBox.yPos
+            xPos : object.boundingBox.xPos + object.boundingBox.width,
+            yPos : object.boundingBox.yPos
         }, {
-            xPos: object.boundingBox.xPos,
-            yPos: object.boundingBox.yPos + object.boundingBox.height
+            xPos : object.boundingBox.xPos,
+            yPos : object.boundingBox.yPos + object.boundingBox.height
         }, {
-            xPos: object.boundingBox.xPos + object.boundingBox.width,
-            yPos: object.boundingBox.yPos + object.boundingBox.height
+            xPos : object.boundingBox.xPos + object.boundingBox.width,
+            yPos : object.boundingBox.yPos + object.boundingBox.height
         }];
 
         var obj = { 
@@ -15661,33 +16076,85 @@ var IceDragon = function(xPos, yPos, width, height)
         rect(this.xPos, this.yPos, this.width, this.height, 5);
         noStroke();
 
-        var nodes = this.nodes.slice().concat(this.nodes2);
+        var nodes = this.nodes.concat(this.nodes2);
         nodes.draw = this.nodes.draw;
         nodes.draw();
 
         this.allNodes = nodes;
 
-        this.track.draw();
-        this.track2.draw();
+        // this.track.draw();
+        // this.track2.draw();
 
         this.points.draw();
-        this.points.update(this.track);
-
         this.points2.draw();
-        this.points2.update(this.track2);
     };
 
     var _lastUpdate = this.update;
-    this.update = function()
+    this.update = function(isRemote)
     {
+        if(!isRemote)
+        {
+            return;
+        }
+
         _lastUpdate.apply(this, arguments);
 
+        this.connectNodesToPoints();
+
+        this.points.update(this.track);
+        this.points2.update(this.track2);
+
+        // if(this.points.length > 0 && this.points2.length > 0)
+        // {
+            // this.points2[this.points2.length - 1].xPos = this.points[this.points.length - 1].xPos;
+            // this.points2[this.points2.length - 1].yPos = this.points[this.points.length - 1].yPos;
+        // }
+        
+        // this.connectTail();
+
+        // All this coding work for this?
+        if(this.points[0] && this.points2[0])
+        {
+            for(var i = 0; i < this.points.length - 1; i++)
+            {
+                var point = this.track2.putPointAlong(this.track.getDistAlong(this.points[i], this.points[i].index) / this.track.perimeter * this.track2.perimeter);
+
+                this.points2[i].xPos = point.xPos;
+                this.points2[i].yPos = point.yPos;
+            }
+        }
+
+        if(this.points.length < this.dragonLength && millis() + this.time_offset - this.lastPointAddTime > 1000)
+        {
+            this.addPoint();
+
+            this.lastPointAddTime = millis() + this.time_offset;
+        }
+
         this.connectHead();
+
+        this.updateBoundingBox();
+    };
+
+    this.time_offset = random(-500, 500);
+    this.lastPointAddTime = 0;
+
+    this.keepTrackofPoints2 = function(index)
+    {
+        var point = this.track2.putPointAlong(this.track.getDistAlong(this.points[index], this.points[index].index) / this.track.perimeter * this.track2.perimeter);
+
+        this.points2[index].xPos = point.xPos;
+        this.points2[index].yPos = point.yPos;
     };
 
     this.onCollide = function(object)
     {
         // Just an override, still this function is unused.
+
+        if(object.arrayName === "spike")
+        {
+            this.hp -= 1;
+        }
     };
 
     this._lastRemove = this.remove;
@@ -18209,6 +18676,8 @@ var SnowBlock = function(xPos, yPos, width, height, colorValue, layoutType)
 
     this.loadDraw();
 
+    screenUtils.speedUpImage(storedImages["snowBlock" + (layoutType || "")]);
+
     this.physics.movement = "dynamic";
     this.gravity = 0.06;
 
@@ -20663,6 +21132,8 @@ var levelScripts = {
 
                 return;
             }
+
+            iceDragon.update(true);
         },
         draw : function()
         {
@@ -20679,41 +21150,51 @@ var levelScripts = {
 
             // this should probably be in update.
 
-            if(mouseIsPressed && mouseButton === RIGHT && (!this.lastAddTime || millis() - this.lastAddTime > 300))
-            {
-                iceDragon.track.add(cam.focusXPos - cam.halfWidth + mouseX, cam.focusYPos - cam.halfHeight + mouseY);
-                this.lastAddTime = millis();
-            }
+            // if(mouseIsPressed && mouseButton === RIGHT && (!this.lastAddTime || millis() - this.lastAddTime > 300))
+            // {
+            //     iceDragon.track.add(cam.focusXPos - cam.halfWidth + mouseX, cam.focusYPos - cam.halfHeight + mouseY);
+            //     iceDragon.track.getPerimeter();
+            //     this.lastAddTime = millis();
+            // }
 
-            if(keys["/"])
-            {
-                var track = [];
-                for(var i = 0; i < iceDragon.track.length; i++)
-                {
-                    track.push({
-                        x: iceDragon.track[i].xPos,
-                        y: iceDragon.track[i].yPos
-                    });
-                }
+            // if(keys["/"])
+            // {
+            //     var track = [];
+            //     for(var i = 0; i < iceDragon.track.length; i++)
+            //     {
+            //         track.push({
+            //             x: iceDragon.track[i].xPos,
+            //             y: iceDragon.track[i].yPos
+            //         });
+            //     }
 
-                iceDragon.track2.length = 0;        
+            //     iceDragon.track2.length = 0;        
 
-                var track2 = getParallelLines(track, iceDragon.apart);
+            //     var track2 = getParallelLines(track, iceDragon.apart);
 
-                for(var i = 0; i < track2.length; i++)
-                {
-                    iceDragon.track2.push({
-                        xPos: track2[i].x,
-                        yPos: track2[i].y
-                    });
-                }
-            }
+            //     for(var i = 0; i < track2.length; i++)
+            //     {
+            //         iceDragon.track2.push({
+            //             xPos: track2[i].x,
+            //             yPos: track2[i].y
+            //         });
+            //     }
 
-            if(keys[">"] && (!this.lastAddPointTime || millis() - this.lastAddPointTime > 240))
+            //     iceDragon.track.getPerimeter();
+            // }
+
+            if(keys[">"] && (!this.lastAddPointTime || millis() - this.lastAddPointTime > 600))
             {
                 iceDragon.addPoint();
                 this.lastAddPointTime = millis();
             }
+
+            // if(keys["z"] && (!this.lastRemovePointTime || millis() - this.lastRemovePointTime > 600))
+            // {
+            //     iceDragon.track.pop();
+            //     iceDragon.track2.pop();
+            //     this.lastRemovePointTime = millis()
+            // }
 
             var player = gameObjects.getObject("player")[0];
             iceDragon.applyCollision(player);
@@ -21430,7 +21911,7 @@ levels.build = function(plan)
                                 break;
 
                             case "iceDragon" :
-                                gameObjects.getObject("iceDragon").add(xPos, yPos, 60, 60);
+                                gameObjects.getObject("iceDragon").add(xPos, yPos, 100, 70);
                                 screenUtils.infoBar.bossArrayName = "iceDragon";
                                 break;
                         }
@@ -23507,10 +23988,21 @@ function updateSize(pjs, w, h, w2, h2)
 
     pjs.scaledCondition = pjs.scaledCondition || function() {};
 
+    var ctx = pjs.externals.context;
+
+    ctx.imageSmoothingEnabled = false;
+
     pjs.lastLoop = pjs.draw;
     pjs.draw = function()
     {
         pjs.pushMatrix();
+
+        // canvas.width = 400;
+        // canvas.height = 400;
+        if(ctx.imageSmoothingEnabled)
+        {
+            ctx.imageSmoothingEnabled = false;
+        }
 
         if(pjs.scaledCondition() && pjs.scaled !== undefined)
         {
@@ -23523,7 +24015,13 @@ function updateSize(pjs, w, h, w2, h2)
 
         begin();
 
+        ctx.globalCompositeOperation = 'source-over';
+        ctx.globalAlpha = 1;
+
         pjs.lastLoop();
+ 
+        ctx.globalCompositeOperation = 'source-over';
+        ctx.globalAlpha = 1;
 
         if(!pjs.scaled)
         {

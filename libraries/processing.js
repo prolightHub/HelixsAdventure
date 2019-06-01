@@ -7680,7 +7680,7 @@ module.exports = function setupParser(Processing, options) {
       "endCamera", "endDraw", "endShape", "exit", "exp", "expand", "externals",
       "fill", "filter", "floor", "focused", "frameCount", "frameRate", "frustum",
       "get", "glyphLook", "glyphTable", "green", "height", "hex", "hint", "hour",
-      "hue", "image", "imageMode", "intersect", "join", "key",
+      "hue", "image", "fastImage", "imageMode", "intersect", "join", "key",
       "keyCode", "keyPressed", "keyReleased", "keyTyped", "lerp", "lerpColor",
       "lightFalloff", "lights", "lightSpecular", "line", "link", "loadBytes",
       "loadFont", "loadGlyphs", "loadImage", "loadPixels", "loadShape", "loadXML",
@@ -18336,7 +18336,7 @@ module.exports = function setupParser(Processing, options) {
 
       if(p.chrome)
       {
-          canvasData.context.globalCompositeOperation = 'source-in';//"destination-in"
+          canvasData.context.globalCompositeOperation = 'source-over';//"destination-in"
           canvasData.context.globalAlpha = 1;
       }
 
@@ -18358,6 +18358,8 @@ module.exports = function setupParser(Processing, options) {
       }
       return canvasData;
     }
+
+    p.o_getCanvasData = getCanvasData;
 
     /**
      * Handle the sketch code for pixels[] and pixels.length
@@ -19508,6 +19510,19 @@ module.exports = function setupParser(Processing, options) {
         curContext.drawImage(getCanvasData(obj).canvas, 0, 0,
           img.width, img.height, bounds.x, bounds.y, bounds.w, bounds.h);
       }
+    };
+    Drawing2D.prototype.fastImage = function(img, x, y, w, h)
+    {
+        if(!img.sourceImg)
+        {
+          return;
+        }
+
+        x = Math.round(x);
+        y = Math.round(y);
+
+        curContext.drawImage(img.sourceImg, 0, 0, img.sourceImg.width, img.sourceImg.height,
+        x, y, w || img.width, h || img.height);
     };
 
     Drawing3D.prototype.image = function(img, x, y, w, h) {
@@ -21269,6 +21284,7 @@ module.exports = function setupParser(Processing, options) {
     DrawingPre.prototype.ellipse = createDrawingPreFunction("ellipse");
     DrawingPre.prototype.background = createDrawingPreFunction("background");
     DrawingPre.prototype.image = createDrawingPreFunction("image");
+    DrawingPre.prototype.fastImage = createDrawingPreFunction("fastImage");
     DrawingPre.prototype.textWidth = createDrawingPreFunction("textWidth");
     DrawingPre.prototype.text$line = createDrawingPreFunction("text$line");
     DrawingPre.prototype.$ensureContext = createDrawingPreFunction("$ensureContext");
