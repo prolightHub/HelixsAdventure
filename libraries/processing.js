@@ -13538,102 +13538,214 @@ module.exports = function setupParser(Processing, options) {
     *
     * @see noLoop
     */
+    p.loop = function() {
+      if (loopStarted) {
+        return;
+      }
 
-    p.doSt = function() {
-      p.loop = function() {
-        if (loopStarted) {
-          return;
+      timeSinceLastFPS = Date.now();
+      framesSinceLastFPS = 0;
+
+      looping = window.setInterval(function() {
+        try {
+          curSketch.onFrameStart();
+          p.redraw();
+          curSketch.onFrameEnd();
+        } catch(e_loop) {
+          window.clearInterval(looping);
+          throw e_loop;
         }
-
-        timeSinceLastFPS = Date.now();
-        framesSinceLastFPS = 0;
-
-        looping = window.setInterval(function() {
-          try {
-            curSketch.onFrameStart();
-            p.redraw();
-            curSketch.onFrameEnd();
-          } catch(e_loop) {
-            window.clearInterval(looping);
-            throw e_loop;
-          }
-        }, curMsPerFrame);
-        doLoop = true;
-        loopStarted = true;
-        curSketch.onLoop();
-      };
-
-      p.loopType = "setInterval";
-    };
-
-    p.doSt();
-
-    p.doRaf = function() {
-      var frameCount = 0;
-      var fps, fpsInterval, startTime, now, then, elapsed;
-
-      p.loop = function() {
-        if (loopStarted) {
-          return;
-        }
-
-        timeSinceLastFPS = Date.now();
-        framesSinceLastFPS = 0;
-
-        startAnimating();
-
-        function drawLoop()
-        {
-          try {
-            curSketch.onFrameStart();
-            p.redraw();
-            curSketch.onFrameEnd();
-          } catch(e_loop) {
-            throw e_loop;
-          }
-        }
-
-        // initialize the timer variables and start the animation
-        function startAnimating(fps) {
-            if (fps)
-            {
-              fpsInterval = 1000 / fps;
-            } else {
-              fpsInterval = curMsPerFrame;
-            }
-            then = Date.now();
-            startTime = then;
-            animate();
-        }
-
-        function animate() {
-          // request another frame
-          requestAnimationFrame(animate);
-
-          // calc elapsed time since last loop
-          now = Date.now();
-          elapsed = now - then;
-
-          // if enough time has elapsed, draw the next frame
-          if (elapsed > fpsInterval) {
-
-            // Get ready for next frame by setting then=now, but also adjust for your
-            // specified fpsInterval not being a multiple of RAF's interval (16.7ms)
-            then = now - (elapsed % fpsInterval);
-
-            // Put your drawing code here
-            drawLoop();
-          }
-        }
-
-        doLoop = true;
-        loopStarted = true;
-        curSketch.onLoop();
-      };
-
-      p.loopType = "requestAnimationFrame";
+      }, curMsPerFrame);
+      doLoop = true;
+      loopStarted = true;
+      curSketch.onLoop();
     };
     
+    (function()
+    {
+        // References Phaser 3 
+        var requestAnimationFrame = window.requestAnimationFrame = (window.requestAnimationFrame      || 
+                                    window.webkitRequestAnimationFrame || 
+                                    window.mozRequestAnimationFrame    || 
+                                    window.oRequestAnimationFrame      || 
+                                    window.msRequestAnimationFrame);
+        // Date.now
+        if (!(Date.now && Date.prototype.getTime)) {
+            Date.now = function now() {
+                return new Date().getTime();
+            };
+        }
+
+        // performance.now
+        if (!(window.performance && window.performance.now)) {
+            var startTime = Date.now();
+            if (!window.performance) {
+                window.performance = {};
+            }
+            window.performance.now = function () {
+                return Date.now() - startTime;
+            };
+        }
+
+        if (!window.requestAnimationFrame) {
+          window.requestAnimationFrame = function (callback) {
+              if (typeof callback !== 'function') {
+                  throw new TypeError(callback + 'is not a function');
+              }
+
+              var currentTime = Date.now(),
+                  delay = 16 + lastTime - currentTime;
+
+              if (delay < 0) {
+                  delay = 0;
+              }
+
+              lastTime = currentTime;
+
+              return setTimeout(function () {
+                  lastTime = Date.now();
+                  callback(performance.now());
+              }, delay);
+          };
+      }
+
+      if (!window.cancelAnimationFrame) {
+          window.cancelAnimationFrame = function(id) {
+              clearTimeout(id);
+          };
+      }
+
+      // Now this is mine
+
+      var lastTime = performance.now();
+      var id, currentTime, deltaT;
+
+      var maxT = 160;
+
+      var gbl = {};
+      gbl.start = function(callback)
+      {
+        this.callback = callback;
+        requestAnimationFrame(this.animate);
+      };
+      gbl.animate = function() {
+        id = requestAnimationFrame(this.animate);
+
+        currentTime = performance.now();
+        deltaT = currentTime - lastTime;
+        if(deltaT >= curMsPerFrame && deltaT < maxT)
+        {
+          this.callback(currentTime);
+          lastTime = currentTime;
+        }
+
+        return id;
+      };
+      gbl.cancel = function(id) {
+        cancelAnimationFrame(id);
+      };
+      p.gbl = gbl;
+
+      p.doAuto = function() {
+        try {
+          p.doRaf();
+        }
+        catch (e) {
+          p.doSt();
+        }
+
+        p.loop();
+      };
+
+      p.doSt = function() {
+        p.noLoop = function() {
+          doLoop = false;
+          loopStarted = false;
+          clearInterval(looping);
+          curSketch.onPause();
+        };
+
+        p.loop = function() {
+          if (loopStarted) {
+            return;
+          }
+
+          timeSinceLastFPS = Date.now();
+          framesSinceLastFPS = 0;
+
+          looping = window.setInterval(function() {
+            try {
+              curSketch.onFrameStart();
+              p.redraw();
+              curSketch.onFrameEnd();
+            } catch(e_loop) {
+              window.clearInterval(looping);
+              throw e_loop;
+            }
+          }, curMsPerFrame);
+          doLoop = true;
+          loopStarted = true;
+          curSketch.onLoop();
+        };
+
+        p.frameRate = function(aRate) {
+          curFrameRate = aRate;
+          curMsPerFrame = 1000 / curFrameRate;
+
+          // clear and reset interval
+          if (doLoop) {
+            p.noLoop();
+            p.loop();
+          }
+        };
+
+        p.loopType = "setInterval";
+      };
+
+      p.doRaf = function() {
+        p.noLoop = function() {
+          doLoop = false;
+          loopStarted = false;
+          gbl.cancel(looping);
+          curSketch.onPause();
+        };
+
+        p.loop = function() {
+          if (loopStarted) {
+            return;
+          }
+
+          timeSinceLastFPS = Date.now();
+          framesSinceLastFPS = 0;
+
+          looping = gbl.start(function() {
+            try {
+              curSketch.onFrameStart();
+              p.redraw();
+              curSketch.onFrameEnd();
+            } catch(e_loop) {
+              gbl.cancelAnimationFrame(looping);
+              throw e_loop;
+            }
+          });
+
+          doLoop = true;
+          loopStarted = true;
+          curSketch.onLoop();
+        };
+
+        p.frameRate = function(aRate) {
+          curFrameRate = aRate;
+          curMsPerFrame = 1000 / curFrameRate;
+          maxT = aRate * 160 / 60;
+
+          // Reset
+          p.loop();
+        };
+
+        p.loopType = "requestAnimationFrame";
+      };
+    }());
     /**
     * Specifies the number of frames to be displayed every second. If the processor is not
     * fast enough to maintain the specified rate, it will not be achieved. For example, the
@@ -19513,16 +19625,16 @@ module.exports = function setupParser(Processing, options) {
     };
     Drawing2D.prototype.fastImage = function(img, x, y, w, h)
     {
-        if(!img.sourceImg)
-        {
+        if (!img.sourceImg) {
           return;
         }
 
-        x = Math.round(x);
-        y = Math.round(y);
+        if (img.__isDirty) {
+          img.updatePixels();
+        }
 
         curContext.drawImage(img.sourceImg, 0, 0, img.sourceImg.width, img.sourceImg.height,
-        x, y, w || img.width, h || img.height);
+                             Math.round(x), Math.round(y), w || img.width, h || img.height);
     };
 
     Drawing3D.prototype.image = function(img, x, y, w, h) {
