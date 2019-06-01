@@ -719,7 +719,7 @@ var sketch = function(processing) /*Wrapper*/
         Fixed enemy edge detection!
         Updated ice dragon collision to work on both sides. Now all I have to do to is put it on the track.
 
-    * 0.8.8
+    * 0.8.8 # Faster fps
         Re-added dragon track.
         Finished making points work at same speed (relative) for both loops.
         Finished dragon collision. 
@@ -727,7 +727,9 @@ var sketch = function(processing) /*Wrapper*/
         Finished dragon physics and movement.
         Now rendering.
         Improved image rendering for better fps
-
+        Added speedLetImage, speeds up image rendering.
+        Added fps to change between setInterval and requestAnimationFrame
+        
     Next :   
         Maybe will do: 
             Do something about the underwater level. It doesn't make sense for the player to not have the oxygen bar.
@@ -800,8 +802,8 @@ var game = {
     fps : 60, 
     loadFps : 160,
     gameState : "start", //Default = "start"
-    version : "v0.8.7 beta",
-    fpsType : "auto", //Default = "manual"
+    version : "v0.8.8 beta",
+    fpsType : "manual", //Default = "manual"
     debugMode : true, //Turn this to true to see the fps
     showDebugPhysics : false,
     boundingBoxes : false,
@@ -2387,12 +2389,12 @@ var trees = {
                         }else{
                             this.work.img.fill(191, 100,100);
                         }
-                        this.work.img.rect(xPos, yPos, unitWidth, unitHeight);
+                        this.work.img.fastRect(xPos, yPos, unitWidth, unitHeight);
                         break;
                         
                     case 'B' :
                         this.work.img.fill(191, 157, 103);
-                        this.work.img. rect(xPos, yPos, unitWidth, unitHeight);
+                        this.work.img.fastRect(xPos, yPos, unitWidth, unitHeight);
                         break;
                         
                     case 'l' :
@@ -2408,12 +2410,12 @@ var trees = {
                         
                     case 'x' :
                         this.work.img.fill(23, 189, 131);
-                        this.work.img.rect(xPos, yPos, unitWidth, unitHeight);
+                        this.work.img.fastRect(xPos, yPos, unitWidth, unitHeight);
                         break;
                         
                     case 'X' :
                         this.work.img.fill(75, 151, 209);
-                        this.work.img.rect(xPos, yPos, unitWidth, unitHeight);
+                        this.work.img.fastRect(xPos, yPos, unitWidth, unitHeight);
                         break;    
                 }
             }
@@ -2611,7 +2613,7 @@ graphics.Fade = function(colorValue)
             }
             noStroke();
             fill(red(this.colorValue), green(this.colorValue), blue(this.colorValue), this.timer * 255 / this.max);
-            rect(0, 0, width, height);
+            fastRect(0, 0, width, height);
         }
     };
 };
@@ -2741,17 +2743,17 @@ var shapes = {
     {
         fill(50, 140, 30);
         var bladeW = w * 0.1;
-        rect(x, y + h, bladeW, -h);
-        rect(x + bladeW, y + h, bladeW, h * -0.4);
-        rect(x + bladeW * 2, y + h, bladeW, h * -0.7);
-        rect(x + bladeW * 3, y + h, bladeW, h * -0.2);
-        rect(x + bladeW * 4, y + h, bladeW, h * -0.5);
-        rect(x + bladeW * 5, y + h, bladeW, h * -0.8);
-        rect(x + bladeW * 6, y + h, bladeW, h * -0.4);
-        rect(x + bladeW * 7, y + h, bladeW, h * -0.9);
-        rect(x + bladeW * 8, y + h, bladeW, h * -0.6);
-        rect(x + bladeW * 9, y + h, bladeW, h * -0.4);
-        rect(x + bladeW * 10, y + h, bladeW, h * -0.7);
+        fastRect(x, y + h, bladeW, -h);
+        fastRect(x + bladeW, y + h, bladeW, h * -0.4);
+        fastRect(x + bladeW * 2, y + h, bladeW, h * -0.7);
+        fastRect(x + bladeW * 3, y + h, bladeW, h * -0.2);
+        fastRect(x + bladeW * 4, y + h, bladeW, h * -0.5);
+        fastRect(x + bladeW * 5, y + h, bladeW, h * -0.8);
+        fastRect(x + bladeW * 6, y + h, bladeW, h * -0.4);
+        fastRect(x + bladeW * 7, y + h, bladeW, h * -0.9);
+        fastRect(x + bladeW * 8, y + h, bladeW, h * -0.6);
+        fastRect(x + bladeW * 9, y + h, bladeW, h * -0.4);
+        fastRect(x + bladeW * 10, y + h, bladeW, h * -0.7);
     },
     sun : function(x, y)
     {
@@ -2769,18 +2771,18 @@ var shapes = {
 
         noStroke();
         fill(235, 210 - 60, 70);
-        rect(x + unitW * 2, y + 4 * unitH, 0.6 * unitW, unitH * 0.7);
-        rect(x + unitW * 2, y + 5.3 * unitH, unitW, unitH * 0.7);
+        fastRect(x + unitW * 2, y + 4 * unitH, 0.6 * unitW, unitH * 0.7);
+        fastRect(x + unitW * 2, y + 5.3 * unitH, unitW, unitH * 0.7);
         fill(235, 210, 70);
-        rect(x + unitW, y + unitH * 3, unitW, unitH * 3);
+        fastRect(x + unitW, y + unitH * 3, unitW, unitH * 3);
         fill(235, 210 - 80, 70);
-        rect(x, y, unitW2, unitH);
+        fastRect(x, y, unitW2, unitH);
         fill(235, 210 - 60, 70);
-        rect(x + unitW2, y, unitW, unitH2);
+        fastRect(x + unitW2, y, unitW, unitH2);
         fill(235, 210 - 40, 70);
-        rect(x + unitW, y + unitH2, unitW2, unitH);
+        fastRect(x + unitW, y + unitH2, unitW2, unitH);
         fill(235, 210 - 20, 70);
-        rect(x, y + unitH, unitW, unitH2);
+        fastRect(x, y + unitH, unitW, unitH2);
     },
 };
 
@@ -2799,7 +2801,7 @@ var backgrounds = {
                     ellipse(circles[i].xPos, circles[i].yPos, circles[i].diameter, circles[i].diameter);
                 }
                 fill(0, 0, 0, 30);
-                rect(0, 0, width, height);
+                fastRect(0, 0, width, height);
                 backgrounds.backgrounds.air.img = get(0, 0, width, height);
             },
             drawBackground : function()
@@ -2846,7 +2848,7 @@ var backgrounds = {
                 for(var a = 200; a >= 0; a -= 50)
                 {
                     fill(0, 30, 255 - a);
-                    rect(200 - a / 2, 200 - a / 2, a, a);
+                    fastRect(200 - a / 2, 200 - a / 2, a, a);
                 }
 
                 backgrounds.backgrounds.dark.img = get(0, 0, width, height);
@@ -2925,7 +2927,7 @@ var backgrounds = {
                     {
                         for(var x = (i % 2 === 0) ? 15 : 0; x < p_width; x += 30)
                         {
-                            rect(x, y, 10, 10);
+                            fastRect(x, y, 10, 10);
                         }
 
                         i++;
@@ -2976,28 +2978,26 @@ var backgrounds = {
                             {
                                 case "c" :
                                     fill(0, 0, 0, 30+50);
-                                    rect(xPos, yPos, 
-                                         map1.unitWidth, map1.unitHeight);
+                                    fastRect(xPos, yPos, map1.unitWidth, map1.unitHeight);
 
                                     fill(0, 0, 0, 70+50);
-                                    rect(xPos + 4, yPos + 4, 
-                                         map1.unitWidth - 8, map1.unitHeight - 8);
+                                    fastRect(xPos + 4, yPos + 4, map1.unitWidth - 8, map1.unitHeight - 8);
 
                                     if(j > 0 && map1[i][j - 1] === 'c')
                                     {
-                                        rect(xPos, yPos + 4, 4, map1.unitHeight - 8);  
+                                        fastRect(xPos, yPos + 4, 4, map1.unitHeight - 8);  
                                     }
                                     if(j < map1[i].length - 1 && map1[i][j + 1] === 'c')
                                     {
-                                        rect(xPos + map1.unitWidth - 4, yPos + 4, 4, map1.unitHeight - 8);  
+                                        fastRect(xPos + map1.unitWidth - 4, yPos + 4, 4, map1.unitHeight - 8);  
                                     }
                                     if(i > 0 && map1[i - 1][j] === 'c')
                                     {
-                                        rect(xPos + 4, yPos, map1.unitWidth - 8, 4);  
+                                        fastRect(xPos + 4, yPos, map1.unitWidth - 8, 4);  
                                     }
                                     if(i < map1.length - 1 && map1[i + 1][j] === 'c')
                                     {
-                                        rect(xPos + 4, yPos + map1.unitHeight - 4, map1.unitWidth - 8, 4);  
+                                        fastRect(xPos + 4, yPos + map1.unitHeight - 4, map1.unitWidth - 8, 4);  
                                     }
                                     break;
                             }
@@ -3049,28 +3049,26 @@ var backgrounds = {
                             {
                                 case "c" :
                                     fill(0, 80, 50, 28+10);
-                                    rect(xPos, yPos, 
-                                         map1.unitWidth, map1.unitHeight);
+                                    fastRect(xPos, yPos, map1.unitWidth, map1.unitHeight);
 
                                     fill(0, 120, 40, 46+10);
-                                    rect(xPos + 4, yPos + 4, 
-                                         map1.unitWidth - 8, map1.unitHeight - 8);
+                                    fastRect(xPos + 4, yPos + 4, map1.unitWidth - 8, map1.unitHeight - 8);
 
                                     if(j > 0 && map1[i][j - 1] === 'c')
                                     {
-                                        rect(xPos, yPos + 4, 4, map1.unitHeight - 8);  
+                                        fastRect(xPos, yPos + 4, 4, map1.unitHeight - 8);  
                                     }
                                     if(j < map1[i].length - 1 && map1[i][j + 1] === 'c')
                                     {
-                                        rect(xPos + map1.unitWidth - 4, yPos + 4, 4, map1.unitHeight - 8);  
+                                        fastRect(xPos + map1.unitWidth - 4, yPos + 4, 4, map1.unitHeight - 8);  
                                     }
                                     if(i > 0 && map1[i - 1][j] === 'c')
                                     {
-                                        rect(xPos + 4, yPos, map1.unitWidth - 8, 4);  
+                                        fastRect(xPos + 4, yPos, map1.unitWidth - 8, 4);  
                                     }
                                     if(i < map1.length - 1 && map1[i + 1][j] === 'c')
                                     {
-                                        rect(xPos + 4, yPos + map1.unitHeight - 4, map1.unitWidth - 8, 4);  
+                                        fastRect(xPos + 4, yPos + map1.unitHeight - 4, map1.unitWidth - 8, 4);  
                                     }
                                     break;
                             }
@@ -3408,7 +3406,7 @@ var backgrounds = {
                     noStroke();
                     var backColor = color(147 - 30, 221 - 30, 250 - 30);
                     fill(red(backColor), green(backColor), blue(backColor));
-                    rect(0, 0, screen.width, screen.height);
+                    fastRect(0, 0, screen.width, screen.height);
 
                     backgrounds.backgrounds.spaceFromEarth.drawBackground();
                     var spaceFromEarth = get(0, 0, screen.width, screen.height);//400, 400
@@ -3435,11 +3433,11 @@ var backgrounds = {
                 
                 //Atmosphere
                 fill(red(backColor) - 10, green(backColor) - 10, blue(backColor) - 10);
-                rect(0, 155, 400, 10);
+                fastRect(0, 155, 400, 10);
                 fill(red(backColor) - 30, green(backColor) - 30, blue(backColor) - 30);
-                rect(0, 130, 400, 25);
+                fastRect(0, 130, 400, 25);
                 fill(red(backColor) - 80, green(backColor) - 80, blue(backColor) - 80);
-                rect(0, 90, 400, 40);
+                fastRect(0, 90, 400, 40);
                 fill(red(backColor) - 130, green(backColor) - 130, blue(backColor) - 130);
                 rect(0, 0, 400, 90, 0);
                 graphics.stars.draw();
@@ -3487,9 +3485,9 @@ var backgrounds = {
                 scale(1.2, 1.2);
                 rotate(208);
                 fill(23, 71, 161);
-                rect(-2.5, 5, 5, 28);
+                fastRect(-2.5, 5, 5, 28);
                 fill(24, 92, 161);
-                rect(-4.5, 16, 10, 10);
+                fastRect(-4.5, 16, 10, 10);
                 popMatrix();
                 
                 //Hills and grass
@@ -3882,8 +3880,7 @@ var pixelFuncs = {
                 if(toFill !== "clear")
                 {
                     img.fill(toFill);
-                    img.rect(col * input.pixelSize, row * input.pixelSize,
-                        input.pixelSize, input.pixelSize);
+                    img.fastRect(col * input.pixelSize, row * input.pixelSize, input.pixelSize, input.pixelSize);
                 }
             }
         }
@@ -5195,10 +5192,10 @@ var inventoryMenu = {
                 {
                     case "home" :
                         fill(0, 0, 0, 90);
-                        rect(0, 0, scene.width || this.scenes.width, scene.height || this.scenes.height + 30);
+                        fastRect(0, 0, scene.width || this.scenes.width, scene.height || this.scenes.height + 30);
 
                         fill(12, 60, 160, 100);
-                        rect(0, 0, scene.width || this.scenes.width, 26);
+                        fastRect(0, 0, scene.width || this.scenes.width, 26);
 
                         fill(240, 240, 240, 180);
                         text("Player                                  " + "Ability", 10, 5);
@@ -5206,10 +5203,10 @@ var inventoryMenu = {
 
                     case "chest" : case "items" : 
                         fill(0, 0, 0, 90);
-                        rect(0, 0, scene.width || this.scenes.width,  scene.height || this.scenes.height + 30);
+                        fastRect(0, 0, scene.width || this.scenes.width, scene.height || this.scenes.height + 30);
 
                         fill(12, 60, 160, 100);
-                        rect(0, 0, scene.width || this.scenes.width, 26);
+                        fastRect(0, 0, scene.width || this.scenes.width, 26);
 
                         fill(240, 240, 240, 180);
                         text("Items                                   " + ((this.scene === "chest") ? "Chest Items" : "Options"), 10, 5);
@@ -5217,10 +5214,10 @@ var inventoryMenu = {
 
                     case "crystals" :
                         fill(0, 0, 0, 90);
-                        rect(0, 0, scene.width || this.scenes.width,  scene.height || this.scenes.height + 30);
+                        fastRect(0, 0, scene.width || this.scenes.width, scene.height || this.scenes.height + 30);
 
                         fill(12, 60, 160, 100);
-                        rect(0, 0, scene.width || this.scenes.width, 26);
+                        fastRect(0, 0, scene.width || this.scenes.width, 26);
 
                         fill(240, 240, 240, 180);
                         text("Collected Crystals", 10, 5);
@@ -5315,7 +5312,7 @@ var inventoryMenu = {
                         height : 65,
                     };
 
-                    rect(imageFrame.xPos, imageFrame.yPos, imageFrame.width, imageFrame.height);
+                    fastRect(imageFrame.xPos, imageFrame.yPos, imageFrame.width, imageFrame.height);
                     noStroke();
 
                     var itemImg;
@@ -5620,7 +5617,7 @@ var screenUtils = {
         {
             fill(0, 0, 0, 80);
             noStroke();
-            rect(0, 0, width, screenUtils.infoBar.height);
+            fastRect(0, 0, width, screenUtils.infoBar.height);
             screenUtils.infoBar.healthMeter.draw();
             
             var player = gameObjects.getObject("player").input(0);
@@ -5911,6 +5908,20 @@ var screenUtils = {
             image(storedImages[this.imageName], this.xPos, this.yPos);
         };
     },
+    speedLetImage : function(object, name, pro)
+    {
+        screenUtils.speedUpImage(storedImages[name]);
+
+        object.imageName = name;
+        object.draw = (pro) ? function()
+        {
+            fastImage(storedImages[this.imageName], this.xPos, this.yPos, this.width, this.height);
+        } :
+        function()
+        {
+            fastImage(storedImages[this.imageName], this.xPos, this.yPos);
+        };
+    },
     loadImage : function(object, constImage, name, notRect, customBackColor, ref, tone, pro)
     {
         //Constant Image is for images that do not change, we store them
@@ -5934,7 +5945,7 @@ var screenUtils = {
         //Get image process
         noStroke();
         fill(backColor);
-        rect(0, 0, object.width, object.height);
+        fastRect(0, 0, object.width, object.height);
         var lastXPos = object.xPos;
         var lastYPos = object.yPos;
         object.xPos = 0;
@@ -5968,7 +5979,10 @@ var screenUtils = {
         {
             storedImages[name || object.arrayName] = img;
         }
-        screenUtils.letImage(object, name || object.arrayName, pro);
+
+        // screenUtils.letImage(object, name || object.arrayName, pro);
+
+        screenUtils.speedLetImage(object, name || object.arrayName, pro);
 
         return storedImages[name || object.arrayName];
     },
@@ -6288,7 +6302,7 @@ var screenUtils = {
         {
             noStroke();
             fill(levelInfo.levelShade);
-            rect(0, 0, width, height);
+            fastRect(0, 0, width, height);
         }
 
         this.showErrors();
@@ -7472,17 +7486,14 @@ var Camera = function(xPos, yPos, width, height)
     this.draw = function()
     {
         fill(0, 0, 0, 50);
-        rect(cameraGrid.xPos + this.upperLeft.col * cameraGrid.cellWidth, 
-            cameraGrid.yPos + this.upperLeft.row * cameraGrid.cellHeight, 
-            ((this.lowerRight.col + 1) - this.upperLeft.col) * cameraGrid.cellWidth,
-            ((this.lowerRight.row + 1) - this.upperLeft.row) * cameraGrid.cellHeight);
+        fastRect(cameraGrid.xPos + this.upperLeft.col * cameraGrid.cellWidth, cameraGrid.yPos + this.upperLeft.row * cameraGrid.cellHeight, ((this.lowerRight.col + 1) - this.upperLeft.col) * cameraGrid.cellWidth, ((this.lowerRight.row + 1) - this.upperLeft.row) * cameraGrid.cellHeight);
     };
 
     this.drawOutline = function()
     {
         noFill();
         stroke(0, 0, 0);
-        rect(this.xPos, this.yPos, this.width, this.height);
+        fastRect(this.xPos, this.yPos, this.width, this.height);
     };
 };
 var cam = new Camera(0, 0, width, height); //Use this as the default
@@ -7735,7 +7746,7 @@ cameraGrid.draw = function()
     {
         for(var row = cam.upperLeft.row; row <= cam.lowerRight.row; row++)
         {  
-            rect(this.xPos + col * this.cellWidth, this.yPos + row * this.cellHeight, this.cellWidth, this.cellHeight);
+            fastRect(this.xPos + col * this.cellWidth, this.yPos + row * this.cellHeight, this.cellWidth, this.cellHeight);
         }
     }
 };
@@ -7765,7 +7776,7 @@ gameObjects.drawBoundingBoxes = function()
             if(this[this.toOrder[i]][array[j]])
             {
                 shape = this[this.toOrder[i]][array[j]].boundingBox;
-                rect(shape.xPos, shape.yPos, shape.width, shape.height);
+                fastRect(shape.xPos, shape.yPos, shape.width, shape.height);
             }
         }
     }
@@ -8637,7 +8648,7 @@ var Rect = function(xPos, yPos, width, height)
     {
         noStroke();
         fill(this.color);
-        rect(this.xPos, this.yPos, this.width, this.height);
+        fastRect(this.xPos, this.yPos, this.width, this.height);
     };
 };
 gameObjects.addObject("rect", createArray(Rect));
@@ -9294,7 +9305,7 @@ var Pillar = function(xPos, yPos, width, height, colorValue, pillarBlock)
         noStroke();
 
         fill(this.color);
-        rect(this.xPos, this.yPos, this.width, this.height);
+        fastRect(this.xPos, this.yPos, this.width, this.height);
 
         strokeWeight(0.8);
         
@@ -9322,7 +9333,7 @@ var Pillar = function(xPos, yPos, width, height, colorValue, pillarBlock)
 
             noStroke();
             fill(85, 85, 85);
-            rect(this.xPos - wVert, this.yPos, this.width + wVert * 2, 3);
+            fastRect(this.xPos - wVert, this.yPos, this.width + wVert * 2, 3);
         }else{
             pushMatrix();
                 translate(this.xPos, this.yPos);
@@ -9364,7 +9375,7 @@ var Tree = function(xPos, yPos, width, height, type)
                 var middleXPos = xPos + this.width / 2;
 
                 this._img.fill(128, 85, 49);
-                this._img.rect(floor(middleXPos - this.width * t_tn), floor(yPos + this.height * 0.4), floor(this.width * t_tn * 2), floor(this.height));
+                this._img.fastRect(floor(middleXPos - this.width * t_tn), floor(yPos + this.height * 0.4), floor(this.width * t_tn * 2), floor(this.height));
 
                 var h = this.height * 0.4;
                 var hWidth = this.width * 0.67 * 0.5;
@@ -9495,7 +9506,7 @@ var OneWay = function(xPos, yPos, width, height, colorValue, direction, inHerita
     {
         noStroke();
         fill(this.color);
-        rect(this.xPos, this.yPos, this.width, this.height);
+        fastRect(this.xPos, this.yPos, this.width, this.height);
 
         var symbol = "L";
         var textXPos = this.width * 0.2;
@@ -9523,8 +9534,8 @@ var OneWay = function(xPos, yPos, width, height, colorValue, direction, inHerita
         textAlign(CENTER, CENTER);
         textSize(20 * this.width / 40);
         fill(0, 0, 0, 100);
-        rect(this.width * 0.0, 0, this.width * 0.1, this.height);
-        rect(this.width * 0.3, 0, this.width * 0.1, this.height);
+        fastRect(this.width * 0.0, 0, this.width * 0.1, this.height);
+        fastRect(this.width * 0.3, 0, this.width * 0.1, this.height);
         for(var i = 0; i < floor(this.height / 10); i++)
         {
             text(symbol, 0 + textXPos, 0 + this.height * 0.10 + 10 * i);
@@ -9656,7 +9667,7 @@ var MovingPlatform = function(xPos, yPos, width, height, colorValue, direction, 
     this.draw = function()
     {
         fill(this.color);
-        rect(this.xPos, this.yPos, this.width, this.height);
+        fastRect(this.xPos, this.yPos, this.width, this.height);
         fill(0, 0, 0, 50);
         triangle(this.xPos, this.yPos, this.xPos + this.width, this.yPos, this.xPos, this.yPos + this.height);
     };
@@ -9716,14 +9727,14 @@ var MovingPlatform = function(xPos, yPos, width, height, colorValue, direction, 
                         y = this.yPos;
 
                         fill(this.color);
-                        rect(x, y, s, s);
+                        fastRect(x, y, s, s);
 
                         stroke(0, 0, 10);
                         fill(0, 0, 10);
-                        rect(x, y, s, border);
-                        rect(x + s - border, y, border, s);
-                        rect(x, y + s - border, s, border);
-                        rect(x, y, border, s)
+                        fastRect(x, y, s, border);
+                        fastRect(x + s - border, y, border, s);
+                        fastRect(x, y + s - border, s, border);
+                        fastRect(x, y, border, s)
                     }
 
                     noStroke();
@@ -9858,7 +9869,7 @@ var Lava = function(xPos, yPos, width, height, colorValue, damage)
             for(var row = 0; row < this.grid[col].length; row++)
             {
                 fill(this.grid[col][row]);
-                rect(this.xPos + col * cellWidth, this.yPos + row * cellHeight, cellWidth, cellHeight);
+                fastRect(this.xPos + col * cellWidth, this.yPos + row * cellHeight, cellWidth, cellHeight);
             }
         }
     };
@@ -9868,7 +9879,7 @@ var Lava = function(xPos, yPos, width, height, colorValue, damage)
     this.draw = function()
     {
         fill(this.color);
-        rect(this.xPos, this.yPos, this.width, this.height);
+        fastRect(this.xPos, this.yPos, this.width, this.height);
         this.drawGrid();
     };
 
@@ -10091,13 +10102,13 @@ var Ground = function(xPos, yPos, width, height, colorValue, name)
     {
         noStroke();
         fill(this.color);
-        rect(this.xPos, this.yPos, this.width, this.height);
+        fastRect(this.xPos, this.yPos, this.width, this.height);
 
         if(!this.noGrass)
         {
             noStroke();
             fill(this.grassColor);
-            rect(this.xPos, this.yPos, this.width, this.height * 0.15);
+            fastRect(this.xPos, this.yPos, this.width, this.height * 0.15);
         }
 
         fill(0, 0, 0, 50);
@@ -10159,7 +10170,7 @@ var Ice = function(xPos, yPos, width, height, colorValue, slipFactor, override)
         this.draw = function()
         {
             fill(33, 198, 207);
-            rect(this.xPos, this.yPos, this.width, this.height);
+            fastRect(this.xPos, this.yPos, this.width, this.height);
             fill(0, 0, 0, 70);
             triangle(this.xPos, this.yPos + this.height, 
                     this.xPos + this.width, this.yPos, 
@@ -10194,7 +10205,7 @@ var Ice = function(xPos, yPos, width, height, colorValue, slipFactor, override)
             this.draw = function()
             {  
                 fill(this.color);
-                rect(this.xPos, this.yPos, this.width, this.height);
+                fastRect(this.xPos, this.yPos, this.width, this.height);
 
                 noStroke();
                 for(var i = 0; i < this.layout.length; i++)
@@ -10205,27 +10216,27 @@ var Ice = function(xPos, yPos, width, height, colorValue, slipFactor, override)
                         {
                             case '0' :
                                 fill(2, 22, 80);
-                                rect(this.xPos + j * this.xSize, this.yPos + i * this.ySize, this.xSize, this.ySize);
+                                fastRect(this.xPos + j * this.xSize, this.yPos + i * this.ySize, this.xSize, this.ySize);
                                 break;
 
                             case '1' :
                                 fill(2, 152, 182);
-                                rect(this.xPos + j * this.xSize, this.yPos + i * this.ySize, this.xSize, this.ySize);
+                                fastRect(this.xPos + j * this.xSize, this.yPos + i * this.ySize, this.xSize, this.ySize);
                                 break;
 
                             case '2' :
                                 fill(2, 122, 202);
-                                rect(this.xPos + j * this.xSize, this.yPos + i * this.ySize, this.xSize, this.ySize);
+                                fastRect(this.xPos + j * this.xSize, this.yPos + i * this.ySize, this.xSize, this.ySize);
                                 break;
 
                             case '3' : 
                                 fill(240, 240, 240);
-                                rect(this.xPos + j * this.xSize, this.yPos + i * this.ySize, this.xSize, this.ySize);
+                                fastRect(this.xPos + j * this.xSize, this.yPos + i * this.ySize, this.xSize, this.ySize);
                                 break;
 
                             case '4' :
                                 fill(32, 182, 212);
-                                rect(this.xPos + j * this.xSize, this.yPos + i * this.ySize, this.xSize, this.ySize);
+                                fastRect(this.xPos + j * this.xSize, this.yPos + i * this.ySize, this.xSize, this.ySize);
                                 break;
                         }
                     }
@@ -10288,7 +10299,7 @@ var Ice = function(xPos, yPos, width, height, colorValue, slipFactor, override)
             pushMatrix();
                 translate(shape.xPos, shape.yPos);
                 rotate(shape.rotation);
-                rect(-shape.halfWidth, -shape.halfHeight, shape.width, shape.height);
+                fastRect(-shape.halfWidth, -shape.halfHeight, shape.width, shape.height);
             popMatrix();
         }
     };
@@ -10412,14 +10423,14 @@ var SuperIce = function(xPos, yPos, width, height, colorValue, slipFactor)
     {
         noStroke();
         fill(this.color);
-        rect(this.xPos, this.yPos, this.width, this.height);
+        fastRect(this.xPos, this.yPos, this.width, this.height);
 
         for(var i = 0; i < this.width; i += w)
         {
             for(var j = 0; j < this.height; j += h)
             {
                 fill(40, 80, 220, random(40, 150));
-                rect(this.xPos + i, this.yPos + j, w, h);
+                fastRect(this.xPos + i, this.yPos + j, w, h);
             }
         }
 
@@ -10542,9 +10553,9 @@ var Spring = function(xPos, yPos, width, height, colorValue)
     this.draw = function()
     {
         fill(this.color);
-        rect(this.xPos, this.yPos, this.width, this.height);        
+        fastRect(this.xPos, this.yPos, this.width, this.height);        
         fill(0, 0, 0, 50);
-        rect(this.xPos + this.width * 0.15, this.yPos + this.height * 0.15, this.width * 0.65, this.height * 0.65);
+        fastRect(this.xPos + this.width * 0.15, this.yPos + this.height * 0.15, this.width * 0.65, this.height * 0.65);
         fill(0, 0, 0, 60);
         triangle(this.xPos, this.yPos + this.height, this.xPos + this.width, this.yPos, this.xPos + this.width, this.yPos + this.height);
     };
@@ -10590,10 +10601,10 @@ var Sign = function(xPos, yPos, width, height, colorValue, message, textColor, f
     this.draw = function()
     {
         fill(this.color);
-        rect(this.xPos + this.width * 0.4, this.yPos, this.width * 0.2, this.height);
-        rect(this.xPos, this.yPos, this.width, this.height * 0.6);
+        fastRect(this.xPos + this.width * 0.4, this.yPos, this.width * 0.2, this.height);
+        fastRect(this.xPos, this.yPos, this.width, this.height * 0.6);
         fill(0, 0, 0, 50);
-        rect(this.xPos + this.width * 0.1, this.yPos + this.height * 0.1, this.width * 0.8, this.height * 0.4);
+        fastRect(this.xPos + this.width * 0.1, this.yPos + this.height * 0.1, this.width * 0.8, this.height * 0.4);
 
         stroke(0, 0, 0, 50);
         strokeWeight(2);
@@ -10661,9 +10672,9 @@ var Sign = function(xPos, yPos, width, height, colorValue, message, textColor, f
         textSize(this.textSize1);
         noStroke();
         fill(this.color);
-        rect(this.textRectX, this.textRectY, this.messageWidth, this.messageHeight);
+        fastRect(this.textRectX, this.textRectY, this.messageWidth, this.messageHeight);
         fill(0, 0, 0, 50);
-        rect(this.textRectX2, this.textRectY2, this.messageWidth2, this.messageHeight2);
+        fastRect(this.textRectX2, this.textRectY2, this.messageWidth2, this.messageHeight2);
         fill(this.textColor || 0);
         text(this.message, this.startX, this.startY);
         textAlign(NORMAL, NORMAL);
@@ -10709,13 +10720,13 @@ var Door = function(xPos, yPos, width, height, colorValue)
     this.draw = function()
     {
         fill(this.color);
-        rect(this.xPos, this.yPos, this.width, this.height);
+        fastRect(this.xPos, this.yPos, this.width, this.height);
 
         fill(0, 0, 0, 30);
-        rect(this.xPos + this.width * 0.1, this.yPos + this.height * 0.05, this.width * 0.8, this.height * 0.9);
+        fastRect(this.xPos + this.width * 0.1, this.yPos + this.height * 0.05, this.width * 0.8, this.height * 0.9);
 
         fill(this.color, this.color, this.color, 20);
-        rect(this.xPos, this.yPos + this.halfHeight, this.width, this.halfHeight);
+        fastRect(this.xPos, this.yPos + this.halfHeight, this.width, this.halfHeight);
 
         fill(this.color, this.color, this.color, 30);
         var knobRaduis = this.width * 0.30;
@@ -10814,7 +10825,7 @@ var Door = function(xPos, yPos, width, height, colorValue)
 
             noStroke();
             fill(0, 0, 0, 120);
-            rect(this.xPos, this.yPos, this.width, this.height);
+            fastRect(this.xPos, this.yPos, this.width, this.height);
         }
 
         fill(0, 0, 0, 30);
@@ -10973,10 +10984,10 @@ var Crate = function(xPos, yPos, width, height, colorValue, noBreak)
     {
         noStroke();
         fill(this.color);
-        rect(this.xPos, this.yPos, this.width, this.height);
+        fastRect(this.xPos, this.yPos, this.width, this.height);
 
         fill(this.color, this.color, this.color, 20);
-        rect(this.xPos + this.width * 0.15, this.yPos + this.height * 0.15, this.width * 0.7, this.height * 0.7);
+        fastRect(this.xPos + this.width * 0.15, this.yPos + this.height * 0.15, this.width * 0.7, this.height * 0.7);
 
         fill(0, 0, 0, 50);
         triangle(this.xPos, this.yPos, this.xPos + this.width, this.yPos, this.xPos, this.yPos + this.height);
@@ -11171,7 +11182,7 @@ var CheckPoint = function(xPos, yPos, width, height, colorValue, invisible)
         img.fill(colorValue);
         img.triangle(this.flagX2, 0, this.flagX2, this.halfHeight, this.flagRightX2, this.height / 4);
         img.fill(0, 0, 0, 50);
-        img.rect(this.xDiv, 0, this.xOff, this.height);
+        img.fastRect(this.xDiv, 0, this.xOff, this.height);
         img.endDraw();
         return img;
     };
@@ -11302,7 +11313,7 @@ var Chest = function(xPos, yPos, width, height)
         image(storedImages[this.img], this.xPos, this.yPos, this.width, this.height);
 
         fill(0, 0, 0, 50);
-        rect(this.xPos, this.yPos, this.width, this.height);
+        fastRect(this.xPos, this.yPos, this.width, this.height);
     };
 
 
@@ -12041,7 +12052,7 @@ var Spike = function(xPos, yPos, width, height, colorValue, upSideDown)
         if(!this.winter)
         {
             fill(70, 200, 80, 120 + this.pOffset);
-            rect(this.xPos + 5, yPos, this.width - 10, this.yPos - yPos);
+            fastRect(this.xPos + 5, yPos, this.width - 10, this.yPos - yPos);
         }
     }
     : function()
@@ -13185,7 +13196,7 @@ var IceBeaker = function(xPos, yPos, width, height, colorValue)
                 this._lastDraw();
                 noStroke();
                 fill(250, 250, 250, 215);
-                rect(this.xPos, this.yPos, this.width, this.height * 0.15);
+                fastRect(this.xPos, this.yPos, this.width, this.height * 0.15);
             };
 
             object.snowLayered = true;
@@ -13587,7 +13598,7 @@ var CatDogStatue = function(xPos, yPos, width, height)
             spy.yPos += sin(spy.angle) * spy.speed;
 
             fill(red(spy.color), green(spy.color), blue(spy.color), spy.life * alpha(spy.color) / spy.maxLife);
-            rect(spy.xPos, spy.yPos, spy.width, spy.height);
+            fastRect(spy.xPos, spy.yPos, spy.width, spy.height);
 
             spy.life--;
 
@@ -17112,7 +17123,7 @@ var Player = function(xPos, yPos, width, height, colorValue)
         if(this.frozen)
         {
             fill(0, 170, 200, 100);
-            rect(this.xPos, this.yPos, this.width, this.height);
+            fastRect(this.xPos, this.yPos, this.width, this.height);
         }
     };
 
@@ -17338,7 +17349,7 @@ var Player = function(xPos, yPos, width, height, colorValue)
         this.lastUpdate();
     };
 
-    this.hoverModeEnabled = true;
+    this.hoverModeEnabled = false;
     this.hoverMode = false;
     this.lastHoverTime = 0;
 
@@ -17566,13 +17577,13 @@ var WispIce = function(xPos, yPos, diameter, colorValue)
                 this.img.fill(this.color);
                 this.img.noStroke(this.color);
 
-                this.img.rect(0, 0, thd, thd);
-                this.img.rect(thd * 2, 0, thd, thd);
+                this.img.fastRect(0, 0, thd, thd);
+                this.img.fastRect(thd * 2, 0, thd, thd);
 
-                this.img.rect(thd, thd, thd, thd);
+                this.img.fastRect(thd, thd, thd, thd);
 
-                this.img.rect(0, thd * 2, thd, thd);
-                this.img.rect(thd * 2, thd * 2, thd, thd);
+                this.img.fastRect(0, thd * 2, thd, thd);
+                this.img.fastRect(thd * 2, thd * 2, thd, thd);
             this.img.endDraw();
 
             storedImages[this.imageName] = this.img;
@@ -17888,7 +17899,7 @@ var Voxelizer = function(xPos, yPos, width, height, colorValue)
 
                 uw = (this.width - i * 2.3);
                 uh = (this.height - i * 2.3);
-                rect(-uw / 2, -uh / 2, uw, uh);
+                fastRect(-uw / 2, -uh / 2, uw, uh);
             popMatrix();
         }
 
@@ -18130,7 +18141,7 @@ var HardCaseBlock = function(xPos, yPos, width, height, colorValue)
     this.draw = function()
     {
         fill(this.color);
-        rect(this.xPos, this.yPos, this.width, this.height);
+        fastRect(this.xPos, this.yPos, this.width, this.height);
 
         fill(255, 255, 255, 30);
         rect(this.xPos + 5, this.yPos + 5, this.width - 10, this.height - 10, 5);
@@ -18450,7 +18461,7 @@ var Snow = function(xPos, yPos, width, height, colorValue, collisionOff)
                             this._lastDraw();
                             noStroke();
                             fill(250, 250, 250, 215);
-                            rect(this.xPos, this.yPos, this.width, this.height * 0.15);
+                            fastRect(this.xPos, this.yPos, this.width, this.height * 0.15);
                         };
 
                         object.snowLayered = true;
@@ -18530,7 +18541,7 @@ var SnowLayer = function(xPos, yPos, width, height)
                 this._lastDraw();
                 noStroke();
                 fill(250, 250, 250, 215);
-                rect(this.xPos, this.yPos, this.width, this.height * 0.15);
+                fastRect(this.xPos, this.yPos, this.width, this.height * 0.15);
             };
 
             object.snowLayered = true;
@@ -18579,7 +18590,7 @@ var SnowBall = function(xPos, yPos, diameter)
                 this._lastDraw();
                 noStroke();
                 fill(250, 250, 250, 215);
-                rect(this.xPos, this.yPos, this.width, this.height * 0.15);
+                fastRect(this.xPos, this.yPos, this.width, this.height * 0.15);
             };
 
             object.snowLayered = true;
@@ -18645,10 +18656,10 @@ var SnowBlock = function(xPos, yPos, width, height, colorValue, layoutType)
             this.draw = function()
             {
                 fill(this.color);
-                rect(this.xPos, this.yPos, this.width, this.height);
+                fastRect(this.xPos, this.yPos, this.width, this.height);
 
                 fill(0, 0, 0, 30);
-                rect(this.xPos + this.sWidth, this.yPos + this.sHeight, this.width - this.sWidth * 2, this.height - this.sHeight * 2);
+                fastRect(this.xPos + this.sWidth, this.yPos + this.sHeight, this.width - this.sWidth * 2, this.height - this.sHeight * 2);
 
                 fill(255, 255, 255);
                 for(var i = 0; i < this.layout.length; i++)
@@ -18658,7 +18669,7 @@ var SnowBlock = function(xPos, yPos, width, height, colorValue, layoutType)
                         switch(this.layout[i][j])
                         {
                             case '0' :
-                                rect(this.xPos + j * this.xSize, this.yPos + i * this.ySize, this.xSize, this.ySize);
+                                fastRect(this.xPos + j * this.xSize, this.yPos + i * this.ySize, this.xSize, this.ySize);
                                 break;
                         }
                     }
@@ -19630,7 +19641,7 @@ var IceSplicer = function(xPos, yPos, diameter)
         pushMatrix();
         translate(this.xPos, this.yPos);
         rotate(this.rectAngle);
-        rect(-this.halfSize, -this.halfSize, this.size, this.size);
+        fastRect(-this.halfSize, -this.halfSize, this.size, this.size);
         popMatrix();
         fill(this.color2);
         ellipse(this.xPos, this.yPos, this.halfSize * 1.6, this.halfSize * 1.6);
@@ -20882,7 +20893,7 @@ var levelScripts = {
 
             noStroke();
             fill(isGreen ? color(10, 200, 170, 160) : color(10, 20, 200, 160));
-            rect(2275 + self.offX, 338 - 6.9, 13.8, 13.8);
+            fastRect(2275 + self.offX, 338 - 6.9, 13.8, 13.8);
 
             var px = (cam.focusXPos - cam.halfWidth) + mouseX, py = (cam.focusYPos - cam.halfHeight) + mouseY;
             if(observer.collisionTypes.pointrect.colliding({
@@ -22856,7 +22867,7 @@ game.how = function()
     textFont(fonts.menu);
 
     fill(0, 0, 0, 60);
-    rect(75, 0, width - 75 * 2, height);
+    fastRect(75, 0, width - 75 * 2, height);
     fill(11, 68, 153, 80);
     rect(102, 100, 206, 230, 10);
     fill(200, 200, 200, 150);
@@ -22886,7 +22897,7 @@ game.settings = function()
     textAlign(CENTER, CENTER);
     text("Debug", 200, 110);
     fill(0, 0, 0, 60);
-    rect(75, 0, width - 75 * 2, height);
+    fastRect(75, 0, width - 75 * 2, height);
     fill(0, 0, 0, 100);
     textSize(12);
     text(game.version, 364, 390); 
@@ -22934,7 +22945,7 @@ game.extras = function()
     textAlign(CENTER, CENTER);
     text("Extras", 200, 110);
     fill(0, 0, 0, 60);
-    rect(75, 0, width - 75 * 2, height);
+    fastRect(75, 0, width - 75 * 2, height);
     fill(0, 0, 0, 100);
     textSize(12);
     text(game.version, 364, 390); 
@@ -22957,7 +22968,7 @@ game.other = function()
     textAlign(CENTER, CENTER);
     text("Fps", 200, 110);
     fill(0, 0, 0, 60);
-    rect(75, 0, width - 75 * 2, height);
+    fastRect(75, 0, width - 75 * 2, height);
     fill(0, 0, 0, 100);
     textSize(12);
     text(game.version, 364, 390); 
@@ -23002,7 +23013,7 @@ game.sound = function()
     textAlign(CENTER, CENTER);
     text("Sound", 200, 110);
     fill(0, 0, 0, 60);
-    rect(75, 0, width - 75 * 2, height);
+    fastRect(75, 0, width - 75 * 2, height);
     fill(0, 0, 0, 100);
     textSize(12);
     text(game.version, 364, 390); 
@@ -23122,7 +23133,7 @@ game.selectSaveFile = function()
     textFont(fonts.menu);
 
     fill(0, 0, 0, 60);
-    rect(0, 80, width, height - 70 * 2);
+    fastRect(0, 80, width, height - 70 * 2);
 
     if(saveDataHandler.saveFiles.length <= 0 || saveDataHandler.saveFiles.length >= saverInfo.maxSaves)
     {
@@ -23395,7 +23406,7 @@ game.story = function()
     textFont(fonts.menu);
 
     fill(0, 0, 0, 150);
-    rect(50, 0, width - 100, height);
+    fastRect(50, 0, width - 100, height);
 
     textAlign(CENTER, CENTER)
 
@@ -23459,7 +23470,7 @@ game.story.timer = 0;
 game.drawTitle = function()
 {
     fill(0, 0, 0, 60);
-    rect(75, 0, width - 75 * 2, height);
+    fastRect(75, 0, width - 75 * 2, height);
     fill(41, 98, 213, 100);
     textFont(fonts.title);
     textAlign(CENTER, CENTER);
@@ -23500,7 +23511,7 @@ game.pauseMenu = function()
     textAlign(CENTER, CENTER);
     text("Paused", 200, 110);
     fill(0, 0, 0, 60);
-    rect(75, 0, width - 75 * 2, height);
+    fastRect(75, 0, width - 75 * 2, height);
     cursor(ARROW);
     game.cursor = ARROW;
     
@@ -23604,15 +23615,21 @@ game.applyFps = function()
     if(Number(this.fps) === 30)
     {
         loader.levelStepRows = loader.lastLevelStepRows * 2;
-        cam.speed = cam.lastSpeed * 2;
+        cam.speed = cam.lastSpeed * 2; 
+        processing.doSt();
     }else{
         loader.levelStepRows = loader.lastLevelStepRows;
         cam.speed = cam.lastSpeed;
     }
 
     frameRate(game.fps);
-};
 
+    if(Number(this.fps) === 60)
+    {
+        processing.doRaf();
+    }
+};
+window.game = game;
 ////////////////////////////////////////////////////////////////////\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
 /**************************************************************Final-loop******************************************************************/
 ////////////////////////////////////////////////////////////////////\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
@@ -24032,6 +24049,8 @@ function updateSize(pjs, w, h, w2, h2)
         
         pjs.popMatrix();
     };
+
+    pjs.doAuto();
 };
 
 updateSize(processing, 400, 400, 600, 600);
