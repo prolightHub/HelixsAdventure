@@ -719,7 +719,7 @@ var sketch = function(processing) /*Wrapper*/
         Fixed enemy edge detection!
         Updated ice dragon collision to work on both sides. Now all I have to do to is put it on the track.
 
-    * 0.8.8 # Faster fps
+    * 0.8.8 # Faster fps & Ice Dragon
         Re-added dragon track.
         Finished making points work at same speed (relative) for both loops.
         Finished dragon collision. 
@@ -729,17 +729,37 @@ var sketch = function(processing) /*Wrapper*/
         Improved image rendering for better fps
         Added speedLetImage, speeds up image rendering.
         Added fps to change between setInterval and requestAnimationFrame
+        Finished tweaking ice Dragon boss.
+        Finished boss room level.
+        Created head
+        Created tail
+        Completed IceDragon
         
+    * 0.8.9 "The Underwhere"
+        
+
     Next :   
         Maybe will do: 
+            Add grappling hook power up
+
+            Improve hp bar to add health and boss name. 
+            Add boss key doors.
+
+            Add boss intros. (with name title)
+          
+            Add collectable items that you can trade for stuff.
+
+            if you get 3 crystals enable teleportation to all warping doors.
+
             Do something about the underwater level. It doesn't make sense for the player to not have the oxygen bar.
             Fix the bubble shields. Maybe make bubble shield allows you to go underwater?
 
-            Like make a section when when it loads from a save the right after the game has loaded make it load the settings.
+            Add auto checkpoints into settings. 
+            Also need to make a block that costs coins to heal you.
 
-            Fix the press 'r' and restart button makes player die glitch.
+            More NPCs!
 
-            Add auto checkpoints into settings. Also need to make a block that costs coins to heal you.
+    Cannot add anything else here until June 20th
 
     ===========================================================================================================================================================================
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -762,18 +782,6 @@ var sketch = function(processing) /*Wrapper*/
             All levels made by ProlightHub, except one by my brother.
 
         All other code is by (Me) ProlightHub on Github & Phantom Falcon on Khan Academy! 
-
-    TODO:
-        -Star pillars you can travel to
-        Still need to make star pillars that you can travel to by selecting which level in an inventory
-        Teleporters that don't reset the level only with a level fade!
-
-        rpg-todo:
-            Make a power-up to enhance the player +Attack
-            Add an attack function that gets damage based on the object getting attacked
-            Make a defense and attack system rpg?
-
-        Npcs moving
 
     Most Important :
         Fix other physics? Fix circle-rect / spike-rect collision physics!
@@ -802,7 +810,7 @@ var game = {
     fps : 60, 
     loadFps : 160,
     gameState : "start", //Default = "start"
-    version : "v0.8.8 beta",
+    version : "v0.8.9 beta",
     fpsType : "manual", //Default = "manual"
     debugMode : true, //Turn this to true to see the fps
     showDebugPhysics : false,
@@ -7746,7 +7754,7 @@ cameraGrid.draw = function()
     {
         for(var row = cam.upperLeft.row; row <= cam.lowerRight.row; row++)
         {  
-            fastRect(this.xPos + col * this.cellWidth, this.yPos + row * this.cellHeight, this.cellWidth, this.cellHeight);
+            rect(this.xPos + col * this.cellWidth, this.yPos + row * this.cellHeight, this.cellWidth, this.cellHeight);
         }
     }
 };
@@ -7776,7 +7784,7 @@ gameObjects.drawBoundingBoxes = function()
             if(this[this.toOrder[i]][array[j]])
             {
                 shape = this[this.toOrder[i]][array[j]].boundingBox;
-                fastRect(shape.xPos, shape.yPos, shape.width, shape.height);
+                rect(shape.xPos, shape.yPos, shape.width, shape.height);
             }
         }
     }
@@ -12142,7 +12150,7 @@ var Spike = function(xPos, yPos, width, height, colorValue, upSideDown)
         {
             cast.xPos = self.xPos + self.halfWidth;  
             cast.yPos = self.yPos + self.halfHeight * 2;
-        }, false, 600);
+        }, false, 400);
 
         this.cast = gameObjects.getObject("cast").getLast();
         this.cast.ignore.push("slope");
@@ -12164,6 +12172,19 @@ var Spike = function(xPos, yPos, width, height, colorValue, upSideDown)
 
         if(this.falls)
         {
+            if(levelInfo.level === "IceDragon" && !this.dragonHit)
+            {
+                var iceDragon = gameObjects.getObject("iceDragon")[0];
+
+                if(observer.collisionTypes.rectrect.colliding(this.boundingBox, iceDragon.boundingBox))
+                {
+                    iceDragon.hp -= (this.damage || 2);
+
+                    this.dragonHit = true;
+                    return this.remove();
+                }
+            }
+
             if(this.startedShakeAndFall)
             {
                 this.shakeAndFall();
@@ -15467,25 +15488,20 @@ var IceDragon = function(xPos, yPos, width, height)
     Boss.call(this, xPos, yPos, width, height, color(15, 120, 220, 220), {
         charging : true,
         handleEdge : true
-    }, false, 35);
+    }, false, 36);
 
     this.physics.solidObject = true;
 
-    this.physics.movement = "static";
-    this.physics.changes = true;
+    this.noHeightChanges = true;
 
-    // this.physics.sides = {
-    //     left : true,
-    //     right : true,
-    //     up : true,
-    //     down:  true
-    // };
+    this.physics.movement = "static";
+    // this.physics.changes = true;
 
     var self = this;
 
     this.apart = 90;
     this.separation = this.apart * this.apart;
-    this.dragonLength = 18;
+    this.dragonLength = 14;
     this.gravity = 0;
 
     this.createTracks = function()
@@ -15502,7 +15518,7 @@ var IceDragon = function(xPos, yPos, width, height)
             this.push({
                 xPos : xPos,
                 yPos : yPos,
-                speed : speed || 0.6,
+                speed : speed || 0.65,
 
                 heading : 1,
                 index : 0,
@@ -15568,8 +15584,25 @@ var IceDragon = function(xPos, yPos, width, height)
 
     this.setTracksToLoad = function()
     {
-        this.setTrack1 = [{"xPos":852.8068647221817,"yPos":812.6325423367903},{"xPos":886.2713980086756,"yPos":813.0697113666338},{"xPos":919.6151086973339,"yPos":813.0515590848212},{"xPos":956.2825961684364,"yPos":813.0501233169432},{"xPos":974.6637868021165,"yPos":792.6762994697699},{"xPos":1032.0302668025543,"yPos":789.3368247831376},{"xPos":1096.2330981112354,"yPos":789.0726866139732},{"xPos":1160.9766555783012,"yPos":789.0517944141645},{"xPos":1225.7629821725209,"yPos":789.0501419304882},{"xPos":1290.5526916218319,"yPos":773.0582136757089},{"xPos":1355.342668640516,"yPos":768.4461282881948},{"xPos":1420.1326668227935,"yPos":749.4943359447054},{"xPos":1484.9226666790205,"yPos":744.4806236949503},{"xPos":1549.7126666676504,"yPos":744.0840604930585},{"xPos":1614.5026666667522,"yPos":744.0526940393689},{"xPos":1679.292666666683,"yPos":744.0502130869952},{"xPos":1744.082666666679,"yPos":744.0500168542703},{"xPos":1808.8726666666807,"yPos":744.0500013331007},{"xPos":1872.997066212351,"yPos":744.0500001054426},{"xPos":1987.9280266245262,"yPos":758},{"xPos":1994.7133057269089,"yPos":758},{"xPos":2003.2621900981064,"yPos":758},{"xPos":2025.0200635499023,"yPos":758},{"xPos":2082.389972309239,"yPos":758},{"xPos":2146.593074818091,"yPos":758},{"xPos":2211.3366537359307,"yPos":758},{"xPos":2276.1229820268113,"yPos":758},{"xPos":2340.9126916103164,"yPos":758},{"xPos":2405.7026686396107,"yPos":758},{"xPos":2470.492666822723,"yPos":758},{"xPos":2535.2826666790133,"yPos":758},{"xPos":2600.0726666676437,"yPos":758},{"xPos":2664.862666666742,"yPos":758},{"xPos":2729.652666666668,"yPos":758},{"xPos":2794.442666666661,"yPos":758},{"xPos":2859.232666666658,"yPos":758},{"xPos":2924.0226666666554,"yPos":758},{"xPos":2988.8126666666526,"yPos":758},{"xPos":3053.60266666665,"yPos":758},{"xPos":3118.392666666647,"yPos":758},{"xPos":3183.1826666666443,"yPos":758},{"xPos":3247.9726666666415,"yPos":758},{"xPos":3310.0959999999723,"yPos":744},{"xPos":3382.219333333303,"yPos":758},{"xPos":3447.0093333333,"yPos":760.6666666666666},{"xPos":3505.1326666666305,"yPos":749.3333333333333},{"xPos":3575.255999999961,"yPos":754.6666666666666},{"xPos":3640.712666666625,"yPos":754.6666666666666},{"xPos":3705.502666666622,"yPos":752},{"xPos":3772.2926666666194,"yPos":753.3333333333333},{"xPos":3848.41599999995,"yPos":756.6666666666666},{"xPos":3907.2059999999474,"yPos":752.6666666666666},{"xPos":3982,"yPos":724},{"xPos":4033.3333333333335,"yPos":693.7166666680288},{"xPos":4060.6666666666665,"yPos":661.716666666667},{"xPos":4063.3333333333335,"yPos":621.0500000000004},{"xPos":4063.3333333333335,"yPos":543.1356880107536},{"xPos":4063.3333333333335,"yPos":479.2179440808018},{"xPos":4006,"yPos":392.54513202563487},{"xPos":3975.3333333333335,"yPos":350.71645051704036},{"xPos":3933.3333333333335,"yPos":303.3833310264359},{"xPos":3880.6666666666665,"yPos":262.7166666451236},{"xPos":3790.3024153611937,"yPos":266.0730993146895},{"xPos":3710.8451278137914,"yPos":263.3833528329425},{"xPos":3583.8295670323014,"yPos":264.7166666716158},{"xPos":3497.8880139926882,"yPos":264.71666666670717},{"xPos":3389.9981777137577,"yPos":263.38333333333355},{"xPos":3237.8306583662466,"yPos":266.05000000000024},{"xPos":3082.892583481355,"yPos":267.38333333333355},{"xPos":2920.086915843062,"yPos":272.7166666666669},{"xPos":2812.8771040515276,"yPos":273.38333333333355},{"xPos":2665.6646961309175,"yPos":281.38333333333355},{"xPos":2534.776166371423,"yPos":286.7166666666669},{"xPos":2389.9586813461456,"yPos":275.38333333333355},{"xPos":2254.974481465487,"yPos":275.38333333333355},{"xPos":2085.6619119367233,"yPos":281.38333333333355},{"xPos":1938.8818755104453,"yPos":288.05000000000024},{"xPos":1760.0756912510974,"yPos":298.05000000000024},{"xPos":1240.349553837066,"yPos":265.05000000000024},{"xPos":1183.3283125645912,"yPos":242.38333333333355},{"xPos":1085.6731129783814,"yPos":245.05000000000024},{"xPos":1003.7978200724177,"yPos":275.05000000000024},{"xPos":951.0377865437742,"yPos":261.71666680629795},{"xPos":875.978193149433,"yPos":243.05000000030023},{"xPos":766.3905522909068,"yPos":259.0500000000022},{"xPos":665.8429512558963,"yPos":274.38333333333344},{"xPos":579.3525024135563,"yPos":344.38333333333344},{"xPos":452.2408574005513,"yPos":415.95507819639244},{"xPos":373.928283403028,"yPos":523.4245453778697},{"xPos":372.7878952859347,"yPos":609.2456391540254},{"xPos":373.45267361714866,"yPos":735.0507174539042},{"xPos":398.1193335222641,"yPos":815.3833528322928},{"xPos":449.92466666669293,"yPos":842.0000000000005},{"xPos":507.25800000002624,"yPos":846.6666666666671}];
-        this.setTrack2 = [{"xPos":852.1537378319043,"yPos":862.6282764074607},{"xPos":885.9584300488362,"yPos":863.0698891553247},{"xPos":919.6296975812608,"yPos":863.0515585519032},{"xPos":978.5151968710644,"yPos":863.049252806018},{"xPos":998.0473269017698,"yPos":841.3997207089777},{"xPos":1033.587120295757,"yPos":839.3308428484839},{"xPos":1096.3440179346367,"yPos":839.0726534243281},{"xPos":1160.985360534176,"yPos":839.0517942083949},{"xPos":1231.8430879319926,"yPos":839.0499868634809},{"xPos":1298.3757366377872,"yPos":822.6278520252945},{"xPos":1364.237459794662,"yPos":817.9394742090666},{"xPos":1429.177030215504,"yPos":798.943930328532},{"xPos":1487.0071509855093,"yPos":794.4688016736038},{"xPos":1549.877786911019,"yPos":794.0839864136567},{"xPos":1614.5157270942273,"yPos":794.0526935759136},{"xPos":1679.2936996910153,"yPos":794.0502130840957},{"xPos":1744.082748384813,"yPos":794.0500168542521},{"xPos":1808.8726727514006,"yPos":794.0500013331006},{"xPos":1869.9737308702188,"yPos":794.0500001633242},{"xPos":1984.9046908055202,"yPos":808},{"xPos":2044.7133057269089,"yPos":808},{"xPos":2053.2621900981067,"yPos":808},{"xPos":2075.0200635499023,"yPos":808},{"xPos":2132.389972309239,"yPos":808},{"xPos":2196.593074818091,"yPos":808},{"xPos":2261.3366537359307,"yPos":808},{"xPos":2326.1229820268113,"yPos":808},{"xPos":2390.9126916103164,"yPos":808},{"xPos":2455.7026686396107,"yPos":808},{"xPos":2520.492666822723,"yPos":808},{"xPos":2585.2826666790133,"yPos":808},{"xPos":2650.0726666676437,"yPos":808},{"xPos":2714.862666666742,"yPos":808},{"xPos":2779.652666666668,"yPos":808},{"xPos":2844.442666666661,"yPos":808},{"xPos":2909.232666666658,"yPos":808},{"xPos":2974.0226666666554,"yPos":808},{"xPos":3038.8126666666526,"yPos":808},{"xPos":3103.60266666665,"yPos":808},{"xPos":3168.392666666647,"yPos":808},{"xPos":3233.1826666666443,"yPos":808},{"xPos":3253.5368494502404,"yPos":808},{"xPos":3310.8604357009067,"yPos":795.0816621638243},{"xPos":3376.3943980996296,"yPos":807.8025866022698},{"xPos":3450.817587594216,"yPos":810.8657420066877},{"xPos":3508.0740024122874,"yPos":799.7014470946356},{"xPos":3573.357329997795,"yPos":804.6666666666666},{"xPos":3641.7411966356954,"yPos":804.6666666666666},{"xPos":3706.0322783735164,"yPos":802.0205347846756},{"xPos":3770.6997971170777,"yPos":803.3114968796712},{"xPos":3849.021265158182,"yPos":806.7410834296168},{"xPos":3918.0902302061268,"yPos":802.0417151664464},{"xPos":4003.801513383262,"yPos":769.190727327723},{"xPos":4065.929538798416,"yPos":732.5392266217953},{"xPos":4109.472726773275,"yPos":681.5618358197918},{"xPos":4113.333333333334,"yPos":622.687585778899},{"xPos":4113.333333333334,"yPos":493.1356880107536},{"xPos":4113.333333333334,"yPos":464.177123032028},{"xPos":4047.0366680807388,"yPos":363.9541275554738},{"xPos":4014.279352452673,"yPos":319.273845300597},{"xPos":3967.6125054722106,"yPos":266.68128710116935},{"xPos":3896.8984335798887,"yPos":212.07928529077037},{"xPos":3790.2201699714024,"yPos":216.04167532815012},{"xPos":3711.428800278833,"yPos":213.3744711488458},{"xPos":3583.567143063332,"yPos":214.71666667160085},{"xPos":3498.196959320705,"yPos":214.71666666672482},{"xPos":3389.8690360353103,"yPos":213.3779193293191},{"xPos":3237.177467244573,"yPos":216.05376972447087},{"xPos":3081.8587678821546,"yPos":217.39037855547477},{"xPos":2919.1127558280286,"yPos":222.72175763795084},{"xPos":2811.364195287829,"yPos":223.39177442552938},{"xPos":2663.290173505368,"yPos":231.43859731900804},{"xPos":2535.7121542321484,"yPos":236.63703681588956},{"xPos":2391.9121805059167,"yPos":225.38333333333355},{"xPos":2254.0888240268714,"yPos":225.38333333333355},{"xPos":2083.64216561295,"yPos":231.423522513203},{"xPos":1936.351509019083,"yPos":238.1133812605741},{"xPos":1760.2645660356598,"yPos":247.96130367516014},{"xPos":1251.441465113462,"yPos":215.6535917444513},{"xPos":1192.2425552311029,"yPos":192.12127418367572},{"xPos":1076.1417825932356,"yPos":195.29163338297604},{"xPos":1001.0862322772803,"yPos":222.79280534293184},{"xPos":963.1966743151803,"yPos":213.21748730230732},{"xPos":878.493781310744,"yPos":192.15261591523307},{"xPos":759.0098391127294,"yPos":209.59749437192528},{"xPos":644.9156345872816,"yPos":226.99666104901792},{"xPos":551.1614082077006,"yPos":302.875511655213},{"xPos":418.23481101580455,"yPos":377.7214354787905},{"xPos":324.1442000519296,"yPos":506.84332882106656},{"xPos":322.7861399398643,"yPos":609.0455549616613},{"xPos":323.49230773338,"yPos":742.6833262077067},{"xPos":356.51199275224775,"yPos":850.219503668841},{"xPos":435.93742477579747,"yPos":891.026860209138},{"xPos":503.20164745488796,"yPos":896.5018550783662}];
+        this.setTrack1 = [{"xPos":852.8068647221817,"yPos":812.6325423367903},{"xPos":886.2713980086756,"yPos":813.0697113666338},{"xPos":919.6151086973339,"yPos":813.0515590848212},{"xPos":956.2825961684364,"yPos":813.0501233169432},{"xPos":974.6637868021165,"yPos":792.6762994697699},{"xPos":1032.0302668025543,"yPos":789.3368247831376},{"xPos":1096.2330981112354,"yPos":789.0726866139732},{"xPos":1160.9766555783012,"yPos":789.0517944141645},{"xPos":1225.7629821725209,"yPos":789.0501419304882},{"xPos":1290.5526916218319,"yPos":773.0582136757089},{"xPos":1355.342668640516,"yPos":768.4461282881948},{"xPos":1420.1326668227935,"yPos":749.4943359447054},{"xPos":1484.9226666790205,"yPos":744.4806236949503},{"xPos":1549.7126666676504,"yPos":744.0840604930585},{"xPos":1614.5026666667522,"yPos":744.0526940393689},{"xPos":1679.292666666683,"yPos":744.0502130869952},{"xPos":1744.082666666679,"yPos":744.0500168542703},{"xPos":1808.8726666666807,"yPos":744.0500013331007},{"xPos":1872.997066212351,"yPos":744.0500001054426},{"xPos":1987.9280266245262,"yPos":758},{"xPos":1994.7133057269089,"yPos":758},{"xPos":2003.2621900981064,"yPos":758},{"xPos":2025.0200635499023,"yPos":758},{"xPos":2082.389972309239,"yPos":758},
+        {"xPos":2146.593074818091,"yPos":758},{"xPos":2211.3366537359307,"yPos":758},{"xPos":2276.1229820268113,"yPos":758},{"xPos":2340.9126916103164,"yPos":758},{"xPos":2405.7026686396107,"yPos":758},{"xPos":2470.492666822723,"yPos":758},{"xPos":2535.2826666790133,"yPos":758},{"xPos":2600.0726666676437,"yPos":758},{"xPos":2664.862666666742,"yPos":758},{"xPos":2729.652666666668,"yPos":758},{"xPos":2794.442666666661,"yPos":758},{"xPos":2859.232666666658,"yPos":758},{"xPos":2924.0226666666554,"yPos":758},{"xPos":2988.8126666666526,"yPos":758},{"xPos":3053.60266666665,"yPos":758},{"xPos":3118.392666666647,"yPos":758},{"xPos":3183.1826666666443,"yPos":758},{"xPos":3247.9726666666415,"yPos":758},{"xPos":3310.0959999999723,"yPos":744},{"xPos":3382.219333333303,"yPos":758},{"xPos":3447.0093333333,"yPos":760.6666666666666},{"xPos":3505.1326666666305,"yPos":749.3333333333333},{"xPos":3575.255999999961,"yPos":754.6666666666666},
+        {"xPos":3640.712666666625,"yPos":754.6666666666666},{"xPos":3705.502666666622,"yPos":752},{"xPos":3772.2926666666194,"yPos":753.3333333333333},{"xPos":3848.41599999995,"yPos":756.6666666666666},{"xPos":3907.2059999999474,"yPos":752.6666666666666},{"xPos":3982,"yPos":724},{"xPos":4033.3333333333335,"yPos":693.7166666680288},{"xPos":4060.6666666666665,"yPos":661.716666666667},{"xPos":4063.3333333333335,"yPos":621.0500000000004},{"xPos":4063.3333333333335,"yPos":543.1356880107536},{"xPos":4063.3333333333335,"yPos":479.2179440808018},{"xPos":4006,"yPos":392.54513202563487},{"xPos":3975.3333333333335,"yPos":350.71645051704036},{"xPos":3933.3333333333335,"yPos":303.3833310264359},{"xPos":3880.6666666666665,"yPos":262.7166666451236},{"xPos":3790.3024153611937,"yPos":266.0730993146895},{"xPos":3710.8451278137914,"yPos":263.3833528329425},{"xPos":3583.8295670323014,"yPos":264.7166666716158},{"xPos":3497.8880139926882,"yPos":264.71666666670717},{"xPos":3389.9981777137577,"yPos":263.38333333333355},{"xPos":3237.8306583662466,"yPos":266.05000000000024},{"xPos":3082.892583481355,"yPos":267.38333333333355},{"xPos":2920.086915843062,"yPos":272.7166666666669},{"xPos":2812.8771040515276,"yPos":273.38333333333355},
+        {"xPos":2665.6646961309175,"yPos":281.38333333333355},{"xPos":2534.776166371423,"yPos":286.7166666666669},{"xPos":2389.9586813461456,"yPos":275.38333333333355},{"xPos":2254.974481465487,"yPos":275.38333333333355},{"xPos":2085.6619119367233,"yPos":281.38333333333355},{"xPos":1938.8818755104453,"yPos":288.05000000000024},{"xPos":1760.0756912510974,"yPos":298.05000000000024},{"xPos":1240.349553837066,"yPos":265.05000000000024},{"xPos":1183.3283125645912,"yPos":242.38333333333355},{"xPos":1085.6731129783814,"yPos":245.05000000000024},
+        {"xPos":1003.7978200724177,"yPos":275.05000000000024},{"xPos":951.0377865437742,"yPos":261.71666680629795},{"xPos":875.978193149433,"yPos":243.05000000030023},{"xPos":766.3905522909068,"yPos":259.0500000000022},{"xPos":665.8429512558963,"yPos":274.38333333333344},{"xPos":579.3525024135563,"yPos":344.38333333333344},{"xPos":452.2408574005513,"yPos":415.95507819639244},{"xPos":373.928283403028,"yPos":523.4245453778697},{"xPos":372.7878952859347,"yPos":609.2456391540254},{"xPos":373.45267361714866,"yPos":735.0507174539042},{"xPos":398.1193335222641,"yPos":815.3833528322928},{"xPos":449.92466666669293,"yPos":842.0000000000005},{"xPos":507.25800000002624,"yPos":846.6666666666671}];
+        this.setTrack2 = [{"xPos":852.1537378319043,"yPos":862.6282764074607},{"xPos":885.9584300488362,"yPos":863.0698891553247},{"xPos":919.6296975812608,"yPos":863.0515585519032},{"xPos":978.5151968710644,"yPos":863.049252806018},{"xPos":998.0473269017698,"yPos":841.3997207089777},{"xPos":1033.587120295757,"yPos":839.3308428484839},{"xPos":1096.3440179346367,"yPos":839.0726534243281},{"xPos":1160.985360534176,"yPos":839.0517942083949},{"xPos":1231.8430879319926,"yPos":839.0499868634809},{"xPos":1298.3757366377872,"yPos":822.6278520252945},{"xPos":1364.237459794662,"yPos":817.9394742090666},{"xPos":1429.177030215504,"yPos":798.943930328532},{"xPos":1487.0071509855093,"yPos":794.4688016736038},{"xPos":1549.877786911019,"yPos":794.0839864136567},{"xPos":1614.5157270942273,"yPos":794.0526935759136},{"xPos":1679.2936996910153,"yPos":794.0502130840957},{"xPos":1744.082748384813,"yPos":794.0500168542521},{"xPos":1808.8726727514006,"yPos":794.0500013331006},{"xPos":1869.9737308702188,"yPos":794.0500001633242},{"xPos":1984.9046908055202,"yPos":808},{"xPos":2044.7133057269089,"yPos":808},{"xPos":2053.2621900981067,"yPos":808},{"xPos":2075.0200635499023,"yPos":808},{"xPos":2132.389972309239,"yPos":808},
+        {"xPos":2196.593074818091,"yPos":808},{"xPos":2261.3366537359307,"yPos":808},{"xPos":2326.1229820268113,"yPos":808},{"xPos":2390.9126916103164,"yPos":808},{"xPos":2455.7026686396107,"yPos":808},{"xPos":2520.492666822723,"yPos":808},{"xPos":2585.2826666790133,"yPos":808},{"xPos":2650.0726666676437,"yPos":808},{"xPos":2714.862666666742,"yPos":808},{"xPos":2779.652666666668,"yPos":808},
+        {"xPos":2844.442666666661,"yPos":808},{"xPos":2909.232666666658,"yPos":808},{"xPos":2974.0226666666554,"yPos":808},{"xPos":3038.8126666666526,"yPos":808},{"xPos":3103.60266666665,"yPos":808},{"xPos":3168.392666666647,"yPos":808},{"xPos":3233.1826666666443,"yPos":808},{"xPos":3253.5368494502404,"yPos":808},{"xPos":3310.8604357009067,"yPos":795.0816621638243},{"xPos":3376.3943980996296,"yPos":807.8025866022698},{"xPos":3450.817587594216,"yPos":810.8657420066877},{"xPos":3508.0740024122874,"yPos":799.7014470946356},{"xPos":3573.357329997795,"yPos":804.6666666666666},{"xPos":3641.7411966356954,"yPos":804.6666666666666},{"xPos":3706.0322783735164,"yPos":802.0205347846756},{"xPos":3770.6997971170777,"yPos":803.3114968796712},{"xPos":3849.021265158182,"yPos":806.7410834296168},{"xPos":3918.0902302061268,"yPos":802.0417151664464},{"xPos":4003.801513383262,"yPos":769.190727327723},{"xPos":4065.929538798416,"yPos":732.5392266217953},{"xPos":4109.472726773275,"yPos":681.5618358197918},{"xPos":4113.333333333334,"yPos":622.687585778899},
+        {"xPos":4113.333333333334,"yPos":493.1356880107536},{"xPos":4113.333333333334,"yPos":464.177123032028},{"xPos":4047.0366680807388,"yPos":363.9541275554738},{"xPos":4014.279352452673,"yPos":319.273845300597},{"xPos":3967.6125054722106,"yPos":266.68128710116935},{"xPos":3896.8984335798887,"yPos":212.07928529077037},{"xPos":3790.2201699714024,"yPos":216.04167532815012},{"xPos":3711.428800278833,"yPos":213.3744711488458},{"xPos":3583.567143063332,"yPos":214.71666667160085},{"xPos":3498.196959320705,"yPos":214.71666666672482},{"xPos":3389.8690360353103,"yPos":213.3779193293191},{"xPos":3237.177467244573,"yPos":216.05376972447087},{"xPos":3081.8587678821546,"yPos":217.39037855547477},{"xPos":2919.1127558280286,"yPos":222.72175763795084},{"xPos":2811.364195287829,"yPos":223.39177442552938},{"xPos":2663.290173505368,"yPos":231.43859731900804},{"xPos":2535.7121542321484,"yPos":236.63703681588956},{"xPos":2391.9121805059167,"yPos":225.38333333333355},{"xPos":2254.0888240268714,"yPos":225.38333333333355},{"xPos":2083.64216561295,"yPos":231.423522513203},{"xPos":1936.351509019083,"yPos":238.1133812605741},{"xPos":1760.2645660356598,"yPos":247.96130367516014},
+        {"xPos":1251.441465113462,"yPos":215.6535917444513},{"xPos":1192.2425552311029,"yPos":192.12127418367572},{"xPos":1076.1417825932356,"yPos":195.29163338297604},{"xPos":1001.0862322772803,"yPos":222.79280534293184},{"xPos":963.1966743151803,"yPos":213.21748730230732},{"xPos":878.493781310744,"yPos":192.15261591523307},{"xPos":759.0098391127294,"yPos":209.59749437192528},{"xPos":644.9156345872816,"yPos":226.99666104901792},{"xPos":551.1614082077006,"yPos":302.875511655213},{"xPos":418.23481101580455,"yPos":377.7214354787905},{"xPos":324.1442000519296,"yPos":506.84332882106656},{"xPos":322.7861399398643,"yPos":609.0455549616613},{"xPos":323.49230773338,"yPos":742.6833262077067},{"xPos":356.51199275224775,"yPos":850.219503668841},{"xPos":435.93742477579747,"yPos":891.026860209138},{"xPos":503.20164745488796,"yPos":896.5018550783662}];
+    
+        for(var i = 10; i >= 0; i--)
+        {
+            var a = this.setTrack1.pop();
+            this.setTrack1.unshift(a);
+
+            var a = this.setTrack2.pop();
+            this.setTrack2.unshift(a);
+        }
     };
 
     this.loadTracks = function()
@@ -15592,8 +15625,12 @@ var IceDragon = function(xPos, yPos, width, height)
     this.addPoint = function()
     {
         this.points.add(this.track[0].xPos, this.track[0].yPos);
-        var minimum = this.track.getPerimeter();
-        var maximum = this.track2.getPerimeter();
+
+        this.track.getPerimeter();
+        this.track2.getPerimeter();
+
+        var minimum = Math.min(this.track.perimeter, this.track2.perimeter);
+        var maximum = Math.max(this.track2.perimeter, this.track.perimeter);
         self.separation2 = maximum * self.separation / minimum;
 
         if(this.track2[0])
@@ -15611,6 +15648,26 @@ var IceDragon = function(xPos, yPos, width, height)
             fill(255, 255, 255, 80);
             beginShape();
                 for(var i = this.length - 1; i >= 0; i--)
+                {
+                    vertex(this[i].xPos, this[i].yPos);
+
+                    fastRect(this[i].xPos - 4, this[i].yPos - 4, 8, 8);
+                }
+            endShape(CLOSE);
+
+
+            noFill();
+            strokeWeight(1);
+            stroke(255, 255, 255, 200);
+            beginShape();
+                for(var i = this.length - 1; i >= 0; i-=4)
+                {
+                    vertex(this[i].xPos, this[i].yPos);
+                }
+            endShape(CLOSE);
+
+            beginShape();
+                for(var i = this.length - 1; i >= 0; i-=2)
                 {
                     vertex(this[i].xPos, this[i].yPos);
                 }
@@ -15697,7 +15754,7 @@ var IceDragon = function(xPos, yPos, width, height)
                 var dx = object.xPos - nXPos;
                 var dy = object.yPos - nYPos;
 
-                if(dx * dx + dy * dy < self.separation * 0.3)
+                if(dx * dx + dy * dy < self.separation * 0.4)
                 {
                     object.xPos = nXPos;
                     object.yPos = max(nYPos, object.yPos);
@@ -15707,7 +15764,7 @@ var IceDragon = function(xPos, yPos, width, height)
 
                     object.updateBoundingBox();
 
-                    return;
+                    // return;
                 }
             }
 
@@ -15747,14 +15804,22 @@ var IceDragon = function(xPos, yPos, width, height)
                 var y1 = Math.min(newPointerLeft ? newPointerLeft.yPos : Infinity, 
                                   newPointerRight ? newPointerRight.yPos : Infinity);
 
-                object.xPos = (y1 === newPointerLeft.yPos) ? newPointerLeft.xPos : newPointerRight.xPos - object.width;
+                var nXPos = (y1 === newPointerLeft.yPos) ? newPointerLeft.xPos : newPointerRight.xPos - object.width;
+                var nYPos = min(y1 - object.height, object.yPos);
 
-                object.yPos = min(y1 - object.height, object.yPos);
+                var dx = object.xPos - nXPos;
+                var dy = object.yPos - nYPos;
 
-                object.yVel = Math.min(object.yVel, 1);
-                object.inAir = (object.yVel >= 2);
+                if(dx * dx + dy * dy < self.separation * 0.4)
+                {
+                    object.xPos = nXPos;
+                    object.yPos = min(nYPos, object.yPos);
 
-                object.updateBoundingBox();
+                    object.yVel = Math.min(object.yVel, 1);
+                    object.inAir = (object.yVel >= 2);
+
+                    object.updateBoundingBox();
+                }
             }
         };
 
@@ -15839,10 +15904,10 @@ var IceDragon = function(xPos, yPos, width, height)
                 var dx = object.xPos - nXPos;
                 var dy = object.yPos - nYPos;
 
-                if(dx * dx + dy * dy < self.separation * 0.3)
+                if(dx * dx + dy * dy < self.separation * 0.4)
                 {
                     object.xPos = nXPos;
-                    object.yPos = nYPos;
+                    object.yPos = min(nYPos, object.yPos);
 
                     object.yVel = Math.min(object.yVel, 1);
                     object.inAir = (object.yVel >= 2);
@@ -15889,13 +15954,22 @@ var IceDragon = function(xPos, yPos, width, height)
                 var y1 = Math.max(newPointerLeft ? newPointerLeft.yPos : 0, 
                                   newPointerRight ? newPointerRight.yPos : 0);
 
-                object.xPos = (y1 === newPointerLeft.yPos) ? newPointerLeft.xPos : newPointerRight.xPos - object.width;
-                object.yPos = y1;
+                var nXPos = (y1 === newPointerLeft.yPos) ? newPointerLeft.xPos : newPointerRight.xPos - object.width;
+                var nYPos = y1;
 
-                object.yVel = 0;
-                object.inAir = true;
+                var dx = object.xPos - nXPos;
+                var dy = object.yPos - nYPos;
 
-                object.updateBoundingBox();
+                if(dx * dx + dy * dy < self.separation * 0.4)
+                {
+                    object.xPos = nXPos;
+                    object.yPos = max(nYPos, object.yPos);
+
+                    object.yVel = 0;
+                    object.inAir = true;
+
+                    object.updateBoundingBox();
+                }
             }
         };
     };
@@ -15993,6 +16067,59 @@ var IceDragon = function(xPos, yPos, width, height)
 
         }
 
+        // stroke(255, 255, 255, 100);
+        // strokeWeight(2);
+
+        // line(point0.xPos, point0.yPos, 
+        //     point0.xPos - cos(a0) * s, point0.yPos - sin(a0) * s);
+
+        // line(point1.xPos, point1.yPos, 
+        //     point1.xPos - cos(a1) * s, point1.yPos - sin(a1) * s);
+
+        this.updateBoundingBox();
+    };
+
+    this.drawTail = function()
+    {
+        if(this.points2.length === 0 || this.points2.length === 0)
+        {
+            return;
+        }
+
+        var point0, point1;
+
+        if(this.toPoint1)
+        {
+            point0 = this.toPoint1;
+        }
+        if(this.toPoint2)
+        {
+            point1 = this.toPoint2;
+        }
+
+        if(!point0 || !point1)
+        {
+            return;
+        }
+
+        var angle = atan2(point1.yPos - point0.yPos, point1.xPos - point0.xPos);
+
+        var angle_offset = 30 * DEG_TO_RAD;
+
+        var a0 = angle - Math.PI / 2 - Math.PI + angle_offset, 
+            a1 = angle - Math.PI / 2 - Math.PI - angle_offset;
+
+        var s = 150;
+
+        var point = o_intersect(point0.xPos, point0.yPos, 
+                    point0.xPos - cos(a0) * s, point0.yPos - sin(a0) * s, 
+
+                    point1.xPos, point1.yPos, 
+                    point1.xPos - cos(a1) * s, point1.yPos - sin(a1) * s);
+
+        point.xPos = point.x;
+        point.yPos = point.y;
+
         stroke(255, 255, 255, 100);
         strokeWeight(2);
 
@@ -16002,41 +16129,12 @@ var IceDragon = function(xPos, yPos, width, height)
         line(point1.xPos, point1.yPos, 
             point1.xPos - cos(a1) * s, point1.yPos - sin(a1) * s);
 
-        this.updateBoundingBox();
+        noStroke();
+        fill(255, 255, 255, 80);
+        triangle(point0.xPos, point0.yPos, point1.xPos, point1.yPos, point.xPos, point.yPos);
+
+        this.tailPoint = point;
     };
-
-    // this.connectTail = function()
-    // {
-    //     if(this.points2.length === 0 || this.points2.length === 0)
-    //     {
-    //         return;
-    //     }
-
-    //     var l1 = this.points.length - 1;
-    //     var l2 = this.points2.length - 1;
-
-    //     var p1 = this.points[l1];
-    //     var p2 = this.points2[l2];
-
-    //     var dx = p2.xPos - p1.xPos;
-    //     var dy = p2.yPos - p1.yPos;
-
-    //     var amt = this.apart * 1.4; //Math.sqrt(dx * dx + dy + dy) / 2;
-
-    //     var opp = this.apart;  
-
-    //     var angle = atan2(dy, dx);
-
-    //     this.nodes.unshift({
-    //         xPos: p2.xPos - cos(angle - Math.PI / 4) * amt,
-    //         yPos: p2.yPos - sin(angle - Math.PI / 4) * amt
-    //     });
-
-    //     this.nodes2.unshift({
-    //         xPos: p2.xPos - cos(angle - Math.PI / 4) * amt,
-    //         yPos: p2.yPos - sin(angle - Math.PI / 4) * amt
-    //     });
-    // };
 
     this.allNodes = [];
     var option = observer.collisionTypes["pointpolygon"];
@@ -16075,17 +16173,14 @@ var IceDragon = function(xPos, yPos, width, height)
         }
     };
 
+    var loops = 0;
+
     this.draw = function(isRemote)
     {
         if(!isRemote)
         {
             return;
         }
-
-        fill(255, 255, 255, 80);
-        stroke(255, 255, 255);
-        rect(this.xPos, this.yPos, this.width, this.height, 5);
-        noStroke();
 
         var nodes = this.nodes.concat(this.nodes2);
         nodes.draw = this.nodes.draw;
@@ -16098,7 +16193,143 @@ var IceDragon = function(xPos, yPos, width, height)
 
         this.points.draw();
         this.points2.draw();
+
+        this.drawTail();
+
+        stroke(0, 53, 186, 200);
+        strokeWeight(0.1);
+
+        var l = Math.min(this.points.length, this.points2.length);
+        for(var i = 0; i < l; i++)
+        {
+            line(this.points[i].xPos, this.points[i].yPos, this.points2[i].xPos, this.points2[i].yPos);
+        }
+
+        noStroke();
+
+        if(this.points.length < this.dragonLength && loops + this.time_offset - this.lastPointAddTime > 60)
+        {
+            this.addPoint();
+
+            this.lastPointAddTime = loops + this.time_offset;
+        }
+        loops++;
+
+
+        pushMatrix();
+
+        var right = this.xPos + this.width;
+
+        if(this._lastXPos_ - this.xPos > 0)
+        {
+            translate(right, this.yPos);
+            scale(-1, 1);
+            translate(-this.xPos, -this.yPos);
+        }
+
+        this._lastXPos_ = this.xPos;
+
+        // Ears
+
+        fill(255, 255, 255, 240);
+        noStroke();
+
+        triangle(this.xPos, this.yPos + 5, this.xPos + 30 / 2, this.yPos - 18, this.xPos + 30, this.yPos + 5);
+
+        /* Head */
+
+         strokeWeight(2);
+        fill(255, 255, 255, 240);
+        stroke(255, 255, 255);
+
+        rect(this.xPos, this.yPos, this.width, this.height, 5);
+        noStroke();
+
+        // Eye
+        this.eyeAngle = atan2((mouseY + cam.focusYPos - cam.halfHeight) - this.yPos, (mouseX + cam.focusXPos - cam.halfWidth) - this.xPos);
+
+        var _size = 16;
+        var _sub_size = 5;
+
+        var _x = this.xPos + 23;
+        var _y = this.yPos + 14;
+
+        noStroke();
+        fill(170, 170, 170, 200);
+        ellipse(_x + cos(this.eyeAngle) * 4.4, 
+                _y + sin(this.eyeAngle) * 4.4, _sub_size, _sub_size);
+
+        strokeWeight(2);
+        stroke(0, 0, 130, 100);
+        noFill();
+        ellipse(_x, _y, _size, _size);
+
+        // Mouth
+        strokeWeight(0.1);
+        stroke(0, 0, 0, 100);
+
+        var _v = 10;
+        var _v_half = _v * 0.5;
+        var _h = 4;
+
+        var int = 1;
+
+        var y = this.yPos + this.halfHeight + 10;
+
+        var i = 0;
+        for(var x = this.xPos + 80; x < right; x += _v)
+        {
+            fill(20, 20 + (4 - (++i)) * 30, 123, 100 + loops % 60);
+
+            if(int === 1)
+            {
+                triangle(x, y + _h, 
+                        x + _v_half, y, 
+                        x + _v, y + _h);
+            }else{
+                triangle(x, y, 
+                        x + _v_half, y + _h, 
+                        x + _v, y);
+            }
+
+            int = -int;
+        }
+
+        y += 2;
+
+        var i = 0;
+        for(var x = this.xPos + 80; x < right; x += _v)
+        {
+            fill(20, 20 + (4 - (++i)) * 30, 123, 100 + loops % 60);
+
+            if(int === 1)
+            {
+                triangle(x, y + _h, 
+                        x + _v_half, y, 
+                        x + _v, y + _h);
+            }else{
+                triangle(x, y, 
+                        x + _v_half, y + _h, 
+                        x + _v, y);
+            }
+
+            int = -int;
+        }
+
+
+        // Nose
+        stroke(128, 128, 128);
+
+        var y = this.yPos;
+        for(var x = this.xPos + 86; x < right; x += 14)
+        {
+            line(x, y, x, y + 10);
+        }
+
+        popMatrix();
     };
+
+    var last_loop = 0;
 
     var _lastUpdate = this.update;
     this.update = function(isRemote)
@@ -16112,6 +16343,15 @@ var IceDragon = function(xPos, yPos, width, height)
 
         this.connectNodesToPoints();
 
+        this.toPoint1 = this.nodes[0];
+        this.toPoint2 = this.nodes2[this.nodes.length - 1];
+
+        if(this.tailPoint)
+        {
+            this.nodes.unshift(this.tailPoint);
+            this.nodes2.push(this.tailPoint);
+        }
+
         this.points.update(this.track);
         this.points2.update(this.track2);
 
@@ -16120,31 +16360,32 @@ var IceDragon = function(xPos, yPos, width, height)
             // this.points2[this.points2.length - 1].xPos = this.points[this.points.length - 1].xPos;
             // this.points2[this.points2.length - 1].yPos = this.points[this.points.length - 1].yPos;
         // }
-        
-        // this.connectTail();
 
         // All this coding work for this?
-        if(this.points[0] && this.points2[0])
+        if(this.points[0] && this.points2[0] && loops - last_loop > 30)
         {
-            for(var i = 0; i < this.points.length - 1; i++)
+            var p1 = Math.min(this.track.perimeter, this.track2.perimeter);
+            var p2 = Math.max(this.track2.perimeter, this.track.perimeter);
+
+            for(var i = 0; i < this.points.length/* - 1*/; i++)
             {
-                var point = this.track2.putPointAlong(this.track.getDistAlong(this.points[i], this.points[i].index) / this.track.perimeter * this.track2.perimeter);
+                var point = this.track2.putPointAlong(this.track.getDistAlong(this.points[i], this.points[i].index) / p1 * p2 + 100);
 
                 this.points2[i].xPos = point.xPos;
                 this.points2[i].yPos = point.yPos;
             }
-        }
 
-        if(this.points.length < this.dragonLength && millis() + this.time_offset - this.lastPointAddTime > 1000)
-        {
-            this.addPoint();
-
-            this.lastPointAddTime = millis() + this.time_offset;
+            last_loop = loops;
         }
 
         this.connectHead();
 
         this.updateBoundingBox();
+
+        if(this.hp <= 0)
+        {
+            this.remove();
+        }
     };
 
     this.time_offset = random(-500, 500);
@@ -16164,7 +16405,7 @@ var IceDragon = function(xPos, yPos, width, height)
 
         if(object.arrayName === "spike")
         {
-            this.hp -= 1;
+            this.hp -= 2;
         }
     };
 
@@ -21106,7 +21347,6 @@ var levelScripts = {
             }
 
             levels[levelInfo.level].doors.a.locked = true;
-
         },
         apply : function()
         {
@@ -21145,6 +21385,14 @@ var levelScripts = {
             }
 
             iceDragon.update(true);
+
+            var player = gameObjects.getObject("player")[0];
+            iceDragon.applyCollision(player);
+
+            if(observer.collisionTypes.rectrect.colliding(player.boundingBox, iceDragon.boundingBox))
+            {
+                observer.collisionTypes.rectrect.solveCollision(player, iceDragon);
+            }
         },
         draw : function()
         {
@@ -21194,11 +21442,11 @@ var levelScripts = {
             //     iceDragon.track.getPerimeter();
             // }
 
-            if(keys[">"] && (!this.lastAddPointTime || millis() - this.lastAddPointTime > 600))
-            {
-                iceDragon.addPoint();
-                this.lastAddPointTime = millis();
-            }
+            // if(keys[">"] && (!this.lastAddPointTime || millis() - this.lastAddPointTime > 600))
+            // {
+            //     iceDragon.addPoint();
+            //     this.lastAddPointTime = millis();
+            // }
 
             // if(keys["z"] && (!this.lastRemovePointTime || millis() - this.lastRemovePointTime > 600))
             // {
@@ -21206,9 +21454,6 @@ var levelScripts = {
             //     iceDragon.track2.pop();
             //     this.lastRemovePointTime = millis()
             // }
-
-            var player = gameObjects.getObject("player")[0];
-            iceDragon.applyCollision(player);
         },
     },
 };
@@ -21922,7 +22167,7 @@ levels.build = function(plan)
                                 break;
 
                             case "iceDragon" :
-                                gameObjects.getObject("iceDragon").add(xPos, yPos, 100, 70);
+                                gameObjects.getObject("iceDragon").add(xPos, yPos, 140, 74);
                                 screenUtils.infoBar.bossArrayName = "iceDragon";
                                 break;
                         }
