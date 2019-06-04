@@ -49,6 +49,14 @@ var configs = {
             arraysToSave : ["crystal", "coin", "hpCoin", "ice"],
         },
     },
+    "underground" : {
+        name : "Underground",
+        area : "Area 3",
+        level : {
+            background : "underground",
+            noSong: true,
+        }
+    },
     "other" : {
         hidden : true,
         level : {}

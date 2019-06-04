@@ -7676,7 +7676,7 @@ module.exports = function setupParser(Processing, options) {
       "createGraphics", "createImage", "cursor", "curve", "curveDetail",
       "curvePoint", "curveTangent", "curveTightness", "curveVertex", "day",
       "degrees", "directionalLight", "disableContextMenu",
-      "dist", "draw", "ellipse", "ellipseMode", "emissive", "enableContextMenu",
+      "dist", "draw", "ellipse", "circle", "ellipseMode", "emissive", "enableContextMenu",
       "endCamera", "endDraw", "endShape", "exit", "exp", "expand", "externals",
       "fill", "filter", "floor", "focused", "frameCount", "frameRate", "frustum",
       "get", "glyphLook", "glyphTable", "green", "height", "hex", "hint", "hour",
@@ -18237,12 +18237,12 @@ module.exports = function setupParser(Processing, options) {
      * @see ellipseMode
      */
     Drawing2D.prototype.ellipse = function(x, y, width, height) {
-      x = x || 0;
-      y = y || 0;
+      // x = x || 0;
+      // y = y || 0;
 
-      if (width <= 0 && height <= 0) {
-        return;
-      }
+      // if (width <= 0 && height <= 0) {
+      //   return;
+      // }
 
       // if (curEllipseMode === PConstants.RADIUS) {
       //   width *= 2;
@@ -18278,6 +18278,25 @@ module.exports = function setupParser(Processing, options) {
         p.bezierVertex(x + c_x, y + h, x + w, y + c_y, x + w, y);
         p.endShape();
       }
+    };
+
+    Drawing2D.prototype.circle = function(x, y, diameter) {
+        curContext.beginPath();
+        curContext.arc(x, y, diameter / 2, 0, PConstants.TWO_PI, false);
+        if(doFill) {
+          if(isFillDirty) {
+            curContext.fillStyle = p.color.toString(currentFillColor);
+            isFillDirty = false;
+          }
+          curContext.fill();
+        }
+        if(doStroke) {
+          if(isStrokeDirty) {
+            curContext.strokeStyle = p.color.toString(currentStrokeColor);
+            isStrokeDirty = false;
+          }
+          curContext.stroke();
+        }
     };
 
     Drawing3D.prototype.ellipse = function(x, y, width, height) {
@@ -19602,12 +19621,13 @@ module.exports = function setupParser(Processing, options) {
 
     Drawing2D.prototype.image = function(img, x, y, w, h) {
       // Fix fractional positions
-      x = Math.round(x);
-      y = Math.round(y);
+      // x = Math.round(x);
+      // y = Math.round(y);
 
-      var bounds = imageModeConvert(x || 0, y || 0, w || img.width, h || img.height, arguments.length < 4);
-      var fastImage = !!img.sourceImg && curTint === null;
-      if (fastImage) {
+      // var bounds = imageModeConvert(x || 0, y || 0, w || img.width, h || img.height, arguments.length < 4);
+      // var fastImage = !!img.sourceImg && curTint === null;
+
+      if (!!img.sourceImg && curTint === null) {
         var htmlElement = img.sourceImg;
         if (img.__isDirty) {
           img.updatePixels();
@@ -19615,12 +19635,10 @@ module.exports = function setupParser(Processing, options) {
 
         // Using HTML element's width and height in case if the image was resized.
         curContext.drawImage(htmlElement, 0, 0,
-          htmlElement.width, htmlElement.height, bounds.x, bounds.y, bounds.w, bounds.h);
+          htmlElement.width, htmlElement.height, Math.round(x), Math.round(y), w || img.width, h || img.height);
       } else {
-        var obj = img.toImageData();
-
-        curContext.drawImage(getCanvasData(obj).canvas, 0, 0,
-          img.width, img.height, bounds.x, bounds.y, bounds.w, bounds.h);
+        curContext.drawImage(getCanvasData(img.toImageData()).canvas, 0, 0,
+          img.width, img.height, Math.round(x), Math.round(y), w || img.width, h || img.height);
       }
     };
     Drawing2D.prototype.fastImage = function(img, x, y, w, h)
@@ -21394,6 +21412,7 @@ module.exports = function setupParser(Processing, options) {
     DrawingPre.prototype.rect = createDrawingPreFunction("rect");
     DrawingPre.prototype.fastRect = createDrawingPreFunction("fastRect");
     DrawingPre.prototype.ellipse = createDrawingPreFunction("ellipse");
+    DrawingPre.prototype.circle = createDrawingPreFunction("circle");
     DrawingPre.prototype.background = createDrawingPreFunction("background");
     DrawingPre.prototype.image = createDrawingPreFunction("image");
     DrawingPre.prototype.fastImage = createDrawingPreFunction("fastImage");

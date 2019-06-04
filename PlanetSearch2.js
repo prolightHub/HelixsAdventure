@@ -736,8 +736,10 @@ var sketch = function(processing) /*Wrapper*/
         Completed IceDragon
         
     * 0.8.9 "The Underwhere"
+        Made ice dragon more easy to defeat.
+        Fixed boss removal.
+        Made image rendering faster.
         
-
     Next :   
         Maybe will do: 
             Add grappling hook power up
@@ -2721,7 +2723,7 @@ graphics.stars.draw = function()
     for(var i = 0; i < this.length; i++)
     {
         fill(200, 200, 255);
-        ellipse(this[i][0], this[i][1], 2, 2);
+        circle(this[i][0], this[i][1], 2);
     }
 };
 
@@ -2806,17 +2808,19 @@ var backgrounds = {
                 {
                     noStroke();
                     fill(circles[i].color);
-                    ellipse(circles[i].xPos, circles[i].yPos, circles[i].diameter, circles[i].diameter);
+                    circle(circles[i].xPos, circles[i].yPos, circles[i].diameter);
                 }
                 fill(0, 0, 0, 30);
                 fastRect(0, 0, width, height);
                 backgrounds.backgrounds.air.img = get(0, 0, width, height);
+
+                screenUtils.speedUpImage(backgrounds.backgrounds.air.img);
             },
             drawBackground : function()
             {
                 if(backgrounds.backgrounds.air.img !== undefined)
                 {
-                    image(backgrounds.backgrounds.air.img, 0, 0);
+                    fastImage(backgrounds.backgrounds.air.img, 0, 0);
                 }
             },
         },
@@ -2861,6 +2865,8 @@ var backgrounds = {
 
                 backgrounds.backgrounds.dark.img = get(0, 0, width, height);
 
+                screenUtils.speedUpImage(backgrounds.backgrounds.dark.img);
+
                 backgrounds.backgrounds.dark.streaks = [];
 
                 for(var i = 0; i < random(30, 50); i++)
@@ -2882,7 +2888,7 @@ var backgrounds = {
             {
                 if(backgrounds.backgrounds.dark.img !== undefined)
                 {
-                    image(backgrounds.backgrounds.dark.img, 0, 0);
+                    fastImage(backgrounds.backgrounds.dark.img, 0, 0);
                 }
 
                 var streaks = backgrounds.backgrounds.dark.streaks || [];
@@ -3204,6 +3210,11 @@ var backgrounds = {
                 }
 
                 this.layers = [Layer_1(), Layer_2(), Layer_3(), Layer_4(), Layer_5(), Layer_6()];
+                for(var i = 0; i < this.layers.length; i++)
+                {
+                    screenUtils.speedUpImage(this.layers[i]);
+                }
+
                 this.speeds = [];
                 this.diff = levelInfo.width - cam.focusXPos * 10 || 0;
             },
@@ -3383,6 +3394,7 @@ var backgrounds = {
                 popMatrix();
 
                 backgrounds.backgrounds.winter.img = get(0, 0, screen.width, screen.height);
+                screenUtils.speedUpImage(backgrounds.backgrounds.winter.img);
                 popMatrix();
             },
             load : function()
@@ -3393,7 +3405,7 @@ var backgrounds = {
             {
                 if(backgrounds.backgrounds.winter.img !== undefined)
                 {
-                    image(backgrounds.backgrounds.winter.img, 0, 0, width, height);
+                    fastImage(backgrounds.backgrounds.winter.img, 0, 0, width, height);
 
                     graphics.inClouds.draw();
                     if(!screenUtils.fade.fading)
@@ -3418,10 +3430,12 @@ var backgrounds = {
 
                     backgrounds.backgrounds.spaceFromEarth.drawBackground();
                     var spaceFromEarth = get(0, 0, screen.width, screen.height);//400, 400
+
+                    screenUtils.speedUpImage(spaceFromEarth);
                 popMatrix();
                 backgrounds.backgrounds.spaceFromEarth.drawBackground = function()
                 {
-                    image(spaceFromEarth, 0, 0, width, height);
+                    fastImage(spaceFromEarth, 0, 0, width, height);
                     graphics.inClouds.draw();
                     if(!screenUtils.fade.fading)
                     {
@@ -3712,6 +3726,7 @@ var backgrounds = {
 
                         draw();
                         backgrounds.backgrounds.high.img = get(0, 0, 600, 600);
+                        screenUtils.speedUpImage(backgrounds.backgrounds.high.img);
 
                         this.draw = undefined;
                         noLoop();
@@ -3739,7 +3754,7 @@ var backgrounds = {
             {
                 if(backgrounds.backgrounds.high.img !== undefined)
                 {
-                    image(backgrounds.backgrounds.high.img, 0, 0, width, height);
+                    fastImage(backgrounds.backgrounds.high.img, 0, 0, width, height);
 
                     ctx.fillStyle = "rgb(255, 255, 255)";
 
@@ -5243,7 +5258,7 @@ var inventoryMenu = {
                         pushMatrix();
                             translate(170, 100);
                             fill(0, 0, 0, 200);
-                            ellipse(0, 0, 20, 20);
+                            circle(0, 0, 20);
 
                             if(this.autoAngle === undefined)
                             {
@@ -5458,18 +5473,18 @@ var screenUtils = {
 
     getSourceImg: function(img)
     {
-        var cd_canvas = document.createElement("canvas");
-        var cd_ctx = cd_canvas.getContext('2d');
+        var canv = document.createElement("canvas");
+        var cont = canv.getContext('2d');
 
         // Set width, height and operation
-        cd_canvas.globalCompositeOperation = 'source-over';
-        cd_canvas.width = img.width;
-        cd_canvas.height = img.height;
+        canv.width = img.width;
+        canv.height = img.height;
+        cont.globalCompositeOperation = 'source-over';
 
         // cd_ctx.clearRect(0, 0, img.width, img.height);
-        cd_ctx.putImageData(img.toImageData(), 0, 0);
+        cont.putImageData(img.toImageData(), 0, 0);
 
-        return cd_canvas;
+        return canv;
     },
     speedUpImage: function(img)
     {
@@ -5923,11 +5938,25 @@ var screenUtils = {
         object.imageName = name;
         object.draw = (pro) ? function()
         {
-            fastImage(storedImages[this.imageName], this.xPos, this.yPos, this.width, this.height);
+            var img = storedImages[this.imageName];
+
+            if (img.__isDirty) {
+              img.updatePixels();
+            }
+
+            ctx.drawImage(img.sourceImg, 0, 0, img.sourceImg.width, img.sourceImg.height,
+                                 Math.round(this.xPos), Math.round(this.yPos), this.width, this.height);
         } :
         function()
         {
-            fastImage(storedImages[this.imageName], this.xPos, this.yPos);
+            var img = storedImages[this.imageName];
+
+            if (img.__isDirty) {
+              img.updatePixels();
+            }
+
+            ctx.drawImage(img.sourceImg, 0, 0, img.sourceImg.width, img.sourceImg.height,
+                                 Math.round(this.xPos), Math.round(this.yPos), img.width, img.height);
         };
     },
     loadImage : function(object, constImage, name, notRect, customBackColor, ref, tone, pro)
@@ -6081,7 +6110,7 @@ var screenUtils = {
         noFill();
         stroke(0, 0, 0);
         strokeWeight(460);
-        ellipse(physics.getMiddleXPos(player), physics.getMiddleYPos(player), 650, 650);
+        circle(physics.getMiddleXPos(player), physics.getMiddleYPos(player), 650);
     },
     mouseReleased : function()
     {
@@ -8681,7 +8710,7 @@ var Circle = function(xPos, yPos, diameter)
     {
         noStroke();
         fill(this.color);
-        ellipse(this.xPos, this.yPos, this.diameter, this.diameter);
+        circle(this.xPos, this.yPos, this.diameter);
 
         if(this.showRotation)
         {
@@ -10077,7 +10106,7 @@ var Ring = function(xPos, yPos, diameter, colorValue)
     {
         noStroke();
         fill(this.color);
-        ellipse(this.xPos, this.yPos, this.diameter, this.diameter);
+        circle(this.xPos, this.yPos, this.diameter);
        
         pushMatrix();
         translate(this.xPos, this.yPos);
@@ -10738,7 +10767,7 @@ var Door = function(xPos, yPos, width, height, colorValue)
 
         fill(this.color, this.color, this.color, 30);
         var knobRaduis = this.width * 0.30;
-        ellipse(this.xPos + this.width * 0.8, this.yPos + this.height * 0.5, knobRaduis, knobRaduis);
+        circle(this.xPos + this.width * 0.8, this.yPos + this.height * 0.5, knobRaduis);
     };
 
     screenUtils.loadImage(this, true, "door" + this.color);
@@ -10802,7 +10831,7 @@ var Door = function(xPos, yPos, width, height, colorValue)
                 var p = self.particles[i];
 
                 fill(red(p.color), green(p.color), blue(p.color), p.life * alpha(p.color) / p.maxLife);
-                ellipse(p.xPos, p.yPos, p.radius, p.radius);
+                circle(p.xPos, p.yPos, p.radius);
             }
         },
     };
@@ -11801,7 +11830,7 @@ var CloudMine = function(xPos, yPos, diameter)
         for(var i = 0; i < this.length; i++)
         {
             fill(this[i].color);
-            ellipse(this[i].xPos, this[i].yPos, this[i].diameter, this[i].diameter);
+            circle(this[i].xPos, this[i].yPos, this[i].diameter);
         }
     };
 
@@ -11812,14 +11841,14 @@ var CloudMine = function(xPos, yPos, diameter)
     {
         //The explosion rendering code
         fill(200, 0, 0, 100);
-        ellipse(this.xPos, this.yPos, this.ex.diameter, this.ex.diameter);
+        circle(this.xPos, this.yPos, this.ex.diameter);
 
         noStroke();
         fill(200, 0, 0, 100);
-        ellipse(this.xPos, this.yPos, this.ex.diameter * 0.7, this.ex.diameter * 0.7);
+        circle(this.xPos, this.yPos, this.ex.diameter * 0.7);
 
         fill(200, 210, 0, 100);
-        ellipse(this.xPos, this.yPos, this.ex.diameter * 0.2, this.ex.diameter * 0.2);
+        circle(this.xPos, this.yPos, this.ex.diameter * 0.2);
 
         if(this.ex.diameter < this.maxDiameter)
         {
@@ -12352,7 +12381,7 @@ var Bullet = function(xPos, yPos, diameter, colorValue, blastAngle, damage, homi
     this.draw = function()
     {
         fill(red(this.color), green(this.color), blue(this.color), this.life * 215 / this.maxLife + 30);
-        ellipse(this.xPos, this.yPos, this.diameter, this.diameter);  
+        circle(this.xPos, this.yPos, this.diameter);  
     };
     
     this.lastUpdate = this.update;
@@ -12428,7 +12457,7 @@ var Shooter = function(xPos, yPos, diameter, colorValue)
     {
         noStroke();
         fill(this.color);
-        ellipse(this.xPos, this.yPos, this.diameter, this.diameter);
+        circle(this.xPos, this.yPos, this.diameter);
 
         pushMatrix();
         translate(this.xPos, this.yPos);
@@ -12442,7 +12471,7 @@ var Shooter = function(xPos, yPos, diameter, colorValue)
         popMatrix();
         
         fill(0, 0, 90, 50);
-        ellipse(this.xPos, this.yPos, this.diameter * 0.8, this.diameter * 0.8);
+        circle(this.xPos, this.yPos, this.diameter * 0.8);
 
         this.hpBar.draw();
         this.hpBar.set(max(this.hp, 0), this.maxHp);
@@ -12878,11 +12907,11 @@ var Enemy = function(xPos, yPos, width, height, colorValue, props, complexDraw, 
             var _y2 = this.yPos + this.height * 0.7;
             if(this.eyes === 1 || this.eyes === 2)
             {
-                ellipse(_x, _y, _diameter, _diameter);
+                circle(_x, _y, _diameter);
             }
             if(this.eyes === 2)
             {
-                ellipse(_x2, _y2, _diameter, _diameter);
+                circle(_x2, _y2, _diameter);
             }
             
             var player = gameObjects.getObject("player").getLast();
@@ -12897,11 +12926,11 @@ var Enemy = function(xPos, yPos, width, height, colorValue, props, complexDraw, 
             fill(0, 0, 0, 200);
             if(this.eyes === 1 || this.eyes === 2)
             {
-                ellipse(_x + x, _y + y, _radius, _radius);
+                circle(_x + x, _y + y, _radius);
             }
             if(this.eyes === 2)
             {
-                ellipse(_x2 + x, _y2 + y, _radius, _radius);
+                circle(_x2 + x, _y2 + y, _radius);
             }
             
             fill(red(this.color), green(this.color), blue(this.color), this.hide);
@@ -13073,7 +13102,7 @@ var FireBeaker = function(xPos, yPos, width, height, colorValue)
             var p = this.particles[i];
 
             fill(red(p.color), green(p.color), blue(p.color), 255 * p.life / p.maxLife);
-            ellipse(p.xPos, p.yPos, p.diameter, p.diameter);
+            circle(p.xPos, p.yPos, p.diameter, p.diameter);
         }
     };
 
@@ -13839,7 +13868,7 @@ var SonicBoomer = function(xPos, yPos, diameter, colorValue)
             var darkThing = this[i];
 
             fill(0, 0, 0, 30);
-            ellipse(darkThing.xPos, darkThing.yPos, darkThing.diameter, darkThing.diameter);
+            circle(darkThing.xPos, darkThing.yPos, darkThing.diameter);
 
             darkThing.xPos += darkThing.xVel;
             darkThing.yPos += darkThing.yVel;
@@ -13853,18 +13882,18 @@ var SonicBoomer = function(xPos, yPos, diameter, colorValue)
         if(!this.booming)
         {
             fill(this.color);
-            ellipse(this.xPos, this.yPos, this.diameter, this.diameter);
+            circle(this.xPos, this.yPos, this.diameter);
             return;
         }
 
         fill(this.color);
-        ellipse(this.xPos, this.yPos, this.diameter * 0.4, this.diameter * 0.4);
+        circle(this.xPos, this.yPos, this.diameter * 0.4);
 
         fill(132, 4, 100, 120);
-        ellipse(xPos, yPos, this.explosion.diameter, this.explosion.diameter);
+        circle(xPos, yPos, this.explosion.diameter);
 
         fill(132, 4, 100, 120);
-        ellipse(xPos, yPos, this.explosion.diameter * 1.2, this.explosion.diameter * 1.2);
+        circle(xPos, yPos, this.explosion.diameter * 1.2);
 
         this.explosion.diameter += 45 * sz;
 
@@ -13874,7 +13903,7 @@ var SonicBoomer = function(xPos, yPos, diameter, colorValue)
         }
 
         fill(50, 4, 200, 123);
-        ellipse(xPos, yPos, this.explosion.diameter2, this.explosion.diameter2);
+        circle(xPos, yPos, this.explosion.diameter2);
 
         this.explosion.diameter2 += 20 * sz;
 
@@ -14035,7 +14064,7 @@ var NinjaStar = function(xPos, yPos, diameter, colorValue)
         {
             noStroke();
             fill(31, 89, 235, 170);
-            ellipse(this.xPos, this.yPos, this.radius * 1.2, this.radius * 1.2);
+            circle(this.xPos, this.yPos, this.radius * 1.2);
         }
     };
 
@@ -14368,7 +14397,7 @@ var LaunchBall = function(xPos, yPos, diameter, colorValue, damage, speed)
     {
         fill(red(this.color), green(this.color), blue(this.color), this.fadeLife * 255 / this.maxFadeLife);
         stroke(11, 93, 140);
-        ellipse(this.xPos, this.yPos, this.diameter, this.diameter);
+        circle(this.xPos, this.yPos, this.diameter);
     };
 
     this.primeMode = function()
@@ -14602,11 +14631,11 @@ var SpaceBreaker = function(xPos, yPos, diameter, colorValue, amt)
     {
         noStroke();
         fill(this.color);
-        ellipse(this.xPos, this.yPos, this.diameter, this.diameter);
+        circle(this.xPos, this.yPos, this.diameter);
 
         fill(0, 60, 120, 140);
-        ellipse(this.xPos - this.dDiameter, this.yPos - this.dDiameter, this.aDiameter, this.aDiameter);
-        ellipse(this.xPos + this.dDiameter, this.yPos - this.dDiameter, this.aDiameter, this.aDiameter);
+        circle(this.xPos - this.dDiameter, this.yPos - this.dDiameter, this.aDiameter);
+        circle(this.xPos + this.dDiameter, this.yPos - this.dDiameter, this.aDiameter);
 
         stroke(11, 93, 140);
 
@@ -14923,7 +14952,7 @@ var NinjaBoss = function(xPos, yPos, width, height)
 {
     Boss.call(this, xPos, yPos, width, height, color(150, 20, 220, 240), {
         charging : true,
-    }, false, 14);
+    }, false, 12);
 
     this.damage = 0.5;
 
@@ -15244,12 +15273,10 @@ var NinjaBoss = function(xPos, yPos, width, height)
 
     this.blowsToTheHead = 0;
 
-    this._lastRemove = this.remove;
+    var _lastRemove = this.remove;
 
     this.remove = function()
     { 
-        this.lastRemove();
-
         if(gameObjects.getObject("player").input(0).maxHp < 15)
         {
             gameObjects.getObject("heart").add(
@@ -15265,9 +15292,14 @@ var NinjaBoss = function(xPos, yPos, width, height)
             heart.minimumYPos = levelInfo.yPos + levelInfo.unitHeight * 11;
 
             cameraGrid.addReference(heart);
-
-            this.remove = function() {};
         }
+
+        _lastRemove.apply(this, arguments);
+
+        this.remove = function() {};
+        this.onCollide = function() {};
+        this.draw = function() {};
+        this.update = function() {};
     };
 
     this._lastOnCollide = this.onCollide;
@@ -15348,38 +15380,6 @@ function createTrack()
         dist += Math.sqrt(dx * dx + dy * dy);
 
         return dist;
-
-        // var dist = 0;
-        // index %= this.length;
-
-        // index--;
-
-        // var dx, dy;
-
-        // if(index > 0)
-        // {
-        //     for(var i = 1; i < index; i++)
-        //     {
-        //         dx = this[i - 1].xPos - this[i].xPos;
-        //         dy = this[i - 1].yPos - this[i].yPos;
-        //         dist += Math.sqrt(dx * dx + dy * dy);
-        //     }
-        // }
-        // else if(index < 0)
-        // {
-        //     index = this.length + index;
-        // }
-        // if(index !== 0)
-        // {
-        //     var l = this.length - 1;
-        //     dx = this[l].xPos - this[0].xPos;
-        //     dy = this[l].yPos - this[0].yPos;
-        //     dist += Math.sqrt(dx * dx + dy * dy);
-        // }
-
-        // dx = point.xPos - this[index].xPos;
-        // dy = point.yPos - this[index].yPos;
-        // return dist + Math.sqrt(dx * dx + dy * dy);
     };
     track.putPointAlong = function(length)
     {
@@ -15488,7 +15488,7 @@ var IceDragon = function(xPos, yPos, width, height)
     Boss.call(this, xPos, yPos, width, height, color(15, 120, 220, 220), {
         charging : true,
         handleEdge : true
-    }, false, 36);
+    }, false, 30);
 
     this.physics.solidObject = true;
 
@@ -15534,7 +15534,7 @@ var IceDragon = function(xPos, yPos, width, height)
             stroke(230, 230, 230, 160);
             for(var i = this.length - 1; i >= 0; i--)
             {
-                ellipse(this[i].xPos, this[i].yPos, 6, 6);
+                circle(this[i].xPos, this[i].yPos, 6);
             }
             noStroke();
         };
@@ -16256,13 +16256,13 @@ var IceDragon = function(xPos, yPos, width, height)
 
         noStroke();
         fill(170, 170, 170, 200);
-        ellipse(_x + cos(this.eyeAngle) * 4.4, 
-                _y + sin(this.eyeAngle) * 4.4, _sub_size, _sub_size);
+        circle(_x + cos(this.eyeAngle) * 4.4, 
+                _y + sin(this.eyeAngle) * 4.4, _sub_size);
 
         strokeWeight(2);
         stroke(0, 0, 130, 100);
         noFill();
-        ellipse(_x, _y, _size, _size);
+        circle(_x, _y, _size);
 
         // Mouth
         strokeWeight(0.1);
@@ -16409,11 +16409,9 @@ var IceDragon = function(xPos, yPos, width, height)
         }
     };
 
-    this._lastRemove = this.remove;
+    var _lastRemove = this.remove;
     this.remove = function()
     { 
-        this.lastRemove();
-
         if(!this.addedHeart && gameObjects.getObject("player").input(0).maxHp < 20)
         {
             gameObjects.getObject("heart").add(
@@ -16432,6 +16430,13 @@ var IceDragon = function(xPos, yPos, width, height)
 
             this.addedHeart = true;
         }
+
+        _lastRemove.apply(this, arguments);
+
+        this.draw = function() {};
+        this.update = function() {};
+        this.onCollide = function() {};
+        this.remove = function() {};
     };
 };
 gameObjects.addObject("iceDragon", createArray(IceDragon));
@@ -16471,7 +16476,7 @@ var XStar = function(xPos, yPos, diameter, colorValue)
 
         noStroke();
         fill(31, 89, 235, 170);
-        ellipse(this.xPos, this.yPos, this.radius * 1.1, this.radius * 1.1);
+        circle(this.xPos, this.yPos, this.radius * 1.1);
     };
 
     this.updateBoundingBox = function()
@@ -17689,7 +17694,7 @@ var BubbleShield = function(xPos, yPos, diameter, colorValue, hp)
         }
 
         fill(this.color);
-        ellipse(this.xPos, this.yPos, this.diameter, this.diameter);
+        circle(this.xPos, this.yPos, this.diameter);
 
         stroke(red(this.color), green(this.color), blue(this.color), 150);
         strokeWeight(10);
@@ -17700,8 +17705,8 @@ var BubbleShield = function(xPos, yPos, diameter, colorValue, hp)
         noStroke();
 
         fill(230, 230, 230, 100);
-        ellipse(this.xPos - this.diameter * 0.2, this.yPos - this.diameter * 0.2, this.diameter * 0.3, this.diameter * 0.3);
-        ellipse(this.xPos - this.diameter * 0.08, this.yPos - this.diameter * 0.4, this.diameter * 0.1, this.diameter * 0.1);
+        circle(this.xPos - this.diameter * 0.2, this.yPos - this.diameter * 0.2, this.diameter * 0.3);
+        circle(this.xPos - this.diameter * 0.08, this.yPos - this.diameter * 0.4, this.diameter * 0.1);
 
         textAlign(CENTER, CENTER);
         textSize(16);
@@ -17982,7 +17987,7 @@ var Wisp = function(xPos, yPos, diameter, colorValue)
                 triangle(this.xPos + this.diameter, this.downY, this.xPos, this.topY, this.xPos, this.downY);
 
                 fill(this.color);
-                ellipse(this.xPos, this.yPos, this.diameter, this.diameter);
+                circle(this.xPos, this.yPos, this.diameter);
 
                 fill(0, 0, 0, 60);
                 triangle(this.xPos, this.yPos - this.diameter, this.xPos - this.radius, this.yPos, this.xPos + this.radius, this.yPos);
@@ -17991,15 +17996,15 @@ var Wisp = function(xPos, yPos, diameter, colorValue)
                 arc(this.xPos, this.yPos, this.diameter - 6, this.diameter - 6, 0, radians(180));
 
                 fill(240, 240, 240, 200);
-                ellipse(this.xPos - 4, this.yPos - 3.4, this.eyeDiameter, this.eyeDiameter);
+                circle(this.xPos - 4, this.yPos - 3.4, this.eyeDiameter);
 
                 fill(240, 240, 240, 200);
-                ellipse(this.xPos + 4, this.yPos - 3.4, this.eyeDiameter, this.eyeDiameter);
+                circle(this.xPos + 4, this.yPos - 3.4, this.eyeDiameter);
                 break;
 
             case "left" :
                 fill(this.color);
-                ellipse(this.xPos, this.yPos, this.diameter, this.diameter);
+                circle(this.xPos, this.yPos, this.diameter);
 
                 fill(0, 0, 0, 60);
                 triangle(this.xPos, this.yPos - this.diameter, this.xPos - this.radius, this.yPos, this.xPos, this.yPos);
@@ -19489,7 +19494,7 @@ var NinjaGuard = function(xPos, yPos, diameter)
     this.draw = function()
     {
         fill(this.color);
-        ellipse(this.xPos, this.yPos, this.diameter, this.diameter);
+        circle(this.xPos, this.yPos, this.diameter);
 
         pushMatrix();
             fill(70, 130, 200, 200);
@@ -19497,7 +19502,7 @@ var NinjaGuard = function(xPos, yPos, diameter)
             scale(this.flip, 1);
             stroke(0, 120, 150);
             strokeWeight(2);
-            ellipse(0, 0, this.diameter * 0.8, this.diameter * 0.8);
+            circle(0, 0, this.diameter * 0.8);
 
             fill(0, 0, 0, 70);
             textSize(this.diameter / 2.5);
@@ -19520,11 +19525,11 @@ var NinjaGuard = function(xPos, yPos, diameter)
             var ox = this.xPos + sin(a + av) * r,
                 oy = this.yPos + cos(a + av) * r;
 
-            ellipse(ox, oy, 8, 8);
+            circle(ox, oy, 8);
 
             for(var a2 = 0; a2 < TWO_PI; a2 += az)
             {
-                ellipse(ox + sin(a2 + ac) * 8, oy + cos(a2 + ac) * 8, 5, 5);
+                circle(ox + sin(a2 + ac) * 8, oy + cos(a2 + ac) * 8, 5);
             }
         }
     };
@@ -19698,7 +19703,7 @@ var NinjaStarShooter = function(xPos, yPos, diameter)
     {
         noStroke();
         fill(this.color);
-        ellipse(this.xPos, this.yPos, this.diameter, this.diameter);
+        circle(this.xPos, this.yPos, this.diameter);
 
         noFill();
         stroke(0, 90, 170);
@@ -19719,10 +19724,10 @@ var NinjaStarShooter = function(xPos, yPos, diameter)
         stroke(0, 0, 0, 100);
         strokeWeight(1);
         var vs = (millis() % 1000 / 1000);
-        ellipse(this.xPos, this.yPos, this.diameter * vs, this.diameter * vs);
+        circle(this.xPos, this.yPos, this.diameter * vs);
 
         vs = ((millis() + 500) % 1000 / 1000);
-        ellipse(this.xPos, this.yPos, this.diameter * vs, this.diameter * vs);
+        circle(this.xPos, this.yPos, this.diameter * vs);
         noStroke();
     };
 
@@ -19878,14 +19883,14 @@ var IceSplicer = function(xPos, yPos, diameter)
         this.halfSize = this.size / 2;
 
         fill(this.color);
-        ellipse(this.xPos, this.yPos, this.halfSize * 2.3, this.halfSize * 2.3);
+        circle(this.xPos, this.yPos, this.halfSize * 2.3);
         pushMatrix();
         translate(this.xPos, this.yPos);
         rotate(this.rectAngle);
         fastRect(-this.halfSize, -this.halfSize, this.size, this.size);
         popMatrix();
         fill(this.color2);
-        ellipse(this.xPos, this.yPos, this.halfSize * 1.6, this.halfSize * 1.6);
+        circle(this.xPos, this.yPos, this.halfSize * 1.6);
 
         if(this.rectAngle > 360 || this.rectAngle < 0)
         {
@@ -19981,7 +19986,7 @@ var Heart = function(xPos, yPos, diameter, amt)
             scale(this.flip, 1);
             noStroke();
             fill(this.color);
-            ellipse(0, 0, this.diameter, this.diameter);
+            circle(0, 0, this.diameter);
 
             textAlign(CENTER, CENTER);
             fill(255, 255, 255, 130);
@@ -20161,7 +20166,7 @@ var Crystal = function(xPos, yPos, diameter, config)
         }
 
         fill(this.color);
-        ellipse(this.xPos, this.yPos, this.diameter, this.diameter);
+        circle(this.xPos, this.yPos, this.diameter);
     };
 
     var inter = (this.kind.startsWithVowel() ? "an " : "a ") + this.kind.upper();
@@ -20251,7 +20256,7 @@ var Lever = function(xPos, yPos, width, height, colorValue)
 
         noStroke();
         fill((this.set) ? color(0, 200, 0, 150) : color(200, 0, 0, 150));
-        ellipse(aX, aY, 10, 10);
+        circle(aX, aY, 10);
 
         stroke(255, 255, 255, 100);
 
@@ -23994,8 +23999,6 @@ var draw = function()
     backgrounds.drawBackground();
     game[game.gameState]();
     screenUtils.update();
-
-    // if(!game)
 };
 
 var lastMouseReleased = mouseReleased;
