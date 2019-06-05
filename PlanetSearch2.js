@@ -739,10 +739,10 @@ var sketch = function(processing) /*Wrapper*/
         Made ice dragon more easy to defeat.
         Fixed boss removal.
         Made image rendering faster.
+        Added hookshot power up.
         
     Next :   
         Maybe will do: 
-            Add grappling hook power up
 
             Improve hp bar to add health and boss name. 
             Add boss key doors.
@@ -807,13 +807,13 @@ var sketch = function(processing) /*Wrapper*/
 ////////////////////////////////////////////////////////////////////\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
 /*****************************************************************Code*********************************************************************/
 ////////////////////////////////////////////////////////////////////\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
-
+  
 var game = {
     fps : 60, 
     loadFps : 160,
     gameState : "start", //Default = "start"
     version : "v0.8.9 beta",
-    fpsType : "manual", //Default = "manual"
+    fpsType : "play", //Default = "manual"
     debugMode : true, //Turn this to true to see the fps
     showDebugPhysics : false,
     boundingBoxes : false,
@@ -14952,7 +14952,7 @@ var NinjaBoss = function(xPos, yPos, width, height)
 {
     Boss.call(this, xPos, yPos, width, height, color(150, 20, 220, 240), {
         charging : true,
-    }, false, 12);
+    }, false, 10);
 
     this.damage = 0.5;
 
@@ -16542,6 +16542,26 @@ var XStar = function(xPos, yPos, diameter, colorValue)
 };
 gameObjects.addObject("xStar", createArray(XStar));
 
+var Point = function(xPos, yPos, diameter)
+{
+    Circle.call(this, xPos, yPos, diameter);
+
+    this.physics.solidObject = false;
+
+    this.draw = function()
+    {   
+        noStroke();
+        fill(125, 125, 125);
+        circle(this.xPos, this.yPos, this.diameter);
+
+        noFill();
+        stroke(0, 0, 0);
+        rect(this.xPos - this.diameter / 2 - 1 + 4, this.yPos - this.diameter / 2 - 1 + 4, this.diameter - 8, this.diameter - 8);
+    };
+};
+
+gameObjects.addObject("point", createArray(Point));
+
 //Npc (Non playable character)
 var Npc = function(xPos, yPos, width, height, colorValue)
 {
@@ -16812,6 +16832,7 @@ var Player = function(xPos, yPos, width, height, colorValue)
         cameraGrid.addReference(self.cast);
     };
 
+    var noop = function() {};
     this.discoveredPowersHandler = {
         currentPower : "",
         addPower : function(name, object)
@@ -16844,7 +16865,14 @@ var Player = function(xPos, yPos, width, height, colorValue)
         {
             if(keyIsPressed)
             {
+                var lastPower = this.currentPower;
                 this.currentPower = self.changePowers[key.toString()] || this.currentPower;
+
+                if(lastPower !== this.currentPower)
+                {
+                    var power = self.discoveredPowers[lastPower];
+                    (power.onExit || noop) (self, power);
+                }
             }
         },
         activate : function()
@@ -16862,17 +16890,17 @@ var Player = function(xPos, yPos, width, height, colorValue)
             if(!pastActive && power.active)
             {
                 power.startTime = millis();
-                (power.start || function() {}) (self, power);
+                (power.start || noop) (self, power);
             }
 
             if(power.active)
             {
-                (power.activate || function() {}) (self, power);
+                (power.activate || noop) (self, power);
             }
             else if(pastActive)
             {
                 power.endTime = millis();
-                (power.end || function() {}) (self, power);
+                (power.end || noop) (self, power);
             }
         },
         avoidDamage : function(object, amt)
@@ -16897,7 +16925,7 @@ var Player = function(xPos, yPos, width, height, colorValue)
             }
 
             var power = self.discoveredPowers[this.currentPower];
-            (power.update || function() {}) (self, power, self.controls.activate() || false);
+            (power.update || noop) (self, power, self.controls.activate() || false);
         },
         draw : function()
         {
@@ -16907,7 +16935,7 @@ var Player = function(xPos, yPos, width, height, colorValue)
             }
 
             var power = self.discoveredPowers[this.currentPower];
-            (power.draw || function() {}) (self, power, self.controls.activate() || false);
+            (power.draw || noop) (self, power, self.controls.activate() || false);
         },
         onCollide : function(object, info)
         {
@@ -16917,8 +16945,18 @@ var Player = function(xPos, yPos, width, height, colorValue)
             }
 
             var power = self.discoveredPowers[this.currentPower];
-            (power.onCollide || function() {}) (self, power, self.controls.activate() || false, object, info);
+            (power.onCollide || noop) (self, power, self.controls.activate() || false, object, info);
         },
+        mousePressed : function()
+        {
+            if(this.currentPower === "")
+            {
+                return;
+            }
+
+            var power = self.discoveredPowers[this.currentPower];
+            (power.mousePressed || noop) (self, power, self.controls.activate() || false); 
+        }
     };
 
     this.getNinjaResMult = function(object)
@@ -19969,6 +20007,283 @@ var IceSplicer = function(xPos, yPos, diameter)
 };
 gameObjects.addObject("iceSplicer", createArray(IceSplicer));
 
+var HookShot = function(xPos, yPos, diameter)
+{
+    Circle.call(this, xPos, yPos, diameter);
+
+    this.messages = {
+        up : true,
+        "start" : {
+            messages : [{
+                message : "You got the ",
+                color : color(255, 255, 255, 160),
+            }, {
+                message : "Hookshot!",
+                color : color(0, 70, 200, 190),
+            }],
+            choices : {
+                "next" : "..."
+            }
+        },
+        "next" : {
+            message : "Use this power up to connect to points.",
+            choices : {
+                "next2" : "..."
+            }
+        },
+        "next2" : {
+            message : "Controls: Right click to connect to a\npoint. (A square in a circle) Right click\noutside of the point to disconnect.",
+            choices : {
+                "next3" : "..."
+            }
+        },
+        "next3" : {
+            message : "Once connected, press up to reel\nyourself in, press down to reel yourself out.",
+            choices : {
+                "exit" : "..."
+            }
+        }
+    };
+
+    this.draw = function()
+    {
+        image(loadedImages["hookShot"], this.xPos - this.radius, this.yPos - this.radius, this.diameter, this.diameter);
+    };
+
+    this.physics.solidObject = false;
+    this.type = "power";
+
+    this.actObject = {
+        description : "Allows you to connect to points like a grappling hook.",
+        key : '4',
+        name : "Hook Shot",
+        onCollide : function(object, power, activateKey, hitObject, info)
+        {
+            // Do something here, not sure what.
+        },
+        vel : 14,
+        maxPutLength : 200 + 23,
+        _maxLength : 170 + 23,
+        traveled : 0,
+        stretched : 0,
+        target : {},
+        position : {
+            x: 0,
+            y: 0,
+        },
+        clickedPoint : function(x, y, object, power)
+        {
+            var place = cameraGrid.getPlace(x, y);
+
+            var cell = cameraGrid[place.col][place.row];
+
+            var point;
+            for(var i in cell)
+            {
+                if(cell[i].arrayName === "point" && 
+                   ((point = gameObjects.getObject("point")[cell[i].index]) !== undefined) &&
+                    Math.pow(x - point.xPos, 2) + Math.pow(y - point.yPos, 2) < point.radius * point.radius * 4)
+                {
+                    power.ox = point.xPos;
+                    power.oy = point.yPos;                    
+                    return true;
+                }
+            }
+
+            return false;
+        },
+        mousePressed : function(object, power)
+        {
+            if(mouseButton !== RIGHT)
+            {
+                return;
+            }
+
+            power.maxLength = power._maxLength;
+            power.maxLengthSq = power.maxLength * power.maxLength;
+
+            /*--------------------------------------------------*/
+
+            power.ox = (cam.focusXPos - cam.halfWidth) + mouseX;
+            power.oy = (cam.focusYPos - cam.halfHeight) + mouseY;
+
+            if(!power.clickedPoint(power.ox, power.oy, object, power))
+            {
+                if(power.working && power.arrived)
+                {
+                    power.exit(object, power);
+                }
+                return;
+            }
+
+            power.working = true;
+            power.arrived = false;
+            power.traveled = 0;
+
+            power.target.x = power.ox;
+            power.target.y = power.oy;
+
+            power.position.x = object.xPos + object.halfWidth;
+            power.position.y = object.yPos + object.halfHeight;
+        },
+        onExit : function(object, power)
+        {
+            power.exit(object, power);
+        },
+        exit : function(object, power)
+        {
+            power.position.x = object.xPos + object.halfWidth;
+            power.position.y = object.yPos + object.halfHeight;
+
+            power.arrived = false;
+            power.working = false;
+            power.traveled = 0;
+            power.stretched = 0;
+        },
+        update : function(object, power)
+        {
+            power.active = true;
+
+            if(!power.working)
+            {
+                return;
+            }
+
+            if(game.gameState === "load")
+            {
+                power.exit(object, power);
+                return;
+            }
+
+            if(!power.arrived)
+            {
+                var dx = power.target.x - power.position.x;
+                var dy = power.target.y - power.position.y;
+
+                var angle = atan2(dy, dx);
+
+                power.position.x += cos(angle) * power.vel;
+                power.position.y += sin(angle) * power.vel;
+                power.traveled += power.vel;
+
+                if(power.traveled > power.maxPutLength)
+                {
+                    power.exit(object, power);
+                }
+
+                if(Math.abs(power.target.x - power.position.x) <= power.vel / 2 && Math.abs(power.target.y - power.position.y) <= power.vel / 2)
+                {
+                    power.position.x = power.ox;
+                    power.position.y = power.oy;
+                    power.arrived = true;
+                }
+            }else{
+                power.hang(object, power);
+            }
+        },
+        hang : function(object, power)
+        {
+            var ox = object.xPos + object.halfWidth;
+            var oy = object.yPos + object.halfHeight;
+
+            var dx = ox - power.position.x;
+            var dy = oy - power.position.y;
+
+            var angle = atan2(dy, dx);
+
+            var lengthSq = dx * dx + dy * dy;
+
+            if(object.controls.up())
+            {
+                object.xPos -= cos(angle);
+                object.yPos -= sin(angle);
+
+                power.maxLength -= 5;
+                power.maxLength = Math.max(0, power.maxLength);
+                power.maxLengthSq = power.maxLength * power.maxLength;
+            }
+            else if(object.controls.down())
+            {
+                object.xPos += cos(angle);
+                object.yPos += sin(angle);
+
+                power.maxLength += 5;
+                power.maxLength = Math.min(power._maxLength, power.maxLength);
+                power.maxLengthSq = power.maxLength * power.maxLength;
+            }
+
+            if(object.controls.left())
+            {
+                object.xPos -= 5;
+            }
+            else if(object.controls.right())
+            {
+                object.xPos += 5;
+            }
+
+            if(lengthSq < power.maxLengthSq)
+            {
+                return;
+            }
+
+            var vel = (power.maxLength - Math.sqrt(lengthSq)) / 6;
+
+            object.xPos += cos(angle) * vel;
+            object.yPos += sin(angle) * vel;
+        },
+        draw : function(object, power)
+        {
+            if(!power.working)
+            {
+                return;
+            }
+
+            stroke(0, 0, 0);
+            strokeWeight(2);
+
+            var ox = object.xPos + object.halfWidth;
+            var oy = object.yPos + object.halfHeight;
+
+            line(ox, oy, power.position.x || ox, power.position.y || oy);
+
+            stroke(0, 0, 0, 100);
+            strokeWeight(0.5);
+            line(power.target.x - 8, power.target.y, power.target.x + 8, power.target.y);
+            line(power.target.x, power.target.y - 8, power.target.x, power.target.y + 8);
+
+            noFill();
+            circle(power.target.x, power.target.y, 16);
+        },
+    };
+
+    this.onCollide = function(object)
+    {
+        if(object.arrayName === "player")
+        {
+            object.xVel = 0;
+            object.yVel = 0;
+
+            if(typeof object.discoveredPowers[this.arrayName] === "undefined")
+            {
+                talkHandler.start(this.messages, "start", "");
+
+                var self = this;
+                talkHandler.onEnd = function()
+                {
+                    self.remove();
+                    self.draw = function() {};
+                };
+            }else{
+                this.remove();
+                this.draw = function() {};
+            }
+
+            object.discoveredPowersHandler.addPower(this.arrayName, this.actObject);
+        }
+    };
+};
+gameObjects.addObject("hookShot", createArray(HookShot));
+
 var Heart = function(xPos, yPos, diameter, amt)
 {
     Circle.call(this, xPos, yPos, diameter);
@@ -22323,6 +22638,10 @@ levels.build = function(plan)
                 case 't' :
                     gameObjects.getObject("spaceBreaker").add(xPos + levelInfo.unitWidth / 2, yPos + levelInfo.unitHeight / 2, levelInfo.unitWidth / 2); 
                     break;
+
+                case '.' :
+                    gameObjects.getObject("point").add(xPos + levelInfo.unitWidth / 2, yPos + levelInfo.unitHeight / 2, levelInfo.unitWidth * 0.7);
+                    break;
             }
             done = (row >= level.plan.length - 1);
         }
@@ -22497,6 +22816,7 @@ loader.update = function()
         screenUtils.load();
         levels.clearCache();
         debugTool.setup();
+        ctx.restore();
 
         this.loadCount = 0;
     }
@@ -23986,6 +24306,18 @@ game.play.keyReleased = function()
 {
     talkHandler.keyReleased();
 };
+game.play.mousePressed = function()
+{
+    var player = gameObjects.getObject("player").input(0);
+
+    try{
+        player.discoveredPowersHandler.mousePressed();
+    }
+    catch(e)
+    {
+        console.log(e);
+    }
+};
 
 game.doCursor = function()
 {
@@ -24296,6 +24628,8 @@ function updateSize(pjs, w, h, w2, h2)
         end();
         
         pjs.popMatrix();
+
+        ctx.restore();
     };
 
     pjs.doAuto();
