@@ -744,27 +744,46 @@ var sketch = function(processing) /*Wrapper*/
         Added 2 more sounds.
         Improved hp bar to add health and boss name. 
         Made a block that costs coins to heal your.
-        Finished the hookshot power up.
-
+        Finished the hookshot power up
+        Fixed a bug dealing with the inventory menu's home page buttons, it had a limited supply!
+        Added boss keys.
+        Added a new room in the Ninja Temple.
+        Fixed the rumble effect.
+        Turned off dark grid in the level in the Ninja Temple, that my dad said was lagging.
+        BubbleShields now allow you to go underwater!
+        Added a bubbleShield in the "underwater" room in the Ninja Temple.
+        Fixed lag in Ninja Temple with the turrets/shooters cause lag +Needed to be easier.
+        Changed from a try catch to a different way, so there won't be an error in the console, 
+        when collecting the key in "ninjaTempleBackyard".
+        IceDragon now moves at the same speed in 30 fps mode.
+        Finished Boss Intros.
+    
     Next :   
-        Maybe will do: 
-
-            Add boss key doors.
-
-            Add boss intros. (with name title)
-          
+        Will do:           
             Add collectable items that you can trade for stuff.
 
             if you get 3 crystals enable teleportation to all warping doors.
 
-            Do something about the underwater level. It doesn't make sense for the player to not have the oxygen bar.
-            Fix the bubble shields. Maybe make bubble shield allows you to go underwater?
-
-            Add auto checkpoints into settings. 
+            Add auto checkpoints into settings.
 
             More NPCs!
 
-    Cannot add anything else here until June 20th
+        Cannot add anything else here until June 20th
+
+    Maybe:
+        More Weapons, shops.
+        Add chest appearing sound effect.
+        
+    In the future:
+        --More overworld levels,
+        --More music/sound effects utilized.
+        --The underground/underwhere
+        --Player's space ship in island in desert.
+        --Space
+        --Talon's SpaceShip
+        --Final boss fight: Talon +Cutscene
+        --Credits
+        --The end.
 
     ===========================================================================================================================================================================
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -1171,7 +1190,7 @@ var storyHandler = {
     }, {
         message : "You are now seperated by thousands\nof miles from your ship."
     }, {
-        message : "You new mission is to find 3 crystals, and harness\ntheir power to find your ship.",
+        message : "Your new mission is to find 3 crystals, and harness\ntheir power to find your ship.",
         time : 270
     }, {
         message : "Now go hero! Choose your path wisely!\nGood luck!"
@@ -1363,11 +1382,11 @@ var saveDataHandler = {
 
             if((keys[LEFT] || keys.a || this.buttons.left.clicked()) && this.saveFiles[0].xPos <= this.props.startSlide)
             {
-                this.props.slide += this.props.slideSpeed;
+                this.props.slide += this.props.slideSpeed * (game.fps === 30 ? 2 : 1);
             }
             else if((keys[RIGHT] || keys.d || this.buttons.right.clicked()) && this.saveFiles[this.saveFiles.length - 1].xPos >= this.props.startSlide)
             {
-                this.props.slide -= this.props.slideSpeed;
+                this.props.slide -= this.props.slideSpeed * (game.fps === 30 ? 2 : 1);
             }
 
             if(this.slid)
@@ -4856,11 +4875,6 @@ var inventoryMenu = {
                 coins : new Button(10, 132 + 18 * 2, 140, 18, color(12, 60, 160, 100), ""),
                 score : new Button(10, 132 + 18 * 3, 140, 18, color(12, 60, 160, 100), ""),
                 k1 : new Button(186, 132 + 18 * 0, 141, 18, color(12, 60, 160, 100), ""),
-                k2 : new Button(186, 132 + 18 * 1, 141, 18, color(12, 60, 160, 100), ""),
-                k3 : new Button(186, 132 + 18 * 2, 141, 18, color(12, 60, 160, 100), ""),
-                k4 : new Button(186, 132 + 18 * 3, 141, 18, color(12, 60, 160, 100), ""),
-                k5 : new Button(186, 132 + 18 * 4, 141, 18, color(12, 60, 160, 100), ""),
-                k6 : new Button(186, 132 + 18 * 5, 141, 18, color(12, 60, 160, 100), ""),
             }
         },
         "chest" : {
@@ -4950,6 +4964,11 @@ var inventoryMenu = {
                     for(var i in player.discoveredPowers)
                     {
                         j++;
+
+                        if(typeof scene.buttons["k" + j] === "undefined")
+                        {
+                            scene.buttons["k" + j] = new Button(186, 132 + 18 * (j - 1), 141, 18, color(12, 60, 160, 100), "");
+                        }
 
                         try{
                             scene.buttons["k" + j].message = player.discoveredPowers[i].name || i;
@@ -5416,6 +5435,16 @@ var inventoryMenu = {
     },
 };
 
+(function() 
+{
+    var _buttons = inventoryMenu.scenes.home.buttons;
+
+    for(var i = 1; i < 40; i++)
+    {
+        _buttons["k" + i] = new Button(186, 132 + 18 * (i - 1), 141, 18, color(12, 60, 160, 100), "");
+    }
+})();
+
 var _this = this;
 
 var debugTool = {
@@ -5529,6 +5558,7 @@ var screenUtils = {
     shakeOffY : 0,
     lastShakeTime : millis(),
     shakeTime : 0,
+    lastShakeChangeTime : 0,
     newShakeScreen : function(time, intensityX, intensityY, shakeInterval)
     {
         this.shakeTime = time;
@@ -5555,6 +5585,7 @@ var screenUtils = {
         {
             this.shakeOffX = random(-this.intensityX, this.intensityX);
             this.shakeOffY = random(-this.intensityY, this.intensityY);
+
             this.lastShakeChangeTime = millis();
         }
 
@@ -5680,14 +5711,14 @@ var screenUtils = {
             airMeter.xPos = HALF_WIDTH - airMeter.halfWidth;
             var between = airMeter.width > 0 && airMeter.width < airMeter.defaultWidth;
 
-            if((between || airMeter.using) && !levelInfo.inWater)
+            if((between || airMeter.using) && !player.bubbleShield)
             {
                 if(player.air > 0 || millis() % 750 >= 375)
                 {
                     if((millis() + 400) % 40 > 22 || between || !airMeter.msg)
                     {
                         airMeter.set(round(player.air), player.maxAir);
-                        airMeter.msg = (!levelInfo.inWater) ? ("Oxygen " + round(player.air) + "/" + player.maxAir) : ("Oxygen " + round(player.air) + "/" + player.maxAir);
+                        airMeter.msg = ("Oxygen " + round(player.air) + "/" + player.maxAir);
                     }
 
                     airMeter.draw();
@@ -5877,8 +5908,37 @@ var screenUtils = {
                     var inputText = player.goto.keysHolding[i].level + ",\nDoor " + player.goto.keysHolding[i].symbol;
                     fill(0, 12, 12, 150);
                     var xOff2 = -(textWidth(inputText) - 35);
-                    rect(330 + xOff + xOff2, 290 + yOff + x, textWidth(inputText) + 27, 31, 10);
-                    shapes.key(336 + xOff + xOff2, 297 + yOff + x, 9, 18);
+
+
+                     rect(330 + xOff + xOff2, 290 + yOff + x, textWidth(inputText) + 27, 31, 10);
+                    if(player.goto.keysHolding[i].style === "boss")
+                    {   
+                        (function(x, y, w, h)
+                        {
+                            var unitW = w / 3;
+                            var unitH = h / 6;
+                            var unitW2 = unitW * 2;
+                            var unitH2 = unitH * 2;
+
+                            noStroke();
+                            fill(35, 210 - 60, 160);
+                            fastRect(x + unitW * 2, y + 4 * unitH, 0.6 * unitW, unitH * 0.7);
+                            fastRect(x + unitW * 2, y + 5.3 * unitH, unitW, unitH * 0.7);
+                            fill(35, 210, 70);
+                            fastRect(x + unitW, y + unitH * 3, unitW, unitH * 3);
+                            fill(35, 210 - 80, 160);
+                            fastRect(x, y, unitW2, unitH);
+                            fill(35, 210 - 60, 160);
+                            fastRect(x + unitW2, y, unitW, unitH2);
+                            fill(35, 210 - 40, 160);
+                            fastRect(x + unitW, y + unitH2, unitW2, unitH);
+                            fill(35, 210 - 20, 160);
+                            fastRect(x, y + unitH, unitW, unitH2);
+                        })(336 + xOff + xOff2, 297 + yOff + x, 9, 18);
+                    }else{
+                        shapes.key(336 + xOff + xOff2, 297 + yOff + x, 9, 18);
+                    }
+
                     fill(230, 230, 230, 100);
                     text(inputText, 350 + xOff + xOff2, 305 + yOff + x);
                     j++;
@@ -6384,6 +6444,14 @@ var screenUtils = {
         this.loadingScreen();
         fpsCatcher.update();
 
+        if(levelInfo.rumble !== undefined && millis() - this.lastRumbleTime > this.intervalRumbleTime)
+        {
+            screenUtils.newShakeScreen(500, levelInfo.rumble, levelInfo.rumble, 26);
+            
+            this.lastRumbleTime = millis();
+            this.intervalRumbleTime = 1200;
+        }
+
         if(game.noCursor)
         {
             noCursor();
@@ -6395,8 +6463,10 @@ var screenUtils = {
             cursor(game.cursor);
         }else{
             cursor(ARROW);
-        }
+        }   
     },
+    lastRumbleTime : millis(),
+    intervalRumbleTime : 1200
 };
 
 ////////////////////////////////////////////////////////////////////\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
@@ -9281,17 +9351,22 @@ var Water = function(xPos, yPos, width, height, colorValue)
         this.physics.movement = (millis() % (3000 + this.offMillis) >= 2970 + this.offMillis) ? "dynamic" : "static"; 
     };
 
+    this.lastDepleteBubbleShieldHp = millis();
+
     this.onCollide = function(object)
     {
         if(object.air !== undefined && !object.breathing)
         {
-            if(this.width > levelInfo.unitWidth && this.height > levelInfo.unitHeight)
+            if(!object.bubbleShield)
             {
-                object.air -= (object.downBreathSpeed || 0.25) * 5;
-                object.air = max(object.air, 0);
-            }else{
-                object.air -= object.downBreathSpeed || 0.25;
-                object.air = max(object.air, 0);
+                if(this.width > levelInfo.unitWidth && this.height > levelInfo.unitHeight)
+                {
+                    object.air -= (object.downBreathSpeed || 0.25) * 5;
+                    object.air = max(object.air, 0);
+                }else{
+                    object.air -= object.downBreathSpeed || 0.25;
+                    object.air = max(object.air, 0);
+                }
             }
         }
         if(object.physics.movement === "dynamic" && 
@@ -11146,6 +11221,34 @@ var Key = function(xPos, yPos, width, height, colorValue)
         }
 
         this.lastDraw();
+
+        if(this.goto.style === "boss")
+        {
+            var w = width;
+            var h = height;
+            var x = xPos;
+            var y = yPos;
+
+            var unitW = w / 3;
+            var unitH = h / 6;
+            var unitW2 = unitW * 2;
+            var unitH2 = unitH * 2;
+
+            noStroke();
+            fill(35, 210 - 60, 160);
+            fastRect(x + unitW * 2, y + 4 * unitH, 0.6 * unitW, unitH * 0.7);
+            fastRect(x + unitW * 2, y + 5.3 * unitH, unitW, unitH * 0.7);
+            fill(35, 210, 70);
+            fastRect(x + unitW, y + unitH * 3, unitW, unitH * 3);
+            fill(35, 210 - 80, 160);
+            fastRect(x, y, unitW2, unitH);
+            fill(35, 210 - 60, 160);
+            fastRect(x + unitW2, y, unitW, unitH2);
+            fill(35, 210 - 40, 160);
+            fastRect(x + unitW, y + unitH2, unitW2, unitH);
+            fill(35, 210 - 20, 160);
+            fastRect(x, y + unitH, unitW, unitH2);
+        }
         
         if(this.msgWidth === undefined)
         {
@@ -17599,9 +17702,9 @@ var Player = function(xPos, yPos, width, height, colorValue)
             this.air = min(this.air, this.maxAir);
         }
 
-        if(levelInfo.inWater)
+        if((this.inLiquid || levelInfo.inWater) && this.bubbleShield && this.bubbleShield.hp > 0)
         {
-            this.air = this.maxAir;
+            this.bubbleShield.hp -= 0.04;
         }
 
         if(this.inLiquid)
@@ -17618,7 +17721,7 @@ var Player = function(xPos, yPos, width, height, colorValue)
             this.cast = undefined;
         }
 
-        if(this.air <= 0 && millis() % 700 >= 680)
+        if(this.air <= 0 && millis() % 700 >= 650)
         {
             this.hp -= 1;
         }
@@ -19832,7 +19935,7 @@ var NinjaStarShooter = function(xPos, yPos, diameter)
     this.messages = {
         "start" : {
             messages : [{
-                message : "You got another power-up ",
+                message : "You got another power-up\n",
                 color : color(255, 255, 255, 160),
             }, {
                 message : "Ninja Star Shooter!",
@@ -20004,7 +20107,7 @@ var IceSplicer = function(xPos, yPos, diameter)
     };
 
     this.actObject = {
-        description : "Only splice/break ice that is light blue but not clear. with 'z' or 'l'!\nIf it doesn't work, try throwing yourself at the ice.",
+        description : "Only splice/break ice that is light blue but not clear. With\n'z' or 'l'! If it doesn't work, try throwing yourself at the ice.",
         key : '3',
         name : "Ice Splicer",
         lastRemoveTime : 0,
@@ -20104,9 +20207,9 @@ var HookShot = function(xPos, yPos, diameter)
         {
             // Do something here, not sure what.
         },
-        vel : 14,
-        maxPutLength : 200 - 10,
-        _maxLength : 170 - 10,
+        vel : 10,
+        maxPutLength : 200 + 40,
+        _maxLength : 170 + 20,
         traveled : 0,
         stretched : 0,
         target : {},
@@ -20125,11 +20228,84 @@ var HookShot = function(xPos, yPos, diameter)
             {
                 if(cell[i].arrayName === "point" && 
                    ((point = gameObjects.getObject("point")[cell[i].index]) !== undefined) &&
-                    Math.pow(x - point.xPos, 2) + Math.pow(y - point.yPos, 2) < point.radius * point.radius * 4)
+                    Math.pow(x - point.xPos, 2) + Math.pow(y - point.yPos, 2) < point.radius * point.radius * 5)
                 {
                     power.ox = point.xPos;
                     power.oy = point.yPos;                    
                     return true;
+                }
+            }
+
+            return false;
+        },
+        clickedRect : function(x, y, object, power)
+        {
+            var place = cameraGrid.getPlace(x, y);
+
+            var cell = cameraGrid[place.col][place.row];
+
+            var setObject;
+            for(var i in cell)
+            {
+                if(((setObject = gameObjects.getObject(cell[i].arrayName)[cell[i].index]) !== undefined) && 
+                    setObject.physics.solidObject && setObject.physics.shape === "rect" && setObject.physics.movement === "static" &&
+                    x > setObject.xPos && x < setObject.width + setObject.xPos && 
+                    y > setObject.yPos && y < setObject.height + setObject.yPos)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        },
+        objectInWay : function(object, power)
+        {
+            var x = power.position.x;
+            var y = power.position.y;
+
+            // var place = cameraGrid.getPlace(object.xPo, object.yPos + object.halfHeight);
+            // var cell = cameraGrid[place.col][place.row];
+
+            var mx = object.xPos + object.halfWidth;
+            var my = object.yPos + object.halfHeight;
+            var colliding = observer.collisionTypes.rectrect.colliding;
+
+            var oDown = object.yPos + object.height;
+            var oRight = object.xPos + object.width;
+
+            var d = 100 * 100;
+
+            cameraGrid.addReference(object);
+
+            var col, row, i, cell, setObject, down, right, dx, dy;
+
+            for(col = object._places.upperLeft.col; col < object._places.lowerRight.col; col++)
+            {
+                for(row = object._places.upperLeft.row; row < object._places.lowerRight.row; row++)
+                {
+                    cell = cameraGrid[col][row];
+                    for(i in cell)
+                    {
+                        if(((setObject = gameObjects.getObject(cell[i].arrayName)[cell[i].index]) !== undefined) && 
+                            setObject.physics.solidObject && setObject.physics.shape === "rect" && setObject.physics.movement === "static")
+                        {
+                            down = setObject.yPos + setObject.height;
+                            right = setObject.xPos + setObject.width;
+
+                            dx = setObject.xPos + setObject.halfWidth - mx;
+                            dy = setObject.yPos + setObject.halfHeight - my;
+
+                            if(dy * dy + dx * dx < d && 
+                                (object.yPos >= down && y < down ||                       
+                                oDown <= setObject.yPos && y > setObject.yPos || 
+
+                                object.xPos >= right && x < right ||                       
+                                oRight <= setObject.xPos && x > setObject.xPos))
+                            {
+                                return true;
+                            }
+                        }
+                    }
                 }
             }
 
@@ -20150,14 +20326,14 @@ var HookShot = function(xPos, yPos, diameter)
             power.ox = (cam.focusXPos - cam.halfWidth) + mouseX;
             power.oy = (cam.focusYPos - cam.halfHeight) + mouseY;
 
-            if(!power.clickedPoint(power.ox, power.oy, object, power))
-            {
-                if(power.working && power.arrived)
-                {
-                    power.exit(object, power);
-                }
-                return;
-            }
+            // if(!power.clickedPoint(power.ox, power.oy, object, power))
+            // {
+            //     if(power.working && power.arrived)
+            //     {
+            //         power.exit(object, power);
+            //     }
+            //     return;
+            // }
 
             power.working = true;
             power.arrived = false;
@@ -20174,7 +20350,10 @@ var HookShot = function(xPos, yPos, diameter)
             delete power.angle;
             delete power.swing;
             delete power.length;
+            delete power.toAngle;
             delete power.angleVel;
+
+            power.hanging = false;
         },
         onExit : function(object, power)
         {
@@ -20195,6 +20374,9 @@ var HookShot = function(xPos, yPos, diameter)
             delete power.swing;
             delete power.length;
             delete power.angleVel;
+            delete power.toAngle;
+
+            power.hanging = false;
         },
         update : function(object, power)
         {
@@ -20213,30 +20395,69 @@ var HookShot = function(xPos, yPos, diameter)
 
             if(!power.arrived)
             {
-                var dx = power.target.x - power.position.x;
-                var dy = power.target.y - power.position.y;
+                if(power.toAngle === undefined)
+                {
+                    var dx = power.target.x - power.position.x;
+                    var dy = power.target.y - power.position.y;
+
+                    power.toAngle = atan2(dy, dx);
+
+                    power.maxLength = 1;
+                }
+
+                power.position.x += cos(power.toAngle) * power.vel;
+                power.position.y += sin(power.toAngle) * power.vel;
+                power.traveled += power.vel;
+
+                if(power.traveled > power.maxPutLength || power.clickedRect(power.position.x, power.position.y, object, power))
+                {
+                    power.exit(object, power);
+                    return;
+                }
+
+                // if(Math.abs(power.target.x - power.position.x) <= power.vel / 2 && Math.abs(power.target.y - power.position.y) <= power.vel / 2)
+                if(power.clickedPoint(power.position.x, power.position.y, object, power))
+                {
+                    power.target.x = power.position.x = power.ox;
+                    power.target.y = power.position.y = power.oy;
+                    power.maxLength = dist(object.xPos + object.halfWidth, object.yPos + object.halfHeight, power.position.x, power.position.y);
+                    power.arrived = true;
+                }
+            }else{
+                if(!power.objectInWay(object, power))
+                {
+                    power.maxLength -= 4;
+                }
+
+                var dx = object.xPos + object.halfWidth - power.position.x;
+                var dy = object.yPos + object.halfHeight - power.position.y;
 
                 var angle = atan2(dy, dx);
 
-                power.position.x += cos(angle) * power.vel;
-                power.position.y += sin(angle) * power.vel;
-                power.traveled += power.vel;
+                power.maxLength = max(1, power.maxLength);
 
-                if(power.traveled > power.maxPutLength)
+                // object.xPos = ((power.position.x + cos(angle) * power.maxLength) - object.halfWidth);
+                // object.yPos = ((power.position.y + sin(angle) * power.maxLength) - object.halfHeight);
+
+                object.xPos -= (object.xPos - ((power.position.x + cos(angle) * power.maxLength) - object.halfWidth)) / 3;
+                object.yPos -= (object.yPos - ((power.position.y + sin(angle) * power.maxLength) - object.halfHeight)) / 3;
+
+                if(object.controls.down())
+                {
+                    // Go down here.
+                }
+
+                if(mouseIsPressed && mouseButton === RIGHT)
+                { 
+                    // power.exit(object, power);
+                    // power.maxLength += 20;
+                    power.mousePressed(object, power);
+                    power.mousePressed(object, power);
+                }
+                else if(keys[" "])
                 {
                     power.exit(object, power);
                 }
-
-                if(Math.abs(power.target.x - power.position.x) <= power.vel / 2 && Math.abs(power.target.y - power.position.y) <= power.vel / 2)
-                {
-                    power.position.x = power.ox;
-                    power.position.y = power.oy;
-                    power.arrived = true;
-                }
-
-                power.notHanging = true;
-            }else{
-                power.hang(object, power);
             }
         },
         hang : function(object, power)
@@ -20297,7 +20518,7 @@ var HookShot = function(xPos, yPos, diameter)
                 
                 // Get angle based on time and theta.
                 var angle = HALF_PI + Math.min(theta * sin(power.rate * loops), Math.PI);
-                window.angle = angle;
+                // console.log(power.rate, power.momentum);
 
                 // Update time for next loop
                 loops += speed;
@@ -20338,7 +20559,7 @@ var HookShot = function(xPos, yPos, diameter)
 
                 if(object.controls.left() && angle <= HALF_PI)
                 {
-                    if(angle >= (Math.PI / 2 + theta / 2) - 0.1)
+                    if(angle >= (HALF_PI + theta / 2) - 0.1)
                     {
                         power.momentum += swing;
                         onEdge = true;
@@ -20375,28 +20596,34 @@ var HookShot = function(xPos, yPos, diameter)
                 }
                 power.momentum = max(0, power.momentum);
 
-                // Set point based on angle and length.
-                object.xPos -= (object.xPos - ((power.position.x + cos(angle) * length) - object.halfWidth)) / 5;
-                object.yPos -= (object.yPos - ((power.position.y + sin(angle) * length) - object.halfHeight)) / 5;
-
                 if(!onEdge)
                 {
-                    if(object.controls.up())
+                    if(object.controls.up() && abs(HALF_PI - angle) < 12 * DEG_TO_RAD)// && abs(HALF_PI - angle) < 30 * DEG_TO_RAD)
                     {
-                        power.maxLength -= 4;
+                        power.maxLength -= 1;
                         power.maxLength = Math.max(2, power.maxLength);
                         power.maxLengthSq = power.maxLength * power.maxLength;
+
+                        if(power.maxLength < 3)
+                        {
+                            swing = 0;
+                            power.momentum = 0;
+                            power.maxLength = 3.1;
+                            return;
+                        }
 
                         if(power.maxLength > 2)
                         {
                             power.setAngle = angle;
                             power.setLength = power.maxLength;
                             power.set = true;
+
+                            return;
                         }
                     }
-                    if(object.controls.down())
+                    if(object.controls.down() && abs(HALF_PI - angle) < 12 * DEG_TO_RAD)
                     {
-                        power.maxLength += 4;
+                        power.maxLength += 1;
                         power.maxLength = Math.min(power._maxLength, power.maxLength);
                         power.maxLengthSq = power.maxLength * power.maxLength;
 
@@ -20405,9 +20632,15 @@ var HookShot = function(xPos, yPos, diameter)
                             power.setAngle = angle;
                             power.setLength = power.maxLength;
                             power.set = true;
+
+                            return;
                         }
                     }
                 }
+
+                // Set point based on angle and length.
+                object.xPos -= (object.xPos - ((power.position.x + cos(angle) * length) - object.halfWidth)) / 5;
+                object.yPos -= (object.yPos - ((power.position.y + sin(angle) * length) - object.halfHeight)) / 5;
             }
         },
         draw : function(object, power)
@@ -21233,13 +21466,13 @@ var levelScripts = {
 
                     if(chest.goto.unHideTimer >= 1000)
                     {
-                        try{
-                            var key1 = gameObjects.getObject("key").getLast();
-                            key1.goto.hidden = false;
-                        }
-                        catch(e)
+                        var key1 = gameObjects.getObject("key").getLast();
+                        if(typeof key1 === "object" && typeof key1.goto === "object")
                         {
-                            console.log(e);
+                            key1.goto.hidden = false;
+                        }else{
+                            // Okay so the key does not exist.
+                            // Because the player already opened the door or collected it.
                         }
                     }
 
@@ -21367,6 +21600,40 @@ var levelScripts = {
                 this.state = -this.spikeSpeed;
                 this.doneThis = true;
                 return;
+            }
+
+            if(!this.usedIntro)
+            {
+                var started = millis();
+                this.createdMessage = false;
+                game.cutScening = true;
+
+                var _this = this;
+                cam.attach(function()
+                {   
+                    var ninjaBoss = gameObjects.getObject("ninjaBoss").input(0);
+
+                    if(millis() - started > 1000 && !_this.createdMessage)
+                    {
+                        screenUtils.createMessage("Ninja Boss", 200, 180, 150, 30,
+                        {
+                            textSize : 13,
+                            textColor : color(250, 250, 250, 300),
+                        });
+
+                        _this.createdMessage = true;
+
+                        ninjaBoss.update();
+                    }   
+
+                    return ninjaBoss;
+                },
+                false, 3000, function()
+                {
+                    game.cutScening = false;
+                });
+
+                this.usedIntro = true;
             }
 
             spikes.forEach(function(element, index, array)
@@ -21851,6 +22118,38 @@ var levelScripts = {
         {
             var iceDragon = gameObjects.getObject("iceDragon").input(0);
 
+            if(!this.usedIntro && iceDragon.nodes.length > 3)
+            {
+                var started = millis();
+                this.createdMessage = false;
+                game.cutScening = true;
+
+                var _this = this;
+                cam.attach(function()
+                {   
+                    var iceDragon = gameObjects.getObject("iceDragon").input(0);
+
+                    if(millis() - started > 1000 && !_this.createdMessage)
+                    {
+                        screenUtils.createMessage("Ice Dragon", 200, 180, 150, 30,
+                        {
+                            textSize : 13,
+                            textColor : color(250, 250, 250, 300),
+                        });
+
+                        _this.createdMessage = true;
+                    }   
+
+                    return iceDragon;
+                },
+                false, 5500, function()
+                {
+                    game.cutScening = false;
+                });
+
+                this.usedIntro = true;
+            }
+
             // Prevent game from crashing if there is no ice dragon which there should be.
             if(iceDragon.fake)
             {
@@ -21884,6 +22183,11 @@ var levelScripts = {
             }
 
             iceDragon.update(true);
+
+            if(Number(game.fps) === 30)
+            {
+                iceDragon.update(true);
+            }
 
             var player = gameObjects.getObject("player")[0];
             iceDragon.applyCollision(player);
@@ -22195,6 +22499,13 @@ levels.applySettings = function(level)
     if(levelInfo.useFlypis)
     {
         game.addFlypis();
+    }
+
+    if(level.rumble !== undefined)
+    {   
+        levelInfo.rumble = level.rumble;
+    }else{
+        delete levelInfo.rumble;
     }
 
     levelInfo.backgroundDarkGrid = (level.backgroundDarkGrid || configLevel.backgroundDarkGrid);

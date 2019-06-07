@@ -131,17 +131,19 @@ sounds.addSound("coin.mp3");
 sounds.addSound("dooropen.mp3");
 sounds.addSound("quickBoom.wav");
 sounds.addSound("zoom1.wav");
-sounds.addSound("soup4.wav");
-sounds.addSound("zooba.wav");
+// sounds.addSound("soup4.wav");
+// sounds.addSound("zooba.wav");
 sounds.addSound("whoo.wav");
 sounds.addSound("hit2.mp3");
 sounds.addSound("Explosion5.wav");
-sounds.addSound("smchoof.wav");
+// sounds.addSound("smchoof.wav");
 
 //Made with beepbox
-sounds.addSound("StepUp.wav", "song");
+// sounds.addSound("StepUp.wav", "song");
 sounds.addSound("StepUpv2.wav", "song");
 
 // This stuff einkurogane
 sounds.addSound("PS2.mp3", "song");
-sounds.addSound("PS2-8bit.mp3", "song");
+// sounds.addSound("PS2-8bit.mp3", "song");
+sounds.addSound("icy_slopes_ps2-short.mp3", "song");
+// sounds.addSound("icy_slopes_8bit-ps2-short.mp3", "song");

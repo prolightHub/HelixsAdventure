@@ -1409,12 +1409,10 @@ var levels = {
     "ninjaTempleTerminal" : {
         theme : "ninjaTemple",
         removeArraysToSave : ["hpCoin"],
-        darkGrid : true,
         doors : {
             'a' : {
                 level : "ninjaTempleBackyard",
                 symbol : 'b',
-                // locked : true,
             },
             'b' : {
                 level : "ninjaTempleTank",
@@ -1442,7 +1440,7 @@ var levels = {
             ">                             <",
             ">                             <",
             ">      bbbbbbbbbbbbbbbbbbbbbbb<",
-            ">                 %     %     <",
+            ">                 %           <",
             ">                             <",
             ">                             <",
             ">                             <",
@@ -1487,6 +1485,18 @@ var levels = {
                 symbol : 'a',
             },
         },
+        chests : {
+            'a' : {
+                regen : true,
+                drops : [{
+                    contains : "bubbleShield",
+                    total : true,
+                    xPos : 80,
+                    yPos : -50,
+                    diameter : 40,
+                }],
+            },
+        },
         plan : [
             "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
             "PPPPPPPBPPPPPPPPPPPPPPPPPPPPPPbPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP",
@@ -1500,8 +1510,8 @@ var levels = {
             "Po                          e      EE                    i          E                *  PPP   hoh                     c         c                     cc            ^b",
             "Po                                      e      E       O       o                E  e    PPP    h              i      h h                                           bi ",
             "Po                     EE                                               *i    O         PPP            b     c i      c    b       i       i     i  h h  i     ibbbi  ",
-            "Poa     b   c                                     cc              cc   ii               PPP           b       c i         b       i       c i     i  h  i      b      ",
-            "PoD f   D   D      |     | |          |     |             *            i  |       |     PPP          b       c c i       b       i i     c c i     i   i       b   t  ",
+            "Poa     b   c  a                                  cc              cc   ii               PPP           b       c i         b       i       c i     i  h  i      b      ",
+            "PoD f p D   D  [   |     | |          |     |             *            i  |       |     PPP          b       c c i       b       i i     c c i     i   i       b   t  ",
             "bbbbbbbbbbbbbPPPPPPPPPPPPPPPPPPPPPPPPPP     PPPPPPPPPPPPPPPPPP    PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP",
             "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbP     PbbbbbbbbbbbbbbbbP    Pbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
         ],
@@ -1541,6 +1551,52 @@ var levels = {
             "PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP",
         ],
     }, 
+    "ninjaTempleKeyRoom" : {
+        theme : "ninjaTemple",
+        doors : {
+            'a' : {
+                level : "behindTheNinjaTemple",
+                symbol : 'c'
+            }
+        },
+        keys : {
+            'a' : {
+                level : "ninjaTempleHallway",
+                symbol : 'b',
+                boss : true
+            }
+        },
+        rumble : 1,
+        plan : [
+            "                                                  ",
+            "                                                  ",
+            "                                                  ",
+            "                                                  ",
+            "                                               a  ",
+            "                                               K  ",
+            " A   A   A       A           A   A   A   A   A  UA",
+            " b b b b b b b b b b b b b b b b b b b b b b b bUb",
+            "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbUb",
+            "bFFFF  FFFFF  FFFFFFF  FFF FFFFFFF   FFFF  FFFF Ub",
+            "bu    u    u    u    u    u    u    u    u    u Ub",
+            "b                                                b",
+            "ba   /    |                   /    |         |  Ub",
+            "bD   /    /                   /    /         /  Ub",
+            "bPPPPPPPFFFFFF     PFFF   FFFFPPP FFFF   FFF FFFPb",
+            "bbbbb b b  bb  b                bb b bb    b bbbbb",
+            "bbb                                            bbb",
+            "bb                                               b",
+            "b                                                b",
+            "b                                               bb",
+            "bb                                              bb",
+            "bb                                              b ",
+            "bb                                              b ",
+            "/b                                           bbbbb",
+            "/bbb                                         /  bb",
+            "bb /                                         /  b ",
+            "b  /                                         /  / ",
+        ]
+    },
     "behindTheNinjaTemple" : {
         theme : "ninjaTemple",
         useFlypis : true,
@@ -1552,6 +1608,10 @@ var levels = {
             'b' : {
                 level : "ninjaTempleHallway",
                 symbol : 'a',
+            },
+            'c' : {
+                level : "ninjaTempleKeyRoom",
+                symbol : 'a'
             }
         },
         plan : [
@@ -1563,9 +1623,9 @@ var levels = {
             "                                                                                                                         rbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbl  A  A  A  A  A  A",
             "                                                                                                                        bbiiibFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFbiiibbbbbbbbbbbbbbbbbbb",
             "                                                                                                                        biiiibu   u   u   u   u   u   u   u   u   u   u   u   u   u   u   biiiiFFFFFFFFFFFFFFFFFF",
-            "                                                                                                                        bbiiib                                                           bbiiibbbbbbbbbbbbbbbbbbb",
-            "                                                                                                                        R bbbb          |     |     |     |  |     |     |     |         DbbbbL  V  V  V  V  V  V",
-            "                                                                                                                          R bbb         /     /     /     /  /     /     /     /         bbbL                    ",
+            "                                                                                                                        bbiiibc                                                          bbiiibbbbbbbbbbbbbbbbbbb",
+            "                                                                                                                        R bbbbD         |     |     |     |  |     |     |     |         DbbbbL  V  V  V  V  V  V",
+            "                                                                                                                          R bbb   p  f  /     /     /     /  /     /     /     /         bbbL                    ",
             "                                                                                                                            R bbbbbbbbbbPPPPPPPPPPPPPPPPPP/UU/PPPPPPPPPPPPPPPPPPbbbbbbbbbbL                      ",
             "                                                                                                                                V  V  R bbbbbbbbbbbbbbbiPP/UU/PPibbbbbbbbbbbbbbbL  V  V                          ",
             "                                                                                                                                        R bbbbbbbbbbbbbiPP/UU/PPibbbbbbbbbbbbbL                                  ",
@@ -1631,9 +1691,9 @@ var levels = {
             "APPPPPA     A     A     A     A     A     APPPPPA  APPPPPA     A     A     A     A     A     APPPPPA     A     A     A     A     APPPPPA     A      bFFFF/U  U/FFFFb      A     A     A                          ",                                                   
             "PPPPPPP b b b b b b b b b b b b b b b b b PPPPPPPPPPPPPPPP b b b b b b b b b b b b b b b b b PPPPPPP b b b b b b b b b b b b b b PPPPPPP b b b b b |^^^^^/U  U/^^^^^| b b b b b b b b b b                        ",                                                   
             "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbFUUFbbbbbbbbbbbbbbbbbbbbbbbbbbbbb                      ",                                                     
-            "bbFaFbb                                   bb h bP  Pb c bb                                   bb h bb                             bb   bb                  FUUF              bbFFFbbVFFFFFFb                      ",
+            "bbFaFbb                                   bb h bP  Pb c bb                                   bb h bb                             bb h bb                  FUUF              bbFFFbbVFFFFFFb                      ",
             "bbFDFbb                                   bbhhhbv  vbcccbb                                   bbhhhbb                             bbhhhbb                  FUUF              bVbFbVFFFFFFFFb                      ",
-            "b FFF P                                   PV h VP  PV c VP                                   PV h VP                             PV   VP                  FUUF              bFFbbFFFFAbbbFb                      ",
+            "b FFF P                                   PV h VP  PV c VP                                   PV h VP                             PV h VP                  FUUF              bFFbbFFFFAbbbFb                      ",
             "b     P     |     |     |     |     |     P     P  P     P     |     |     |     |     |     P     P     |     |     |     |     P     P     |     |     |FUUF|     |     | bFFFbbbbbbbFFFb                      ",
             "b     P     /     /     /     /     /     P     P  P     P     /     /     /     /     /     P     P     /     /     /     /     P     P     /     /     /FUUF/     /     / bbbbbbFFbbFFFFb                      ",
             "b| f |P  p  /     /     /     /   I /     P|   |P  P|   |P     /     /  I  /     /     /     P|   |P     /     /     /   I /     P     P     /     /     /FUUF/     /     / bFFFFbbbFFbFbbb                      ",
@@ -1654,7 +1714,8 @@ var levels = {
             'b' : {
                 level : "ninjaTempleBossRoom",
                 symbol : 'a',
-                style : "boss"
+                style : "boss",
+                locked : true
             },
             'c' : {
                 level : "ninjaTempleHub",
@@ -1721,13 +1782,13 @@ var levels = {
             "b                       b",
             "b                       b",
             "b                       b",
-            "b                       b",
-            "b                       b",
-            "b                       b",
             "b          a            b",
             "b          B            b",
+            "b                       b",
+            "b                       b",
+            "b                       b",
             "ba                     bb",
-            "bD       p  z          Db",
+            "bD p        z          Db",
             "bbbbbbbbbbbbbbbbbbbbbbbbb",
         ],
     },
@@ -2837,7 +2898,8 @@ var levels = {
             'b' : {
                 level: "IceDragon",
                 symbol : 'a',
-                style : "boss"
+                style : "boss",
+                locked : true
             }
         },
         signs : {
@@ -2845,13 +2907,20 @@ var levels = {
                 message : "Time for a swim"
             }
         },
+        keys : {
+            'a' : { 
+                level : "mountain2",
+                symbol : 'b',
+                style : "boss"
+            }
+        },
         plan : [
             "bbbbbiiiiiiibbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbiiiiiiiiiiiiiiiiii",
             "iiiiii IIIIiiiiIIIIIIIIiiiiiiiiiiiiiiiiiiiIIIIIiiiiiiiiiiiiiiiiiiiibbiiiiiiiiL  V        V ",
             "           III           V           V       V   IIIIIIIIIIIIIIiiiiiiiiiiL                 ",
             "                                                            IIIiiiiiiiii                   ",
-            "                                                             IiiiiiiiL                     ",
-            "                                                  b  b    b                                ",
+            "                                                        a    IiiiiiiiL                     ",
+            "                                                  b  b  K b                                ",
             "                                                 bbbbbbbbbb                                ",
             "  bb                 hh           hh             bbbbbbbbbb       a        h               ",
             "T DD T QQ f                                      bbbbbbbbbb       S  T  f  h               ",
@@ -2972,14 +3041,14 @@ var levels = {
                     offY : -200,
                 }],
                 save : true,
-            }
+            },
         },
         plan : [
             "                                                                                                                               ",
             "                                                                                                                               ",
             "                                   C                                                                                           ",
-            " C                                                                      `                                                      ",
-            "             C                                           C              C                                                      ",
+            " C                                                                                                                             ",
+            "             C                                           C              C`                                                     ",
             "                      C                              4                                                                         ",
             "                                                    33                                                                         ",
             "                                                   3444                                                                        ",
@@ -2994,8 +3063,8 @@ var levels = {
             "    4bbbbbb11111111111111111134444444wwwwwwwww111111111111111111111111ww11111111111111111111                                   ",
             "    34bbbbb411111111111111111111111wwwwwwbbb11111111111111111111111www1111111111111111111                                      ",
             "    34bbbbb111111111111111111111wwwwwwbbb1111111111111111111111111111111111111111111111                                        ",
-            "       bbbbbbbbb111111bb111ddwwwwwwwddd1b1b11bdb1bbbbbbbbbddddddbbbbbbbbbbbb111111111bb                                        ",
-            "       ddbbbbbbbdddddbbbbbbwwwwwwbbbbddddddddddddbdddddddddddddbbdddddddbbbbbbbbbbbbbbbb `                                     ",
+            "       bbbbbbbbb111111bb111ddwwwwwwwddd1b1b11bdb1bbbbbbbbbddddddbbbbbbbbbbbb111111111bb                iiiiiii  .              ",
+            "       ddbbbbbbbdddddbbbbbbwwwwwwbbbbddddddddddddbdddddddddddddbbdddddddbbbbbbbbbbbbbbbb `              iii                    ",
             "       ddddddd bbbbbbbddwwwwwwddd b dddddbbbbbddbddddddddddbbbddddddddddddddddddddddd bbbb                                   . ",
             "         bdbdbdbdbddbdwwwwwwbdbdbddddddbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb bbb                                     ",
             "           bbbdddddddbbwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww   bb                       .      .    b",
@@ -3034,16 +3103,16 @@ var levels = {
         specialOneWays : true,
         plan : [    
             "                                                                                                                                   ",
+            "            .                                                                                                                      ",
             "                                                                                                                                   ",
             "                                                                                                                                   ",
             "                                                                                                                                   ",
-            "                                  .                                                                                                ",
-            "                        .    .                                                                                                     ",
             "                                                                                                                                   ",
-            " a                                                                                                                                 ",
-            " D                                                                                                                                 ",
+            "                                                                                                                                   ",
+            " a          .                 .      .                                                                                             ",
+            " D        ~~~~                                                                                                                     ",
             "bbbbb                                                                                                                              ",
-            "    bbbb f                                                                                                                         ",
+            "    bbbb f                    ~~~~~~                                                                                               ",
             "       bbbb~~~~~~~~~~~                                                                                                             ",
             "                                                                                                                                   ",
             "                                                                                                                                   ",

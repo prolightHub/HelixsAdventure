@@ -1,13 +1,14 @@
 var configs = {
     "overworld" : {
         name : "Overworld",
+        area : "Area 1",
         level : {
             arraysToSave : ["crystal", "coin", "hpCoin", "heart"],
         }
     },
     "ninjaTemple" : {
         name : "Ninja Temple",
-        area : "Area 1",
+        area : "Area 2",
         level : {
             song: "StepUpv2.wav",
             background : "dark",
@@ -23,12 +24,12 @@ var configs = {
     },
     "winter" : {
         name : "Icy Slopes",
-        area : "Area 2",
+        area : "Area 3",
         usingHpRegenerators : true,
         level : {
             cold : true,
             background : "winter",
-            noSong: true,
+            song: "icy_slopes_ps2-short.mp3",
             shade : {
                 r : 0,
                 g : 0,
@@ -53,7 +54,7 @@ var configs = {
     "underground" : {
         name : "Underground",
         usingHpRegenerators : true,
-        area : "Area 3",
+        area : "Area 4",
         level : {
             background : "underground",
             noSong: true,
