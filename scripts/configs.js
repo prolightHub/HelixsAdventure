@@ -24,6 +24,7 @@ var configs = {
     "winter" : {
         name : "Icy Slopes",
         area : "Area 2",
+        usingHpRegenerators : true,
         level : {
             cold : true,
             background : "winter",
@@ -51,6 +52,7 @@ var configs = {
     },
     "underground" : {
         name : "Underground",
+        usingHpRegenerators : true,
         area : "Area 3",
         level : {
             background : "underground",

@@ -740,11 +740,15 @@ var sketch = function(processing) /*Wrapper*/
         Fixed boss removal.
         Made image rendering faster.
         Added hookshot power up.
-        
+        Added hit/damage sound.
+        Added 2 more sounds.
+        Improved hp bar to add health and boss name. 
+        Made a block that costs coins to heal your.
+        Finished the hookshot power up.
+
     Next :   
         Maybe will do: 
 
-            Improve hp bar to add health and boss name. 
             Add boss key doors.
 
             Add boss intros. (with name title)
@@ -757,7 +761,6 @@ var sketch = function(processing) /*Wrapper*/
             Fix the bubble shields. Maybe make bubble shield allows you to go underwater?
 
             Add auto checkpoints into settings. 
-            Also need to make a block that costs coins to heal you.
 
             More NPCs!
 
@@ -880,7 +883,8 @@ var fpsCatcher = {
 // Reload when crashing?
 game.reload = false;
 
-const RAD_TO_DEG = (180 / Math.PI);
+var RAD_TO_DEG = (180 / Math.PI);
+var DEG_TO_RAD = (Math.PI / 180);
 
 //Constants
 var PI_MULT = PI / 180;
@@ -1138,9 +1142,9 @@ var storyHandler = {
         this.scroll += (this.scrollVel || 0);
     },
     story : [{
-        message : "2,000 years ago, a hypercrystal\nwas born inside of Areolis."
+        message : "2,000 years ago, a hypercrystal\nwas born inside of Titan."
     }, {
-        message : "Areolis is a noble planet found\nwith-in the center of this galaxy.",
+        message : "Titan is a noble planet found\nwith-in the center of this galaxy.",
         time : 230
     },{
         message : "This hypercrystal contains an\nultimate binding of power!"
@@ -5633,7 +5637,7 @@ var screenUtils = {
         defenseMeter : new Bar(-2, height - 14, 100, graphics.infoBarProps.height - 1, color(0, 95, 150, 220), 10, undefined, color(250, 250, 250, 50)),
         pads : true,
         padY : 0,
-        bossBar : new Bar(0, height - 6, width, 6, color(34, 151, 190, 200), 10),
+        bossBar : new Bar(0, height - 6, width, 6, color(17, 183, 40, 200), 10),
         airMeter : new Bar(150, 80, 100, graphics.infoBarProps.height - 1, color(4, 84, 172, 200), 10),
         showBottomHud : true,
         draw : function(noLives)
@@ -5768,9 +5772,23 @@ var screenUtils = {
                 if(!boss.fake)
                 {
                     this.bossBar.set(boss.hp, boss.maxHp);
-                    this.bossBar.color = (boss.hp <= 5) ? color(200, 25, 25, 190) : color(34, 151, 190, 200);
+                    this.bossBar.color = (boss.hp <= 5) ? color(200, 25, 25, 190) : color(17, 183, 40, 200);
                     this.bossBar.draw();
                     this.bossBar.noStroke = true;
+
+                    if(!boss.outArrayName)
+                    {
+                        var words = this.bossArrayName.split(/(?=[A-Z])/); 
+                        boss.outArrayName = words[0].charAt(0).toUpperCase() + words[0].slice(1) + " " + words.slice(1, words.length).join(" ");
+                    }
+
+                    var txt = boss.hp + "/" + boss.maxHp + " hp " + boss.outArrayName;
+
+                    fill(0, 0, 0, 100);
+                    rect(0, 385, 5 + textWidth(txt) + 12, 400, 7);
+                    fill(255, 255, 255, 200);
+                    textAlign(LEFT, DOWN);
+                    text(txt, 5, 397);
                 }
             }
             else if(this.showBottomHud)
@@ -16984,6 +17002,8 @@ var Player = function(xPos, yPos, width, height, colorValue)
                 return true;
             }
 
+            sounds.mplaySound("Explosion5.wav");
+
             this.hp -= (damage1) * this.subDefense() * this.getNinjaResMult(object);
 
             if(object.isLifeForm || object.makeBlink)
@@ -18405,7 +18425,7 @@ var HardCaseBlock = function(xPos, yPos, width, height, colorValue)
 
     this.snowflakes = 0;
 
-    if(levelInfo.theme === "winter")
+    if(configs[levelInfo.theme] && configs[levelInfo.theme].usingHpRegenerators)
     {
         this.useCore = true;
 
@@ -18421,6 +18441,9 @@ var HardCaseBlock = function(xPos, yPos, width, height, colorValue)
 
     this.coreTimer = 0;
     this.vel = 0.1;
+
+    this.coinAmt = 3;
+    this.hpAmt = 1;
 
     this.draw = function()
     {
@@ -18438,6 +18461,14 @@ var HardCaseBlock = function(xPos, yPos, width, height, colorValue)
                 fill(120, 200, 0, 100);
                 ellipse(0, 0, this.halfWidth - 2, (this.halfHeight - 2) - (this.coreTimer));
             popMatrix();
+
+            fill(0, 0, 0, 100);
+            rect(this.xPos, this.yPos - 60 - 2, this.width, 14);
+
+            textSize(7);
+            textAlign(LEFT, TOP);
+            fill(255, 255, 255, 200);
+            text(this.coinAmt + "c/" + this.hpAmt + "hp", this.xPos + 4, this.yPos - 60 + 1);
         }
     };
 
@@ -18468,12 +18499,21 @@ var HardCaseBlock = function(xPos, yPos, width, height, colorValue)
         this.coreTimer += this.vel;
     };
 
+    this.lastGiveTime = 0;
+
     this.onCollide = function(object)
     {
-        if(object.arrayName === "player" && levelInfo.theme === "winter")
+        if(object.arrayName === "player" && configs[levelInfo.theme] && configs[levelInfo.theme].usingHpRegenerators)
         {
-            object.hp += 0.025;
-            object.hp = min(object.hp, object.maxHp);
+            if(object.coins > 0 && millis() - this.lastGiveTime > 500 && object.hp < object.maxHp)
+            {
+                object.hp += this.hpAmt;
+                object.hp = min(object.hp, object.maxHp);
+
+                object.coins -= this.coinAmt;
+
+                this.lastGiveTime = millis();
+            }
         }
     };  
 
@@ -20032,7 +20072,7 @@ var HookShot = function(xPos, yPos, diameter)
             }
         },
         "next2" : {
-            message : "Controls: Right click to connect to a\npoint. (A square in a circle) Right click\noutside of the point to disconnect.",
+            message : "Controls: Right Click to connect to a\npoint. (A square in a circle) Right Click\noutside of the point to disconnect.",
             choices : {
                 "next3" : "..."
             }
@@ -20053,6 +20093,9 @@ var HookShot = function(xPos, yPos, diameter)
     this.physics.solidObject = false;
     this.type = "power";
 
+    var loops = 0;
+    var swing = 0.2;
+
     this.actObject = {
         description : "Allows you to connect to points like a grappling hook.",
         key : '4',
@@ -20062,8 +20105,8 @@ var HookShot = function(xPos, yPos, diameter)
             // Do something here, not sure what.
         },
         vel : 14,
-        maxPutLength : 200 + 23,
-        _maxLength : 170 + 23,
+        maxPutLength : 200 - 10,
+        _maxLength : 170 - 10,
         traveled : 0,
         stretched : 0,
         target : {},
@@ -20125,6 +20168,13 @@ var HookShot = function(xPos, yPos, diameter)
 
             power.position.x = object.xPos + object.halfWidth;
             power.position.y = object.yPos + object.halfHeight;
+
+            power.momentum = 0;
+
+            delete power.angle;
+            delete power.swing;
+            delete power.length;
+            delete power.angleVel;
         },
         onExit : function(object, power)
         {
@@ -20139,6 +20189,12 @@ var HookShot = function(xPos, yPos, diameter)
             power.working = false;
             power.traveled = 0;
             power.stretched = 0;
+            power.momentum = 0;
+
+            delete power.angle;
+            delete power.swing;
+            delete power.length;
+            delete power.angleVel;
         },
         update : function(object, power)
         {
@@ -20177,59 +20233,182 @@ var HookShot = function(xPos, yPos, diameter)
                     power.position.y = power.oy;
                     power.arrived = true;
                 }
+
+                power.notHanging = true;
             }else{
                 power.hang(object, power);
             }
         },
         hang : function(object, power)
         {
-            var ox = object.xPos + object.halfWidth;
-            var oy = object.yPos + object.halfHeight;
-
-            var dx = ox - power.position.x;
-            var dy = oy - power.position.y;
-
-            var angle = atan2(dy, dx);
-
-            var lengthSq = dx * dx + dy * dy;
-
-            if(object.controls.up())
+            if(power.set)
             {
-                object.xPos -= cos(angle);
-                object.yPos -= sin(angle);
+                object.xPos -= (object.xPos - ((power.position.x + cos(power.setAngle) * power.maxLength) - object.halfWidth)) / 5;
+                object.yPos -= (object.yPos - ((power.position.y + sin(power.setAngle) * power.maxLength) - object.halfHeight)) / 5;
 
-                power.maxLength -= 5;
-                power.maxLength = Math.max(0, power.maxLength);
-                power.maxLengthSq = power.maxLength * power.maxLength;
+                if(object.controls.up())
+                {
+                    power.maxLength -= 5;
+                    power.maxLength = Math.max(2, power.maxLength);
+                    power.maxLengthSq = power.maxLength * power.maxLength;
+                }
+                if(object.controls.down())
+                {
+                    power.maxLength += 5;
+                    power.maxLength = Math.min(power._maxLength, power.maxLength);
+                    power.maxLengthSq = power.maxLength * power.maxLength;
+                }
+
+                if(!object.controls.up() && !object.controls.down())
+                {
+                    power.set = false;
+                }
+            }else{
+                var ox = object.xPos + object.halfWidth;
+                var oy = object.yPos + object.halfHeight;
+
+                // This will change later.
+                var length = power.maxLength;
+
+                var speed = 28;
+
+                var gravity = object.gravity;
+
+                if(power.rate === undefined)
+                {
+                   power.rate = (gravity / length);
+                }
+
+                var aRate = (gravity / length);
+
+                var aSpeed = 0.0005;
+
+                if(power.rate > aRate)
+                {
+                    power.rate -= aSpeed;
+                }
+                if(power.rate < aRate)
+                {
+                    power.rate += aSpeed;
+                }
+
+                // Angle of how much to swing
+                var theta = 2 * Math.PI / Math.sqrt(1 / power.rate) * power.momentum;
+                
+                // Get angle based on time and theta.
+                var angle = HALF_PI + Math.min(theta * sin(power.rate * loops), Math.PI);
+                window.angle = angle;
+
+                // Update time for next loop
+                loops += speed;
+
+                var decay = 0.00001;
+
+                var onEdge = false;
+
+                if(angle >= HALF_PI + theta / 2)
+                {
+                    if(object.controls.left())
+                    {
+                        swing += 0.0024 * 2.7;
+                        power.momentum = swing;
+                    }
+                    else if(object.controls.right())
+                    {
+                        swing -= 0.0024 * 1.4;
+                        power.momentum = swing;
+                    }
+                }
+
+                if(angle <= HALF_PI - theta / 2)
+                {
+                    if(object.controls.right())
+                    {
+                        swing += 0.0024 * 2.7;
+                        power.momentum = swing;
+                    }
+                    else if(object.controls.left())
+                    {
+                        swing -= 0.0024 * 1.4;
+                        power.momentum = swing;
+                    }
+                }
+
+                swing -= 0.0007;
+
+                if(object.controls.left() && angle <= HALF_PI)
+                {
+                    if(angle >= (Math.PI / 2 + theta / 2) - 0.1)
+                    {
+                        power.momentum += swing;
+                        onEdge = true;
+                    }
+
+                    var diff = abs(angle - HALF_PI);
+
+                    if(diff < 0.004)
+                    {
+                        power.momentum += 0.01;
+                    }
+                }
+                if(object.controls.right() && angle >= HALF_PI)
+                {
+                    if(angle <= (HALF_PI - theta / 2) + 0.1)
+                    {   
+                        power.momentum += swing;
+                        onEdge = true;
+                    }
+
+                    var diff = abs(angle - HALF_PI);
+
+                    if(diff < 0.004)
+                    {
+                        power.momentum += 0.01;
+                    }
+                }
+                
+                swing = constrain(swing, 0, 5.6);
+
+                if(power.momentum > 0.001)
+                {
+                    power.momentum -= decay;
+                }
+                power.momentum = max(0, power.momentum);
+
+                // Set point based on angle and length.
+                object.xPos -= (object.xPos - ((power.position.x + cos(angle) * length) - object.halfWidth)) / 5;
+                object.yPos -= (object.yPos - ((power.position.y + sin(angle) * length) - object.halfHeight)) / 5;
+
+                if(!onEdge)
+                {
+                    if(object.controls.up())
+                    {
+                        power.maxLength -= 4;
+                        power.maxLength = Math.max(2, power.maxLength);
+                        power.maxLengthSq = power.maxLength * power.maxLength;
+
+                        if(power.maxLength > 2)
+                        {
+                            power.setAngle = angle;
+                            power.setLength = power.maxLength;
+                            power.set = true;
+                        }
+                    }
+                    if(object.controls.down())
+                    {
+                        power.maxLength += 4;
+                        power.maxLength = Math.min(power._maxLength, power.maxLength);
+                        power.maxLengthSq = power.maxLength * power.maxLength;
+
+                        if(power.maxLength < power._maxLength)
+                        {
+                            power.setAngle = angle;
+                            power.setLength = power.maxLength;
+                            power.set = true;
+                        }
+                    }
+                }
             }
-            else if(object.controls.down())
-            {
-                object.xPos += cos(angle);
-                object.yPos += sin(angle);
-
-                power.maxLength += 5;
-                power.maxLength = Math.min(power._maxLength, power.maxLength);
-                power.maxLengthSq = power.maxLength * power.maxLength;
-            }
-
-            if(object.controls.left())
-            {
-                object.xPos -= 5;
-            }
-            else if(object.controls.right())
-            {
-                object.xPos += 5;
-            }
-
-            if(lengthSq < power.maxLengthSq)
-            {
-                return;
-            }
-
-            var vel = (power.maxLength - Math.sqrt(lengthSq)) / 6;
-
-            object.xPos += cos(angle) * vel;
-            object.yPos += sin(angle) * vel;
         },
         draw : function(object, power)
         {

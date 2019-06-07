@@ -134,6 +134,9 @@ sounds.addSound("zoom1.wav");
 sounds.addSound("soup4.wav");
 sounds.addSound("zooba.wav");
 sounds.addSound("whoo.wav");
+sounds.addSound("hit2.mp3");
+sounds.addSound("Explosion5.wav");
+sounds.addSound("smchoof.wav");
 
 //Made with beepbox
 sounds.addSound("StepUp.wav", "song");
