@@ -1,3 +1,5 @@
+NOTE: This license does not protect music/sounds expressed in the game or otherwise as files.
+
 MIT License
 --
 

@@ -79,7 +79,7 @@ var sketch = function(processing) /*Wrapper*/
 /**   Hybrid Game Engine (Planet Search 2)  **/
 /**
     @Author Prolight
-    @Version 0.8.7 beta (87% complete)
+    @Version 0.9.0 beta (90% complete)
 
         64+ gameObjects!
 
@@ -749,6 +749,8 @@ var sketch = function(processing) /*Wrapper*/
         Added boss keys.
         Added a new room in the Ninja Temple.
         Fixed the rumble effect.
+
+    * 0.9.0
         Turned off dark grid in the level in the Ninja Temple, that my dad said was lagging.
         BubbleShields now allow you to go underwater!
         Added a bubbleShield in the "underwater" room in the Ninja Temple.
@@ -760,6 +762,8 @@ var sketch = function(processing) /*Wrapper*/
         Added auto checkpoints into settings.
         Fixed a glitch with chests not having enough slots, but appeared to have full slots.
         Gems are now in the game!
+        Finished styling for the underground.
+        Finished the cave level! Its a looong drop!
 
     Next :   
         Will do:           
@@ -836,8 +840,8 @@ var game = {
     fps : 60, 
     loadFps : 160,
     gameState : "start", //Default = "start"
-    version : "v0.8.9 beta",
-    fpsType : "auto", //Default = "manual"
+    version : "v0.9.0 beta",
+    fpsType : "manual", //Default = "manual"
     debugMode : true, //Turn this to true to see the fps
     showDebugPhysics : false,
     boundingBoxes : false,
@@ -8591,6 +8595,7 @@ var lighting = {
                 this.pg.fastRect(wd * i - offX, hd * j - offY, wd, hd);
             }
         }
+        this.pg.noSourceImg = true;
 
         this.pg.endDraw();
     },
@@ -9311,6 +9316,11 @@ var Water = function(xPos, yPos, width, height, colorValue)
         this.boundingBox.xPos = this.xPos - 1;
         this.boundingBox.yPos = this.yPos - 1;
     };
+
+    if(levelInfo.theme === "underground")
+    {
+        this.color = color(153, 90, 150, 120);
+    }
 
     this.draw = function()
     {
@@ -10271,6 +10281,11 @@ gameObjects.addObject("dirt", createArray(Dirt));
 
 var Block = function(xPos, yPos, width, height, colorValue)
 {
+    if(levelInfo.theme === "underground")
+    {
+        colorValue = color(47, 63, 115);
+    }
+
     this.noGrass = true;
     this.arrayName = "block";
     Ground.call(this, xPos, yPos, width, height, colorValue, "block" + colorValue);
@@ -10532,7 +10547,19 @@ var DirtyBlock = function(xPos, yPos, width, height, colorValue)
         image(storedImages[this.imageName], this.xPos, this.yPos, this.width, this.height);
     };
 
-    screenUtils.loadImage(this, true, "dirtyBlock" + "--", undefined, undefined, undefined, undefined, true);
+    var nameExtension = "";
+
+    if(levelInfo.theme === "underground")
+    {
+        this.draw = function()
+        {
+            image(storedImages[this.imageName], this.xPos, this.yPos, this.width, this.height);
+            fill(0, 64, 12, 103);
+            rect(this.xPos, this.yPos, this.width, this.height);
+        };
+    }
+
+    screenUtils.loadImage(this, true, "dirtyBlock" + "--" + nameExtension, undefined, undefined, undefined, undefined, true);
     this.imageName = "dirtyBlock" + "--";
 
     this.intensity = 18;
@@ -10550,6 +10577,39 @@ var DirtyBlock = function(xPos, yPos, width, height, colorValue)
     };
 };
 gameObjects.addObject("dirtyBlock", createArray(DirtyBlock));
+
+var UndergroundBlock = function(xPos, yPos, width, height)
+{
+    Rect.call(this, xPos, yPos, width, height);
+
+    var left = this.xPos;
+    var right = this.xPos + this.width;
+    var up = this.yPos;
+    var down = this.yPos + this.height;
+
+    this.draw = function()
+    {
+        fill(0, 0, 0, 100);
+        rect(xPos, yPos, width, height);
+        fill(245, 245, 245, 90);
+        triangle(left, down, right, up, right, down);
+        fill(0, 0, 0, 70);
+        rect(xPos + 6, yPos + 6, width - 12, height - 12, 5);
+    };
+};
+gameObjects.addObject("undergroundBlock", createArray(UndergroundBlock));
+
+var BehindBlock = function(xPos, yPos, width, height)
+{
+    Rect.call(this, xPos, yPos, width, height);
+
+    this.draw = function()
+    {
+        fill(0, 0, 0, 130);
+        rect(xPos, yPos, width, height);
+    };
+};
+gameObjects.addObject("behindBlock", createArray(BehindBlock));
 
 var SuperIce = function(xPos, yPos, width, height, colorValue, slipFactor)
 {
@@ -20439,7 +20499,7 @@ var HookShot = function(xPos, yPos, diameter)
             }else{
                 if(!power.objectInWay(object, power))
                 {
-                    power.maxLength -= 4;
+                    power.maxLength -= 25;
                 }
 
                 var dx = object.xPos + object.halfWidth - power.position.x;
@@ -22717,7 +22777,11 @@ levels.build = function(plan)
                     break;
 
                 case '4' :
-                    if(table['4'] === "snowBlockOther")
+                    if(table['4'] !== undefined && loadedImages[table['4']] !== undefined)
+                    {
+                        gameObjects.getObject("imageBlock").add(xPos, yPos, levelInfo.unitWidth, levelInfo.unitHeight, table['4']);
+                    }
+                    else if(table['4'] === "snowBlockOther")
                     {
                         gameObjects.getObject("snowBlock").add(xPos, yPos, levelInfo.unitWidth, levelInfo.unitHeight, undefined, "other");
                     }
@@ -22728,7 +22792,11 @@ levels.build = function(plan)
                     break;
 
                 case '5' :
-                    if(typeof table['5'] !== "undefined")
+                    if(table['5'] !== undefined && loadedImages[table['5']] !== undefined)
+                    {
+                        gameObjects.getObject("imageBlock").add(xPos, yPos, levelInfo.unitWidth, levelInfo.unitHeight, table['5']);
+                    }
+                    else if(typeof table['5'] !== "undefined")
                     {
                         gameObjects.getObject(table['5']).add(xPos, yPos, levelInfo.unitWidth * 0.7);
                     }
@@ -22747,11 +22815,21 @@ levels.build = function(plan)
                     break;
 
                 case 'k' : 
-                    gameObjects.getObject("dirtyCat").add(xPos, yPos, levelInfo.unitWidth * 2.0, levelInfo.unitHeight * 1.28);
+                    if(table['5'] !== undefined && loadedImages[table['5']] !== undefined)
+                    {
+                        gameObjects.getObject("imageBlock").add(xPos, yPos, levelInfo.unitWidth, levelInfo.unitHeight, table['5']);
+                    }else{
+                        gameObjects.getObject("dirtyCat").add(xPos, yPos, levelInfo.unitWidth * 2.0, levelInfo.unitHeight * 1.28);
+                    }
                     break;
 
                 case '_' :
-                    gameObjects.getObject("snowLayer").add(xPos, yPos + levelInfo.unitHeight * 1.1, levelInfo.unitWidth, levelInfo.unitHeight * 0.1); 
+                    if(table['_'] !== undefined && loadedImages[table['_']] !== undefined)
+                    {
+                        gameObjects.getObject("imageBlock").add(xPos, yPos, levelInfo.unitWidth, levelInfo.unitHeight, table['_']);
+                    }else{
+                        gameObjects.getObject("snowLayer").add(xPos, yPos + levelInfo.unitHeight * 1.1, levelInfo.unitWidth, levelInfo.unitHeight * 0.1); 
+                    }
                     break;
 
                 case 'Q' :
@@ -22840,7 +22918,12 @@ levels.build = function(plan)
                     break;
 
                 case '*' :
-                    gameObjects.getObject("cloudMine").add(xPos + levelInfo.unitWidth / 2, yPos + levelInfo.unitHeight / 2, levelInfo.unitWidth);
+                    if(levelInfo.theme === "underground")
+                    {
+                        gameObjects.getObject("undergroundBlock").add(xPos, yPos, levelInfo.unitWidth, levelInfo.unitHeight); 
+                    }else{
+                        gameObjects.getObject("cloudMine").add(xPos + levelInfo.unitWidth / 2, yPos + levelInfo.unitHeight / 2, levelInfo.unitWidth);
+                    }
                     break;
 
                 case '&' :
@@ -22988,7 +23071,7 @@ levels.build = function(plan)
                         'v' : "down"
                     }[level.plan[row][col]]));
 
-                    if(level.specialOneWays)
+                    if(level.specialOneWays || ((configs[levelInfo.theme] || {}).level || {}).specialOneWays)
                     {
                         switch(level.plan[row][col])
                         {

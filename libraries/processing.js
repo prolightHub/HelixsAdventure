@@ -19661,7 +19661,10 @@ module.exports = function setupParser(Processing, options) {
         curContext.drawImage(getCanvasData(img.toImageData()).canvas, 0, 0,
           img.width, img.height, Math.round(x), Math.round(y), w || img.width, h || img.height);
 
-        img.sourceImg = getSourceImg(img);
+        if(!img.noSourceImg)
+        {
+          img.sourceImg = getSourceImg(img);
+        }
       }
     };
     Drawing2D.prototype.fastImage = function(img, x, y, w, h)

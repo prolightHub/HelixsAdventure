@@ -57,7 +57,12 @@ var configs = {
         area : "Area 4",
         level : {
             background : "underground",
-            noSong: true,
+            noSong : true,
+            specialOneWays : true,
+            table : {
+                '_' : "cathodes",
+                '5' : "dark"
+            }
         }
     },
     "other" : {
