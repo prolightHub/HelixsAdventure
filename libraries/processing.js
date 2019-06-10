@@ -19619,6 +19619,27 @@ module.exports = function setupParser(Processing, options) {
       }
     };
 
+    // var vent = {};
+    // vent.canv = document.createElement("canvas");
+    // vent.cont = vent.canv.getContext('2d');
+    // vent.cont.globalCompositeOperation = 'source-over';
+
+    var getSourceImg = function(img)
+    {
+        var canv = document.createElement("canvas");
+        var cont = canv.getContext('2d');
+
+        // // Set width, height and operation
+        canv.width = img.width;
+        canv.height = img.height;
+        cont.globalCompositeOperation = 'source-over';
+
+        // vent.cont.clearRect(0, 0, img.width, img.height);
+        cont.putImageData(img.toImageData(), 0, 0);
+
+        return canv;
+    };
+
     Drawing2D.prototype.image = function(img, x, y, w, h) {
       // Fix fractional positions
       // x = Math.round(x);
@@ -19627,7 +19648,7 @@ module.exports = function setupParser(Processing, options) {
       // var bounds = imageModeConvert(x || 0, y || 0, w || img.width, h || img.height, arguments.length < 4);
       // var fastImage = !!img.sourceImg && curTint === null;
 
-      if (!!img.sourceImg && curTint === null) {
+      if (!!img.sourceImg/* && curTint === null*/) {
         var htmlElement = img.sourceImg;
         if (img.__isDirty) {
           img.updatePixels();
@@ -19639,6 +19660,8 @@ module.exports = function setupParser(Processing, options) {
       } else {
         curContext.drawImage(getCanvasData(img.toImageData()).canvas, 0, 0,
           img.width, img.height, Math.round(x), Math.round(y), w || img.width, h || img.height);
+
+        img.sourceImg = getSourceImg(img);
       }
     };
     Drawing2D.prototype.fastImage = function(img, x, y, w, h)

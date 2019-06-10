@@ -757,14 +757,15 @@ var sketch = function(processing) /*Wrapper*/
         when collecting the key in "ninjaTempleBackyard".
         IceDragon now moves at the same speed in 30 fps mode.
         Finished Boss Intros.
-    
+        Added auto checkpoints into settings.
+        Fixed a glitch with chests not having enough slots, but appeared to have full slots.
+        Gems are now in the game!
+
     Next :   
         Will do:           
-            Add collectable items that you can trade for stuff.
+           Make gem tradable you can trade for stuff.
 
             if you get 3 crystals enable teleportation to all warping doors.
-
-            Add auto checkpoints into settings.
 
             More NPCs!
 
@@ -773,7 +774,8 @@ var sketch = function(processing) /*Wrapper*/
     Maybe:
         More Weapons, shops.
         Add chest appearing sound effect.
-        
+        Improve dragon boss.
+
     In the future:
         --More overworld levels,
         --More music/sound effects utilized.
@@ -796,7 +798,7 @@ var sketch = function(processing) /*Wrapper*/
             Libraries: processing.js (http://processingjs.org)
 
             Music:
-                PS2.mp3 & PS2-8bit.mp3 by einkurogane on Reddit.
+                PS2.mp3 & PS2-8bit.mp3 & icy_slopes_ps2-short.mp3 by Einkurogane on Reddit.
     
         Code:
             CookieHandler object and isEmpty function in saver.js 
@@ -844,7 +846,9 @@ var game = {
     overrideDebugSettings : false,
     sounds : {
         titleScreen: "PS2.mp3"
-    }
+    },
+
+    autoCheckPoints: true
 };
 var levelInfo = {
     level : "intro", //Default = "intro"
@@ -1103,7 +1107,9 @@ var buttons = {
     back4 : new Button(115, 235 + 30, 80, 30, BTN_COLOR, "Back"),
     back5 : new Button(0, 290, 30, 30, BTN_COLOR, "<<"),
     create : new Button(205, 235 + 30, 80, 30, BTN_COLOR, "Create"),
-    rename : new Button(205, 235 + 30, 80, 30, BTN_COLOR, "Rename")
+    rename : new Button(205, 235 + 30, 80, 30, BTN_COLOR, "Rename"),
+    controls : new Button(160, 175, 80, 25, BTN_COLOR, "Controls"),
+    auto : new Button(150, 225, 100, 25, BTN_COLOR, "Auto save " + game.autoCheckPoints),
 };
 buttons.boundingBoxes.textSize = 11;
 buttons.debugPhysics.textSize = 11;
@@ -3770,7 +3776,7 @@ var backgrounds = {
 
                 for(var i = 0; i < 23; i++)
                 {
-                    this.snow.add(random(0, width), random(0, height * 0.4), 1.4);
+                    this.snow.add(random(-400, width), random(0, height * 0.4), 1.4);
                 }
             },
             drawBackground : function()
@@ -4874,6 +4880,7 @@ var inventoryMenu = {
                 hp    : new Button(10, 132 + 18 * 1, 140, 18, color(12, 60, 160, 100), ""),
                 coins : new Button(10, 132 + 18 * 2, 140, 18, color(12, 60, 160, 100), ""),
                 score : new Button(10, 132 + 18 * 3, 140, 18, color(12, 60, 160, 100), ""),
+                gems : new Button(10, 132 + 18 * 4, 140, 18, color(12, 60, 160, 100), ""),
                 k1 : new Button(186, 132 + 18 * 0, 141, 18, color(12, 60, 160, 100), ""),
             }
         },
@@ -4954,11 +4961,13 @@ var inventoryMenu = {
                     scene.buttons.hp.message = "Hp  " + player.hp.toFixed(1) + " / " + player.maxHp.toFixed(1);
                     scene.buttons.coins.message = "Coins  " + player.coins;
                     scene.buttons.score.message = "Score  " + player.score;
+                    scene.buttons.gems.message = "Gems " + (player.gems || 0);
 
                     scene.buttons.name.hover = "Your character's avatar name or alias.";
                     scene.buttons.hp.hover = "Heart points, this is your health, try to keep it full.";
                     scene.buttons.coins.hover = "The amount of coins you've collected so far.";
                     scene.buttons.score.hover = "Your total score.";
+                    scene.buttons.gems.hover = "???";
 
                     var j = 0;
                     for(var i in player.discoveredPowers)
@@ -8174,6 +8183,8 @@ gameObjects.apply = function(noApply)
         }
     }
 };
+
+var noop = function() {};
 gameObjects.draw = function(noDraw)
 {
     if(noDraw)
@@ -16750,6 +16761,7 @@ var Player = function(xPos, yPos, width, height, colorValue)
     
     this.restart = false;
     this.coins = 0;
+    this.gems = 0;
     this.score = 0;
     this.damage = 1;
     this.xAcl = 0.23;
@@ -17810,7 +17822,7 @@ var Player = function(xPos, yPos, width, height, colorValue)
     this.talkToNpc = this.activate;
     this.useCheckPoint = function()
     {
-        return (!this.inAir && this.hp > 0);
+        return (!this.inAir && this.hp > 0) && (game.autoCheckPoints || this.controls.down());
     };
     this.overrideSave = function()
     {
@@ -18606,7 +18618,8 @@ var HardCaseBlock = function(xPos, yPos, width, height, colorValue)
 
     this.onCollide = function(object)
     {
-        if(object.arrayName === "player" && configs[levelInfo.theme] && configs[levelInfo.theme].usingHpRegenerators)
+        if(object.arrayName === "player" && configs[levelInfo.theme] && configs[levelInfo.theme].usingHpRegenerators && 
+            (game.autoCheckPoints || (object.activate !== undefined && object.activate(true))))
         {
             if(object.coins > 0 && millis() - this.lastGiveTime > 500 && object.hp < object.maxHp)
             {
@@ -18618,7 +18631,7 @@ var HardCaseBlock = function(xPos, yPos, width, height, colorValue)
                 this.lastGiveTime = millis();
             }
         }
-    };  
+    };
 
     this.notExplosive = true;
 };
@@ -21176,6 +21189,76 @@ var Flypi = function(xPos, yPos, diameter, colorValue)
 };
 gameObjects.addObject("flypi", createArray(Flypi));
 
+var Gem = function(xPos, yPos, width, height)
+{
+    Rect.call(this, xPos, yPos, width, height);
+
+    this.physics.solidObject = false;
+
+    this.draw = function()
+    {
+        image(loadedImages["gem"], this.xPos, this.yPos, this.width * 0.75, this.height * 0.75);
+    };
+
+    this.onCollide = function(object)
+    {
+        if(object.arrayName === "player")
+        {
+            if(object.gems === 0)
+            {
+                talkHandler.start(this.messages, "start", "");
+            }else{
+                talkHandler.start({
+                    "start" : {
+                        message : "Yay you found another gem! You now\nhave " + (object.gems + 1) + " gems.",
+                        up : true,
+                        coices : {
+                            "exit" : "okay"
+                        }
+                    }
+                }, "start", "");
+            }
+
+            object.gems++;
+
+            this.onCollide = function() {};
+            this.remove();       
+        }
+    };
+
+    this.messages = {
+        "start" : {
+            messages : [{
+                message : "You've found a"
+            }, {
+                message : "Gem",
+                color : color(0, 148, 117)
+            }, {
+                message : "!"
+            }],
+            up : true,
+            choices : {
+                "explain" : "..."
+            }
+        }, 
+        "explain" : {
+            message : "Gems are mysterious crystals designed to\nhelp you through your journey.",
+            up : true,
+            choices : {
+                "last" : "..."
+            }
+        },
+        "last" : {
+            message : "Collecting these will help, make sure\nto keep an eye out for them!",
+            up : true,
+            choices : {
+                "exit" : "okay"
+            }
+        },
+    };
+};
+gameObjects.addObject("gem", createArray(Gem));
+
 game.addFlypis = function()
 {
     var amt = (floor(levelInfo.width * levelInfo.height / 25000)) * 1.5;
@@ -22101,14 +22184,22 @@ var levelScripts = {
 
                 this.stop = true;
 
-                // Make sure the ice dragon is removed from the level.
-                var iceDragon = gameObjects.getObject("iceDragon").input(0);
+                try{
 
-                if(iceDragon && iceDragon.draw)
-                {
-                    iceDragon.remove();
+                    // Make sure the ice dragon is removed from the level.
+                    var iceDragon = gameObjects.getObject("iceDragon").input(0);
+
+                    if(iceDragon && iceDragon.remove)
+                    {
+                        iceDragon.remove();
+                    }
+
+                    gameObjects.getObject("iceDragon").applyObject(0);
                 }
+                catch(e)
+                {
 
+                }
                 return;
             }
 
@@ -22389,6 +22480,24 @@ for(var i in levels)
     if(typeof levels[i].save === "undefined")
     {
         levels[i].save = {};
+    }
+}
+
+// Make sure all chests have 10 slots.
+for(var i in levels)
+{
+    if(typeof levels[i].itemChests === "object")
+    {
+        for(var j in levels[i].itemChests)
+        {
+            if(levels[i].itemChests[j].items)
+            {
+                while(levels[i].itemChests[j].items.length < 10)
+                {
+                    levels[i].itemChests[j].items.push({});
+                }
+            }
+        }
     }
 }
 
@@ -23132,6 +23241,10 @@ levels.build = function(plan)
                 case '.' :
                     gameObjects.getObject("point").add(xPos + levelInfo.unitWidth / 2, yPos + levelInfo.unitHeight / 2, levelInfo.unitWidth * 0.7);
                     break;
+
+                case '\'':
+                    gameObjects.getObject("gem").add(xPos, yPos, levelInfo.unitWidth, levelInfo.unitHeight);
+                    break;
             }
             done = (row >= level.plan.length - 1);
         }
@@ -23150,6 +23263,8 @@ var f_getArrayNamesToSave = function(level, theme)
 
     var preSelect = (levels[lvl].arraysToSave || 
     (configs[thm] || {level : {}}).level.arraysToSave) || [];
+
+    preSelect.push("gem");
 
     if(typeof levels[lvl].addArraysToSave !== "undefined")
     {
@@ -23580,6 +23695,7 @@ game.loadSaveAfterLoad = function()
     if(this.data.player !== undefined)
     {
         player.coins = this.data.player.coins || player.coins;
+        player.gems = this.data.player.gems || player.gems;
         player.score = this.data.player.score || player.score;
         player.defense = this.data.player.defense || player.defense;
         player.goto = this.data.player.goto || player.goto;
@@ -23588,6 +23704,11 @@ game.loadSaveAfterLoad = function()
         player.name = this.data.name || player.name;
         player.inventory = this.data.player.inventory || player.inventory;
         player.crystals = this.data.player.crystals || player.crystals;
+
+        if(typeof this.data.autoCheckPoints === "boolean")
+        {
+            game.autoCheckPoints = this.data.autoCheckPoints;
+        }
 
         if(typeof this.data.hideKeys === "boolean")
         {
@@ -23845,6 +23966,7 @@ game.save = function(checkPoint)
         player : {
             autoRun : player.autoRun,
             coins : player.coins,
+            gems : player.gems,
             score : player.score,
             defense : player.defense,
             goto : player.goto,
@@ -23856,6 +23978,7 @@ game.save = function(checkPoint)
             discoveredPowers : player.discoveredPowers,
             currentPower : player.discoveredPowersHandler.currentPower,
         },
+        autoCheckPoints: game.autoCheckPoints,
         hideKeys: game.hideKeys,
         settings : saveSettings,
         doors : this.usedDoors || {},
@@ -24017,9 +24140,51 @@ game.extras = function()
     this.switchGameState(buttons.sound.clicked(), "sound");
     buttons.other.draw();
     this.switchGameState(buttons.other.clicked(), "other");
+    buttons.controls.draw();
+    this.switchGameState(buttons.controls.clicked(), "controls");
 
     textSize(12);
     text("Note: These changes will not save\nuntil you save your game!", 200, 364);
+};
+game.controls = function()
+{
+    textFont(fonts.menu);
+
+    textSize(40);
+    fill(31, 173, 88);
+    textAlign(CENTER, CENTER);
+    text("Controls", 200, 110);
+    fill(0, 0, 0, 60);
+    fastRect(75, 0, width - 75 * 2, height);
+    fill(0, 0, 0, 100);
+    textSize(12);
+    text(game.version, 364, 390);
+
+    buttons.back2.draw();
+    this.switchGameState(buttons.back2.clicked(), "extras");
+    buttons.auto.draw();
+
+    fill(0, 0, 0, 134);
+    textAlign(CENTER, CENTER);
+    textSize(11);
+    textFont(fonts.menu);
+
+    buttons.auto.message = "Auto save " + game.autoCheckPoints;
+
+    if(observer.collisionTypes.pointrect.colliding({xPos : mouseX, yPos : mouseY}, buttons.auto))
+    {
+        text("Automatically use checkpoints\n and Hp regenerators", 200, 362);
+    }
+
+    text("Make sure you save your game for\nthese changes to take effect!", 200, 314);
+};
+game.controls.mousePressed = function()
+{
+    if(buttons.auto.clicked())
+    {
+        game.autoCheckPoints = !game.autoCheckPoints;
+    }
+    buttons.auto.message = "Auto save " + game.autoCheckPoints;
 };
 game.other = function()
 {
@@ -24031,7 +24196,7 @@ game.other = function()
     fastRect(75, 0, width - 75 * 2, height);
     fill(0, 0, 0, 100);
     textSize(12);
-    text(game.version, 364, 390); 
+    text(game.version, 364, 390);
 
     buttons.back2.draw();
     buttons.fps.draw();
