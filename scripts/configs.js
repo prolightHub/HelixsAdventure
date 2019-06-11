@@ -61,8 +61,12 @@ var configs = {
             specialOneWays : true,
             table : {
                 '_' : "cathodes",
-                '5' : "dark"
-            }
+                '5' : "dark",
+                '8' : "catDogStatue",
+                '7' : "wisp",
+                '=' : "darkBlock"
+            },
+            arraysToSave : ["crystal", "coin", "hpCoin", "ice", "voxelizer", "dirtyCat"],
         }
     },
     "other" : {

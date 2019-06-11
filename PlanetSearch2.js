@@ -79,7 +79,7 @@ var sketch = function(processing) /*Wrapper*/
 /**   Hybrid Game Engine (Planet Search 2)  **/
 /**
     @Author Prolight
-    @Version 0.9.0 beta (90% complete)
+    @Version 0.9.1 beta (91% complete)
 
         64+ gameObjects!
 
@@ -764,6 +764,16 @@ var sketch = function(processing) /*Wrapper*/
         Gems are now in the game!
         Finished styling for the underground.
         Finished the cave level! Its a looong drop!
+        Added different blocks (base64)
+            --darkBlock
+            --triangleBlockBlue
+            --triangleBlockGreen
+            --triangleBlockYellow
+        You can now shoot voxelizers with the grapping hook.
+        Extra controls for weapons added.
+        Added level cave 2
+
+    * 0.9.1
 
     Next :   
         Will do:           
@@ -779,6 +789,8 @@ var sketch = function(processing) /*Wrapper*/
         More Weapons, shops.
         Add chest appearing sound effect.
         Improve dragon boss.
+
+        Add green beakers.
 
     In the future:
         --More overworld levels,
@@ -840,7 +852,7 @@ var game = {
     fps : 60, 
     loadFps : 160,
     gameState : "start", //Default = "start"
-    version : "v0.9.0 beta",
+    version : "v0.9.1 beta",
     fpsType : "manual", //Default = "manual"
     debugMode : true, //Turn this to true to see the fps
     showDebugPhysics : false,
@@ -3129,7 +3141,8 @@ var backgrounds = {
                 {
                     background(0, 0, 0, 0);
                     
-                    fill(6, 20, 60);
+                    // fill(6, 20, 60);
+                    fill(45, 45, 45);
 
                     var extra = 0;
                     var start = 360 - 40;
@@ -5848,58 +5861,63 @@ var screenUtils = {
                     text(configs[levelInfo.theme].name, 8, height - 3);
                 }
 
-                var powerKeys = [];
-                var txt = "";
-                for(var i in player.discoveredPowers)
-                {
-                    txt += "   ";
+                pushMatrix();
+                    translate(20, 0);
 
-                    powerKeys.push(player.discoveredPowers[i].key);
-                }
-                powerKeys.reverse();
-
-                fill(0, 0, 0, 130);
-                rect(width + 5 - textWidth(txt + "   E") - 40, height - 15, 100, 30, 5);
-
-                var powerString = player.discoveredPowersHandler.currentPower;
-
-                var c = 0;
-
-                var str = player.discoveredPowersHandler.currentPower;
-                var isKey = false;
-                for(var i = 0; i < powerKeys.length; i++)
-                {
-                    c++;
-                    isKey = (powerKeys[i] === player.discoveredPowers[str].key);
-
-                    fill(isKey ? color(240, 240, 240, 180) : color(240, 240, 240, 145));
-
-                    textAlign(LEFT, DOWN);
-                    text(powerKeys[i], width - 38 - c * textWidth(powerKeys[i] + "  "), height - 3);
-
-                    if(isKey)
+                    var powerKeys = [];
+                    var txt = "";
+                    for(var i in player.discoveredPowers)
                     {
-                        text("_", width - 38 - c * textWidth(powerKeys[i] + "  "), height - 2);
+                        txt += "   ";
+
+                        powerKeys.push(player.discoveredPowers[i].key);
                     }
-                }
+                    powerKeys.reverse();
 
-                fill(240, 240, 240, 145);
-                textAlign(RIGHT, DOWN);
-                text(txt + "   E", width - 27, height - 3);
+                    fill(0, 0, 0, 130);
+                    rect(width + 2 - textWidth(txt + "   E") - 40, height - 15, 100, 30, 5);
 
-                var saved = false;
-                var checkpoints = gameObjects.getObject("checkPoint");
+                    var powerString = player.discoveredPowersHandler.currentPower;
 
-                for(var i = 0; i < checkpoints.length; i++)
-                {
-                    if(checkpoints[i].checked)
+                    var c = 0;
+
+                    var str = player.discoveredPowersHandler.currentPower;
+                    var isKey = false;
+                    for(var i = 0; i < powerKeys.length; i++)
                     {
-                        saved = true;
-                        break;
+                        c++;
+                        isKey = (powerKeys[i] === player.discoveredPowers[str].key);
+
+                        fill(isKey ? color(240, 240, 240, 180) : color(240, 240, 240, 145));
+
+                        textAlign(LEFT, DOWN);
+                        text(powerKeys[i], width - 38 - c * textWidth(powerKeys[i] + "  "), height - 3);
+
+                        if(isKey)
+                        {
+                            text("_", width - 38 - c * textWidth(powerKeys[i] + "  "), height - 2);
+                        }
                     }
-                }
+
+                    fill(240, 240, 240, 145);
+                    textAlign(RIGHT, DOWN);
+                    text(txt + "   E", width - 27, height - 3);
+
+                    var saved = false;
+                    var checkpoints = gameObjects.getObject("checkPoint");
+
+                    for(var i = 0; i < checkpoints.length; i++)
+                    {
+                        if(checkpoints[i].checked)
+                        {
+                            saved = true;
+                            break;
+                        }
+                    }
+                popMatrix();
             }
-            
+        
+
             textAlign(LEFT, CENTER);
 
             if(!game.hideKeys && player.goto !== undefined && player.goto.keysHolding !== undefined)
@@ -9286,121 +9304,6 @@ var DynamicRect = function(xPos, yPos, width, height, colorValue)
 };
 gameObjects.addObject("dynamicRect", createArray(DynamicRect));
 
-var Water = function(xPos, yPos, width, height, colorValue)
-{
-    Rect.call(this, xPos, yPos, width, height, colorValue); 
-    this.color = colorValue || color(40, 103, 181, 150);
-    this.physics.solidObject = false;
-    
-    this.type = "liquid";
-    this.thickness = 1.405;
-    this.damage = 0.1;
-
-    this.frozen = false;
-    this.freezing = false;
-    this.freezable = true;
-
-    this.temp = 70;
-    this.freezeTemp = 22;
-    this.maxTemp = 72;
-    this.freezeRate = 0.05;
-    this.scoreValue = 150;
-
-    this.offMillis = round(random(-2000, 1000));
-
-    this.boundingBox.width += 2;
-    this.boundingBox.height += 2;
-
-    this.updateBoundingBox = function()
-    {
-        this.boundingBox.xPos = this.xPos - 1;
-        this.boundingBox.yPos = this.yPos - 1;
-    };
-
-    if(levelInfo.theme === "underground")
-    {
-        this.color = color(153, 90, 150, 120);
-    }
-
-    this.draw = function()
-    {
-        noStroke();
-        fill(this.color);
-        fastRect(this.xPos, this.yPos, this.width, this.height);
-
-        if(this.freezing && !this.showNoFreeze)
-        {
-            fill(33, 198, 207, this.a || 200 * (this.maxTemp - this.temp) / this.maxTemp);
-            triangle(this.xPos + this.width, this.yPos + this.height, this.xPos + this.width, this.yPos, this.xPos, this.yPos + this.height);
-        }
-    };
-
-    this.__lastUpdate = this.update;
-    this.update = function()
-    {
-        this.__lastUpdate();
-
-        if(!this.freezable) 
-        {
-            this.freezing = false;
-            return;
-        }
-
-        if(this.freezing)
-        {
-            this.temp -= this.freezeRate;
-        }
-
-        if(this.temp < this.freezeTemp)
-        {
-            this.frozen = true;
-
-            this.remove();
-            gameObjects.getObject("ice").add(this.xPos, this.yPos, this.width, this.height, undefined, undefined, true);
-
-            var ice = gameObjects.getObject("ice").getLast();
-
-            //Make the ice look like when water is frozen
-            ice.draw = this.draw;
-            ice.a = 200;
-            ice.color = this.color;
-            ice.freezing = true;
-
-            cameraGrid.addReference(ice);
-        }
-
-        this.physics.movement = (millis() % (3000 + this.offMillis) >= 2970 + this.offMillis) ? "dynamic" : "static"; 
-    };
-
-    this.lastDepleteBubbleShieldHp = millis();
-
-    this.onCollide = function(object)
-    {
-        if(object.air !== undefined && !object.breathing)
-        {
-            if(!object.bubbleShield)
-            {
-                if(this.width > levelInfo.unitWidth && this.height > levelInfo.unitHeight)
-                {
-                    object.air -= (object.downBreathSpeed || 0.25) * 5;
-                    object.air = max(object.air, 0);
-                }else{
-                    object.air -= object.downBreathSpeed || 0.25;
-                    object.air = max(object.air, 0);
-                }
-            }
-        }
-        if(object.physics.movement === "dynamic" && 
-          (object.inAir || object.yVel > 0 || object.boundingBox.yPos + object.boundingBox.height > this.yPos))
-        {
-            object.yVel = object.yVel / this.thickness;
-            object.inLiquid = true;
-            object.inAir = false;
-        }
-    };
-};
-gameObjects.addObject("water", createArray(Water));
-
 var BackBlock = function(xPos, yPos, width, height, colorValue)
 {
     Rect.call(this, xPos, yPos, width, height);
@@ -9451,6 +9354,11 @@ var Pillar = function(xPos, yPos, width, height, colorValue, pillarBlock)
     var wVert = this.width * 0.3;
     var hVert = this.height * 0.2;
 
+    if(levelInfo.theme === "underground")
+    {
+        this.color = color(0, 149, 45);
+    } 
+
     this.draw = function()
     {   
         noStroke();
@@ -9497,6 +9405,9 @@ var Pillar = function(xPos, yPos, width, height, colorValue, pillarBlock)
             noStroke();
         }
     };
+
+
+    var _lastDraw = this.draw;
 };
 gameObjects.addObject("pillar", createArray(Pillar));
 
@@ -9717,6 +9628,11 @@ var FallingBlock = function(xPos, yPos, width, height, colorValue)
     this.physics.sides = {
         up : true,
     };
+
+    if(levelInfo.theme === "underground")
+    {
+        this.color = color(0, 168, 0, 100);
+    }
     
     this.originalYPos = this.yPos;
     this.originalColor = this.color;
@@ -9824,6 +9740,14 @@ var MovingPlatform = function(xPos, yPos, width, height, colorValue, direction, 
     };
     
     screenUtils.loadImage(this, true, "movingPlatform" + this.color);
+
+    if(levelInfo.theme === "underground")
+    {
+        this.draw = function()
+        {
+            image(loadedImages["triangleBlockYellow"], this.xPos, this.yPos, this.width, this.height);
+        };
+    }
 
     this.updateBoundingBox = function()
     {     
@@ -10272,6 +10196,11 @@ gameObjects.addObject("ground", createArray(Ground));
 
 var Dirt = function(xPos, yPos, width, height, colorValue)
 {
+    if(levelInfo.theme === "underground")
+    {
+        colorValue = color(67, 7, 20, 100);
+    }
+
     this.noGrass = true;
     this.arrayName = "dirt";
     Ground.call(this, xPos, yPos, width, height, colorValue);
@@ -10279,13 +10208,8 @@ var Dirt = function(xPos, yPos, width, height, colorValue)
 };
 gameObjects.addObject("dirt", createArray(Dirt));
 
-var Block = function(xPos, yPos, width, height, colorValue)
+var Block = function(xPos, yPos, width, height, colorValue, override)
 {
-    if(levelInfo.theme === "underground")
-    {
-        colorValue = color(47, 63, 115);
-    }
-
     this.noGrass = true;
     this.arrayName = "block";
     Ground.call(this, xPos, yPos, width, height, colorValue, "block" + colorValue);
@@ -10531,52 +10455,6 @@ var Ice = function(xPos, yPos, width, height, colorValue, slipFactor, override)
     };
 };
 gameObjects.addObject("ice", createArray(Ice));
-
-var DirtyBlock = function(xPos, yPos, width, height, colorValue)
-{
-    Rect.call(this, xPos, yPos, width, height);
-    this.color = colorValue;
-    this.type = "block";
-
-    this.physics.solidObject = false;
-
-    this.imageName = "dirtyBlock";
-
-    this.draw = function()
-    {
-        image(storedImages[this.imageName], this.xPos, this.yPos, this.width, this.height);
-    };
-
-    var nameExtension = "";
-
-    if(levelInfo.theme === "underground")
-    {
-        this.draw = function()
-        {
-            image(storedImages[this.imageName], this.xPos, this.yPos, this.width, this.height);
-            fill(0, 64, 12, 103);
-            rect(this.xPos, this.yPos, this.width, this.height);
-        };
-    }
-
-    screenUtils.loadImage(this, true, "dirtyBlock" + "--" + nameExtension, undefined, undefined, undefined, undefined, true);
-    this.imageName = "dirtyBlock" + "--";
-
-    this.intensity = 18;
-
-    this.onCollide = function(object)
-    {
-        object.inAir = object.yPos + object.height < this.yPos + 3;
-
-        object.yVel = max(-2, object.yVel);
-
-        var v = (object.maxXVel + object.maxYVel) / 2 / this.intensity;
-
-        object.xVel = constrain(object.xVel, -v, v);
-        object.yVel = constrain(object.yVel, -v, v);
-    };
-};
-gameObjects.addObject("dirtyBlock", createArray(DirtyBlock));
 
 var UndergroundBlock = function(xPos, yPos, width, height)
 {
@@ -18593,6 +18471,167 @@ var Voxelizer = function(xPos, yPos, width, height, colorValue)
 };
 gameObjects.addObject("voxelizer", createArray(Voxelizer));
 
+var Water = function(xPos, yPos, width, height, colorValue)
+{
+    Rect.call(this, xPos, yPos, width, height, colorValue); 
+    this.color = colorValue || color(40, 103, 181, 150);
+    this.physics.solidObject = false;
+    
+    this.type = "liquid";
+    this.thickness = 1.405;
+    this.damage = 0.1;
+
+    this.frozen = false;
+    this.freezing = false;
+    this.freezable = true;
+
+    this.temp = 70;
+    this.freezeTemp = 22;
+    this.maxTemp = 72;
+    this.freezeRate = 0.05;
+    this.scoreValue = 150;
+
+    this.offMillis = round(random(-2000, 1000));
+
+    this.boundingBox.width += 2;
+    this.boundingBox.height += 2;
+
+    this.updateBoundingBox = function()
+    {
+        this.boundingBox.xPos = this.xPos - 1;
+        this.boundingBox.yPos = this.yPos - 1;
+    };
+
+    if(levelInfo.theme === "underground")
+    {
+        this.color = color(153, 90, 150, 155);
+    }
+
+    this.draw = function()
+    {
+        noStroke();
+        fill(this.color);
+        fastRect(this.xPos, this.yPos, this.width, this.height);
+
+        if(this.freezing && !this.showNoFreeze)
+        {
+            fill(33, 198, 207, this.a || 200 * (this.maxTemp - this.temp) / this.maxTemp);
+            triangle(this.xPos + this.width, this.yPos + this.height, this.xPos + this.width, this.yPos, this.xPos, this.yPos + this.height);
+        }
+    };
+
+    this.__lastUpdate = this.update;
+    this.update = function()
+    {
+        this.__lastUpdate();
+
+        if(!this.freezable) 
+        {
+            this.freezing = false;
+            return;
+        }
+
+        if(this.freezing)
+        {
+            this.temp -= this.freezeRate;
+        }
+
+        if(this.temp < this.freezeTemp)
+        {
+            this.frozen = true;
+
+            this.remove();
+            gameObjects.getObject("ice").add(this.xPos, this.yPos, this.width, this.height, undefined, undefined, true);
+
+            var ice = gameObjects.getObject("ice").getLast();
+
+            //Make the ice look like when water is frozen
+            ice.draw = this.draw;
+            ice.a = 200;
+            ice.color = this.color;
+            ice.freezing = true;
+
+            cameraGrid.addReference(ice);
+        }
+
+        this.physics.movement = (millis() % (3000 + this.offMillis) >= 2970 + this.offMillis) ? "dynamic" : "static"; 
+    };
+
+    this.lastDepleteBubbleShieldHp = millis();
+
+    this.onCollide = function(object)
+    {
+        if(object.air !== undefined && !object.breathing)
+        {
+            if(!object.bubbleShield)
+            {
+                if(this.width > levelInfo.unitWidth && this.height > levelInfo.unitHeight)
+                {
+                    object.air -= (object.downBreathSpeed || 0.25) * 5;
+                    object.air = max(object.air, 0);
+                }else{
+                    object.air -= object.downBreathSpeed || 0.25;
+                    object.air = max(object.air, 0);
+                }
+            }
+        }
+        if(object.physics.movement === "dynamic" && 
+          (object.inAir || object.yVel > 0 || object.boundingBox.yPos + object.boundingBox.height > this.yPos))
+        {
+            object.yVel = object.yVel / this.thickness;
+            object.inLiquid = true;
+            object.inAir = false;
+        }
+    };
+};
+gameObjects.addObject("water", createArray(Water));
+
+var DirtyBlock = function(xPos, yPos, width, height, colorValue)
+{
+    Rect.call(this, xPos, yPos, width, height);
+    this.color = colorValue;
+    this.type = "block";
+
+    this.physics.solidObject = false;
+
+    this.imageName = "dirtyBlock";
+
+    this.draw = function()
+    {
+        image(storedImages[this.imageName], this.xPos, this.yPos, this.width, this.height);
+    };
+
+    var nameExtension = "";
+
+    if(levelInfo.theme === "underground")
+    {
+        this.draw = function()
+        {
+            image(storedImages[this.imageName], this.xPos, this.yPos, this.width, this.height);
+            fill(0, 64, 12, 103);
+            rect(this.xPos, this.yPos, this.width, this.height);
+        };
+    }
+
+    screenUtils.loadImage(this, true, "dirtyBlock" + "--" + nameExtension, undefined, undefined, undefined, undefined, true);
+    this.imageName = "dirtyBlock" + "--";
+
+    this.intensity = 18;
+
+    this.onCollide = function(object)
+    {
+        object.inAir = object.yPos + object.height < this.yPos + 3;
+
+        object.yVel = max(-2, object.yVel);
+
+        var v = (object.maxXVel + object.maxYVel) / 2 / this.intensity;
+
+        object.xVel = constrain(object.xVel, -v, v);
+        object.yVel = constrain(object.yVel, -v, v);
+    };
+};
+gameObjects.addObject("dirtyBlock", createArray(DirtyBlock));
+
 var HardCaseBlock = function(xPos, yPos, width, height, colorValue)
 {
     Rect.call(this, xPos, yPos, width, height);
@@ -20033,7 +20072,7 @@ var NinjaStarShooter = function(xPos, yPos, diameter)
     };
 
     this.actObject = {
-        description : "Shoot Ninja Stars at stuff by pressing 'z' or 'l'!",
+        description : "Shoot Ninja Stars at stuff by pressing 'z' or 'l'!\nYou can even hold space to shoot backwards.",
         key : '2',
         name : "Ninja Star Shooter",
         hitStartedTime : 0,
@@ -20273,7 +20312,7 @@ var HookShot = function(xPos, yPos, diameter)
     var swing = 0.2;
 
     this.actObject = {
-        description : "Allows you to connect to points like a grappling hook.",
+        description : "Allows you to connect to points like a grappling hook.\nYou can also shoot certain enemies with this!",
         key : '4',
         name : "Hook Shot",
         onCollide : function(object, power, activateKey, hitObject, info)
@@ -20299,12 +20338,13 @@ var HookShot = function(xPos, yPos, diameter)
             var point;
             for(var i in cell)
             {
-                if(cell[i].arrayName === "point" && 
+                if(cell[i].arrayName === "point" && cell[i].index !== power._pointIndex && 
                    ((point = gameObjects.getObject("point")[cell[i].index]) !== undefined) &&
                     Math.pow(x - point.xPos, 2) + Math.pow(y - point.yPos, 2) < point.radius * point.radius * 5)
                 {
                     power.ox = point.xPos;
-                    power.oy = point.yPos;                    
+                    power.oy = point.yPos;          
+                    power._pointIndex = cell[i].index;          
                     return true;
                 }
             }
@@ -20330,6 +20370,24 @@ var HookShot = function(xPos, yPos, diameter)
             }
 
             return false;
+        },
+        executeDamage : function(x, y, object, power)
+        {
+            var place = cameraGrid.getPlace(x, y);
+
+            var cell = cameraGrid[place.col][place.row];
+
+            var setObject;
+            for(var i in cell)
+            {
+                if(cell[i].arrayName === "voxelizer" && ((setObject = gameObjects.getObject(cell[i].arrayName)[cell[i].index]) !== undefined) &&
+                    x > setObject.xPos && x < setObject.width + setObject.xPos && 
+                    y > setObject.yPos && y < setObject.height + setObject.yPos)
+                {
+                    setObject.hp -= 1;
+                    power.exit(object, power);
+                }
+            }
         },
         objectInWay : function(object, power)
         {
@@ -20436,6 +20494,7 @@ var HookShot = function(xPos, yPos, diameter)
         {
             power.position.x = object.xPos + object.halfWidth;
             power.position.y = object.yPos + object.halfHeight;
+            delete power._pointIndex;
 
             power.arrived = false;
             power.working = false;
@@ -20465,6 +20524,8 @@ var HookShot = function(xPos, yPos, diameter)
                 power.exit(object, power);
                 return;
             }
+
+            power.executeDamage(power.position.x, power.position.y, object, power);
 
             if(!power.arrived)
             {
@@ -22722,6 +22783,9 @@ levels.build = function(plan)
                 }
                 continue;
             }
+
+            // Why didn't I just use [...].indexOf?
+            // Oh well
             else if(belowSymbol === 'K' || belowSymbol === 'S' ||
             (belowSymbol === 'C' && (level.plan[row][col] === 'r' || 
             level.plan[row][col] === 's')) || belowSymbol === '@' || 
@@ -22743,7 +22807,12 @@ levels.build = function(plan)
                     break;
                 
                 case 'b' : 
-                    gameObjects.getObject("block").add(xPos, yPos, levelInfo.unitWidth, levelInfo.unitHeight, blockColor);
+                    if(levelInfo.theme === "underground")
+                    {
+                        gameObjects.getObject("imageBlock").add(xPos, yPos, levelInfo.unitWidth, levelInfo.unitHeight, "triangleBlockBlue");
+                    }else{
+                        gameObjects.getObject("block").add(xPos, yPos, levelInfo.unitWidth, levelInfo.unitHeight, blockColor);
+                    }
                     break;
                 
                 case 'w' : 
@@ -22815,12 +22884,7 @@ levels.build = function(plan)
                     break;
 
                 case 'k' : 
-                    if(table['5'] !== undefined && loadedImages[table['5']] !== undefined)
-                    {
-                        gameObjects.getObject("imageBlock").add(xPos, yPos, levelInfo.unitWidth, levelInfo.unitHeight, table['5']);
-                    }else{
-                        gameObjects.getObject("dirtyCat").add(xPos, yPos, levelInfo.unitWidth * 2.0, levelInfo.unitHeight * 1.28);
-                    }
+                    gameObjects.getObject("dirtyCat").add(xPos, yPos, levelInfo.unitWidth * 2.0, levelInfo.unitHeight * 1.28);
                     break;
 
                 case '_' :
@@ -22850,8 +22914,19 @@ levels.build = function(plan)
                     }
                     break;
 
+                case '=' :
+                    if(table['='] === "darkBlock")
+                    { 
+                        gameObjects.getObject("imageBlock").add(xPos, yPos, levelInfo.unitWidth, levelInfo.unitHeight, "darkBlock");
+                    }
+                    break;
+
                 case '0' :
-                    if(table['W'] === "unWater")
+                    if(levelInfo.theme === "underground")
+                    {
+                        gameObjects.getObject("rect").add(xPos, yPos, levelInfo.unitWidth, levelInfo.unitHeight).color = color(0, 0, 0, 230);
+                    }
+                    else if(table['W'] === "unWater")
                     {
                         gameObjects.getObject("water").add(xPos - levelInfo.unitWidth, yPos - levelInfo.unitHeight, levelInfo.unitWidth * 3, levelInfo.unitHeight * 3);
                         gameObjects.getObject("water").getLast().freezable = false;
@@ -22905,7 +22980,12 @@ levels.build = function(plan)
                     break;
                 
                 case '%' :
-                    gameObjects.getObject("shooter").add(xPos + levelInfo.unitWidth / 2, yPos + levelInfo.unitHeight / 2, levelInfo.unitWidth);
+                    if(levelInfo.theme === "underground")
+                    {
+                        gameObjects.getObject("imageBlock").add(xPos, yPos, levelInfo.unitWidth, levelInfo.unitHeight, "triangleBlockGreen");
+                    }else{
+                        gameObjects.getObject("shooter").add(xPos + levelInfo.unitWidth / 2, yPos + levelInfo.unitHeight / 2, levelInfo.unitWidth);
+                    }
                     break;
 
                 case '9' :
@@ -23046,10 +23126,6 @@ levels.build = function(plan)
                     gameObjects.getObject("ring").add(xPos + levelInfo.unitWidth, yPos + levelInfo.unitHeight, levelInfo.unitWidth * 2, color(175, 175, 175));
                     break;
 
-                case '0' :
-                   
-                    break;
-                    
                 case 'F' : 
                     var fallingBlock = gameObjects.getObject("fallingBlock").add(xPos, yPos, levelInfo.unitWidth, levelInfo.unitHeight);
 
@@ -23071,6 +23147,7 @@ levels.build = function(plan)
                         'v' : "down"
                     }[level.plan[row][col]]));
 
+                    // Kind of lazy here...
                     if(level.specialOneWays || ((configs[levelInfo.theme] || {}).level || {}).specialOneWays)
                     {
                         switch(level.plan[row][col])
