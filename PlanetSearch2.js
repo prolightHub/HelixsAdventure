@@ -774,6 +774,22 @@ var sketch = function(processing) /*Wrapper*/
         Added level cave 2
 
     * 0.9.1
+        Added Slashers!
+        You can now rotate UnderGroundBlock(s)!
+        You can now collect gems with the hookshot power-up.
+        Added blue and green stalactites.
+        We now have the slimeBeaker!
+        Bats are now in the game.
+        Bats are finished (mostly)
+        All beakers now drop coins and/or hp coins, Except for Slime Beakers --Which drop only hpCoins
+        Added descriptions for crystals.
+        Added level cave3!
+        Added level cave4!
+        Added level path1!
+        Added level path2!
+        Added level path1FollowUp!
+        Added level intersection!
+        Added level secretPath!
 
     Next :   
         Will do:           
@@ -789,8 +805,6 @@ var sketch = function(processing) /*Wrapper*/
         More Weapons, shops.
         Add chest appearing sound effect.
         Improve dragon boss.
-
-        Add green beakers.
 
     In the future:
         --More overworld levels,
@@ -1814,6 +1828,7 @@ var textBoxes = {
 };
 textBoxes.naming.round = 7;
 textBoxes.naming.safeStr = true;
+textBoxes.naming.message = "Helix";
 
 var MessageBox = function(xPos, yPos, width, height, colorValue)
 {
@@ -5233,6 +5248,7 @@ var inventoryMenu = {
         {
             this.close(this.scene);
             this.open("crystals", undefined, true);
+            this.arrowKeysFadeTime = 100;
         }
     },
     draw : function()
@@ -5304,6 +5320,10 @@ var inventoryMenu = {
                             break;
                         }
 
+                        fill(240, 240, 240, this.arrowKeysFadeTime -= 0.8);
+                        textSize(10);
+                        text("[Arrow keys]", 10, 30);
+
                         pushMatrix();
                             translate(170, 100);
                             fill(0, 0, 0, 200);
@@ -5367,7 +5387,17 @@ var inventoryMenu = {
                         text(toText, 170, 200);
                         textAlign(LEFT, TOP);
 
-                        scene.onHover = toText;
+                        switch(toText.toLowerCase())
+                        {
+                            case "ninja" : 
+                                scene.onHover = "A Ninja crystal! From your adventure in the Ninja Temple, after\ndefeating many Ninjas!";
+                                break;
+
+                            case "winter" : 
+                                scene.onHover = "A Winter crystal! From your adventure in Icy Slopes, after\ndefeating an Ice Dragon!";
+                                break;
+                        }
+                      
                         break;
                 }
 
@@ -5460,16 +5490,6 @@ var inventoryMenu = {
         }
     },
 };
-
-(function() 
-{
-    var _buttons = inventoryMenu.scenes.home.buttons;
-
-    for(var i = 1; i < 40; i++)
-    {
-        _buttons["k" + i] = new Button(186, 132 + 18 * (i - 1), 141, 18, color(12, 60, 160, 100), "");
-    }
-})();
 
 var _this = this;
 
@@ -9996,6 +10016,13 @@ var Lava = function(xPos, yPos, width, height, colorValue, damage)
     screenUtils.loadImage(this, true, "lava" + this.num);
 
     this.damage = damage || 0.1;
+
+
+    if(levelInfo.theme === "underground")
+    {
+        this.damage *= 6;
+    }
+
     this.onCollide = function(object)
     {
         if(object.type === "lifeform" && !object.lavaImmune)
@@ -10044,6 +10071,11 @@ var Coin = function(xPos, yPos, diameter, colorValue, amt)
 
     this.draw = function()
     {  
+        if(this.doNotDraw)
+        {
+            return;
+        }
+
         //Shadow splash
         fill(0, 0, 0, 50);
         ellipse(this.xPos, this.yPos, this.rot * this.diameter * 1.3 / this.maxRot, this.diameter * 1.3);
@@ -10062,6 +10094,9 @@ var Coin = function(xPos, yPos, diameter, colorValue, amt)
         }
     };
     
+    this.startTime = millis();
+    this.lastFlickerTime = millis();
+
     this.lastUpdate = this.update;
     this.update = function()
     {
@@ -10073,6 +10108,23 @@ var Coin = function(xPos, yPos, diameter, colorValue, amt)
         }
 
         this.rot += this.rotVel;
+
+        if(this.doNotSave)
+        {
+            if(millis() - this.startTime > 3500)
+            {
+                if(millis() - this.lastFlickerTime > 30)
+                {
+                    this.doNotDraw = !this.doNotDraw;
+                    this.lastFlickerTime = millis();
+                }
+
+                if(millis() - this.startTime > 4500)
+                {
+                    this.remove();
+                }
+            }
+        }
     };
 
     this.onCollide = function(object)
@@ -10465,14 +10517,41 @@ var UndergroundBlock = function(xPos, yPos, width, height)
     var up = this.yPos;
     var down = this.yPos + this.height;
 
+    this.rotation = 90;
+
     this.draw = function()
     {
-        fill(0, 0, 0, 100);
-        rect(xPos, yPos, width, height);
-        fill(245, 245, 245, 90);
-        triangle(left, down, right, up, right, down);
-        fill(0, 0, 0, 70);
-        rect(xPos + 6, yPos + 6, width - 12, height - 12, 5);
+        pushMatrix();
+            translate(xPos + this.halfWidth, yPos + this.halfHeight);
+            rotate(this.rotation);
+            translate(-xPos - this.halfWidth, -yPos - this.halfHeight);
+            fill(0, 0, 0, 100);
+            fastRect(xPos, yPos, width, height);
+            fill(245, 245, 245, 90);
+            triangle(left, down, right, up, right, down);
+            fill(0, 0, 0, 70);
+            rect(xPos + 6, yPos + 6, width - 12, height - 12, 5);
+        popMatrix();
+    };
+
+    this.lastTwistTime = 0;
+    this.update = function()
+    {
+        if(mouseIsPressed && millis() - this.lastTwistTime > 250)
+        {
+            var x = cam.focusXPos - cam.halfWidth + mouseX;
+            var y = cam.focusYPos - cam.halfHeight + mouseY;
+
+            if(observer.collisionTypes.pointrect.colliding({
+                xPos : x, 
+                yPos : y
+            }, this))
+            {
+                this.rotation = physics.formulas.resolveAngle(this.rotation + 90);
+            }
+
+            this.lastTwistTime = millis();
+        }
     };
 };
 gameObjects.addObject("undergroundBlock", createArray(UndergroundBlock));
@@ -13206,6 +13285,25 @@ var FireBeaker = function(xPos, yPos, width, height, colorValue)
         }
         this.lastOnCollide(object, info);
     };
+
+    var _lastRemove = this.remove;
+    this.remove = function()
+    {
+        if(!this.addedDrops)
+        {
+            for(var i = 2; i > 0; i--)
+            {
+                var object = gameObjects.getObject(Math.random() < 0.5 ? "coin" : "hpCoin").add(
+                this.xPos + this.halfWidth + random(-20, 20), this.yPos + this.halfHeight + random(-20, 20), levelInfo.unitWidth / 2);
+                object.doNotSave = true;
+                cameraGrid.addReference(object);
+            }
+
+            this.addedDrops = true;
+        }
+
+        return _lastRemove.apply(this, arguments);
+    };
 };
 gameObjects.addObject("fireBeaker", createArray(FireBeaker));
 
@@ -13225,8 +13323,66 @@ var WaterBeaker = function(xPos, yPos, width, height, colorValue)
         this.gravity = (this.inLiquid) ? 0 : this.lastGravity;
         this.lastUpdate1();
     };
+
+    var _lastRemove = this.remove;
+    this.remove = function()
+    {
+        if(!this.addedDrops)
+        {
+            for(var i = 2; i > 0; i--)
+            {
+                var object = gameObjects.getObject(Math.random() < 0.5 ? "coin" : "hpCoin").add(
+                this.xPos + this.halfWidth + random(-20, 20), this.yPos + this.halfHeight + random(-20, 20), levelInfo.unitWidth / 2);
+                object.doNotSave = true;
+                cameraGrid.addReference(object);
+            }
+
+            this.addedDrops = true;
+        }
+
+        return _lastRemove.apply(this, arguments);
+    };
 };
 gameObjects.addObject("waterBeaker", createArray(WaterBeaker));
+
+var SlimeBeaker = function(xPos, yPos, width, height, colorValue)
+{
+    Enemy.call(this, xPos, yPos, width, height, colorValue || color(0, 123, 61), {
+        charging : true,
+        handleEdge : true
+    }, true);    
+    this.addCast(this, "waterBeaker");
+    this.lastGravity = this.gravity;
+    this.lastUpdate1 = this.update;
+
+    this.damage = 3;
+
+    this.update = function()
+    {
+        this.gravity = (this.inLiquid) ? 0 : this.lastGravity;
+        this.lastUpdate1();
+    };
+
+    var _lastRemove = this.remove;
+    this.remove = function()
+    {
+        if(!this.addedDrops)
+        {
+            for(var i = 2; i > 0; i--)
+            {
+                var hpCoin = gameObjects.getObject("hpCoin").add(
+                this.xPos + this.halfWidth + random(-20, 20), this.yPos + this.halfHeight + random(-20, 20), levelInfo.unitWidth / 2);
+                hpCoin.doNotSave = true;
+                cameraGrid.addReference(hpCoin);
+            }
+
+            this.addedDrops = true;
+        }
+
+        return _lastRemove.apply(this, arguments);
+    };
+};
+gameObjects.addObject("slimeBeaker", createArray(SlimeBeaker));
 
 var IceBeaker = function(xPos, yPos, width, height, colorValue)
 {
@@ -13322,6 +13478,25 @@ var IceBeaker = function(xPos, yPos, width, height, colorValue)
             object.snowLayered = true;
             return;
         }
+    };
+
+    var _lastRemove = this.remove;
+    this.remove = function()
+    {
+        if(!this.addedDrops)
+        {
+            for(var i = 2; i > 0; i--)
+            {
+                var object = gameObjects.getObject(Math.random() < 0.5 ? "coin" : "hpCoin").add(
+                this.xPos + this.halfWidth + random(-20, 20), this.yPos + this.halfHeight + random(-20, 20), levelInfo.unitWidth / 2);
+                object.doNotSave = true;
+                cameraGrid.addReference(object);
+            }
+
+            this.addedDrops = true;
+        }
+
+        return _lastRemove.apply(this, arguments);
     };
 };
 gameObjects.addObject("iceBeaker", createArray(IceBeaker));
@@ -14206,6 +14381,354 @@ var NinjaStar = function(xPos, yPos, diameter, colorValue)
     };
 };
 gameObjects.addObject("ninjaStar", createArray(NinjaStar));
+
+var Slasher = function(xPos, yPos, width, height)
+{
+    DynamicRect.call(this, xPos, yPos, width, height);
+    LifeForm.call(this, 10);
+    this.damage = 1;
+
+    this.boundingBox.overSized = true;
+    this.updateVel = function() {};
+    this.gravity = 0;
+
+    this.draw = function()
+    {
+        image(loadedImages["slasher"], this.xPos, this.yPos, this.width, this.height);
+    };
+
+    this.axis = Math.random() < 0.5 ? "x" : "y";
+
+    this.moveSpeedX = 3.4;
+    this.moveSpeedY = 3.4;
+
+    this.maxLeaveX = 600;
+    this.maxLeaveY = 600;
+
+    var preXPos = this.xPos, preYPos = this.yPos;
+    var postXPos = this.xPos, postYPos = this.yPos;
+
+    var _lastUpdate = this.update;
+    this.update = function()
+    {
+        this.xVel = 0;
+        this.yVel = 0;
+
+        _lastUpdate.apply(this, arguments);
+
+        if(this.axis === "x")
+        {
+            // Move
+            this.xPos += this.moveSpeedX;
+            this.yPos = preYPos;
+            preXPos = this.xPos;
+
+            // Turn around if we are too far away
+            if(Math.abs(postXPos - this.xPos) > this.maxLeaveX)
+            {
+                this.moveSpeedX = -this.moveSpeedX;
+            }
+
+            // Set boundingBox to make this object always update...
+            this.boundingBox.xPos = this.xPos - 200;
+            this.boundingBox.width = 400;
+            this.boundingBox.yPos = this.yPos;
+            this.boundingBox.height = this.height;
+
+            if(this.xPos < levelInfo.xPos || this.xPos + this.width > levelInfo.xPos + levelInfo.width)
+            {
+                this.moveSpeedX = -this.moveSpeedX;
+            }
+        }
+        else if(this.axis === "y")
+        {
+            // Move
+            this.yPos += this.moveSpeedY;
+            this.xPos = preXPos;
+            preYPos = this.yPos;
+
+            // Turn around if we are too far away
+            if(Math.abs(postYPos - this.yPos) > this.maxLeaveY)
+            {
+                this.moveSpeedY = -this.moveSpeedY;
+            }
+
+            // Set boundingBox to make this object always update...
+            this.boundingBox.yPos = this.yPos - 200;
+            this.boundingBox.height = 400;
+            this.boundingBox.xPos = this.xPos;
+            this.boundingBox.width = this.width;
+
+            if(this.yPos < levelInfo.yPos || this.yPos + this.height > levelInfo.yPos + levelInfo.height)
+            {
+                this.moveSpeedY = -this.moveSpeedY;
+            }
+        }
+    };
+
+    this.lastHittingFilter = millis();
+
+    this.onCollide = function(object, info)
+    {
+        // If this is close enough to a filter block switch direction
+        if(millis() - this.lastHittingFilter > 300 && object.arrayName === "filterBlock" && 
+            (Math.abs((this.xPos + this.halfWidth) - (object.xPos + object.halfWidth)) <= Math.abs(this.moveSpeedX)) &&
+            (Math.abs((this.yPos + this.halfHeight) - (object.yPos + object.halfHeight)) <= Math.abs(this.moveSpeedY)))
+        {
+            this.axis = (this.axis === "y") ? "x" : "y";
+
+            this.xPos = object.xPos;
+            this.yPos = object.yPos;
+            this.lastHittingFilter = millis();
+        }
+
+        if(object.arrayName === "player")
+        {
+            object.takeDamage(this);
+        }
+
+        if(object.physics.solidObject && !object.sides)
+        {
+            switch(info.side)
+            {
+                case "left" : case "right" :
+                    if(this.axis === "x")
+                    {
+                        // Turn around if we hit something
+                        this.moveSpeedX = -this.moveSpeedX;
+
+                        // Switch axis sometimes if we hit something
+                        if(object.physics.movement === "static" && Math.random() < 0.1)
+                        {
+                            preXPos = this.xPos;
+                            postYPos = this.yPos;
+                            this.axis = "y";
+                        }
+                    }
+                    break;
+
+                case "up" : case "down" :
+                    if(this.axis === "y")
+                    {
+                        // Turn around if we hit something
+                        this.moveSpeedY = -this.moveSpeedY;
+
+                        // Switch axis sometimes if we hit something
+                        if(object.physics.movement === "static" && Math.random() < 0.1)
+                        {
+                            preYPos = this.yPos;
+                            postXPos = this.xPos;
+                            this.axis = "x";
+                        }
+                    }
+                    break;
+            }
+        }
+    };
+};
+gameObjects.addObject("slasher", createArray(Slasher));
+
+var Bat = function(xPos, yPos, width, height)
+{
+    DynamicRect.call(this, xPos, yPos, width, height);
+    LifeForm.call(this, 2);
+
+    this.score = 8000;
+
+    this.damage = 4;
+
+    this.gravity = 0;
+    this.inAir = true;
+
+    this.imgNum = 1; 
+    this.lastBatTime = millis();
+    this.imgName = "batRoosting";
+
+    this.draw = function()
+    {
+        // Draw state(s)
+        switch(this.state)
+        {
+            case "flying" :
+                if(millis() - this.lastBatTime > 150)
+                {
+                    this.imgNum++;
+                    if(this.imgNum > 2)
+                    {
+                        this.imgNum = 1;
+                    }
+                    this.lastBatTime = millis();
+                }
+
+                this.imgName = "bat" + this.imgNum;
+                break;
+
+            case "roosting" :
+                this.imgName = "batRoosting";
+                break;
+        }
+
+        fastImage(loadedImages[this.imgName], this.xPos, this.yPos - 4, this.width, this.height);
+    };
+
+    this.state = "roosting";
+
+    this.fallAmount = 100;
+    this.swoopXSpeed = 4;
+    this.swoopDirection = (Math.random() < 0.5) ? "left" : "right";
+    this.lastSwoopTime = millis();
+
+    this.roostingPlace = {
+        xPos : xPos,
+        yPos : yPos
+    };
+
+    var _lastUpdate = this.update;
+    this.update = function()
+    {
+        _lastUpdate.apply(this, arguments);
+
+        // Update state(s)
+        switch(this.state)
+        {
+            case "flying" :
+                this.physics.solidObject = true;
+                this.inAir = true;
+
+                this.released = false;
+                this.gravity = 0;
+
+                if(this.swoopDirection === "right")
+                {
+                    this.xVel = this.swoopXSpeed;
+                }
+                else if(this.swoopDirection === "left")
+                {
+                    this.xVel = -this.swoopXSpeed;
+                }
+
+                this.yVel = min(0, this.yVel);
+                this.yVel -= 0.05;
+                break;
+
+            case "roosting" :
+                this.physics.solidObject = false;
+                this.inAir = false;
+
+                if(this.released)
+                {
+                    this.gravity = 0.3;
+
+                    if(this.roostingPlace.yPos + this.fallAmount < this.yPos)
+                    {
+                        this.switchState("flying");
+                    }
+                }
+                break;
+        }
+
+        // Just in case things go wrong
+        if(!this.cast.signal())
+        {
+            this.cast.setPos(this.cast);
+            cameraGrid.addReference(this.cast);
+        }
+    };
+
+    this.onCollide = function(object, info)
+    {   
+        if(this.state !== "roosting")
+        {
+            if(object.arrayName === "player")
+            {
+                if(info.side === "up")
+                {
+                    this.takeDamage(object);
+                    object.yVel -= 3;
+                }else{
+                    object.takeDamage(this);
+                }
+            }
+            else if(object.physics.solidObject && object.physics.shape === "rect" && info.side === "down" && object.physics.movement === "static")
+            {
+                this.xVel = 0;
+                this.switchState("roosting");
+                this.roostingPlace.yPos = object.yPos + object.height;
+                this.roostingPlace.xPos = this.xPos;
+            }
+        }
+    };
+
+    var _lastTakeDamage = this.takeDamage;
+    this.takeDamage = function(object, amt)
+    {
+        console.log(this.state);
+        if(this.state === "flying")
+        {
+            return _lastTakeDamage.apply(this, arguments);
+        }else{
+            this.awake();
+        }
+    };
+
+    this.switchState = function(state)
+    {
+        this.state = state;
+        // Might add a switch(...)
+        switch(state)
+        {
+            case "flying" :
+                this.swoopXSpeed = random(2, 5);
+
+                if(this.xPos + this.halfWidth < levelInfo.xPos + 200)
+                {
+                    this.swoopDirection = "right";
+                }
+                else if(this.xPos + this.halfWidth > levelInfo.xPos + levelInfo.width - 200)
+                {
+                    this.swoopDirection = "left";
+                }else{
+                    this.swoopDirection = (Math.random() < 0.5) ? "left" : "right";
+                }
+                break;
+        }
+    };
+
+    this.awake = function()
+    {
+        if(this.state === "roosting")
+        {
+            this.released = true;
+            this.fallAmount = 200;
+        }
+    };
+
+    var _this = this;
+    this.addCast = function()
+    {
+        //xPos, yPos, diameter, objectArrayName, inform, setPos, oneTime, time
+        gameObjects.getObject("cast").add(this.xPos + this.halfWidth, this.yPos + this.halfHeight, 3, "", function(object)
+        {
+            if(_this.state === "roosting" && object.arrayName === "player")
+            {
+                _this.fallAmount = max(0, (object.yPos - _this.roostingPlace.yPos) + random(-20, 20)) || _this.fallAmount;
+                _this.released = true;
+            }
+        },
+        function(cast)
+        {
+            cast.xPos = _this.xPos + _this.halfWidth;  
+            cast.yPos = _this.yPos + _this.halfHeight;
+        }, false);
+
+        this.cast = gameObjects.getObject("cast").getLast();
+        this.cast.ignore.push("bat");
+        this.cast.yVel = 12.4;
+    };
+
+    this.addCast();
+};
+gameObjects.addObject("bat", createArray(Bat));
 
 var Ninja = function(xPos, yPos, width, height, colorValue)
 {
@@ -15558,7 +16081,7 @@ var IceDragon = function(xPos, yPos, width, height)
     Boss.call(this, xPos, yPos, width, height, color(15, 120, 220, 220), {
         charging : true,
         handleEdge : true
-    }, false, 30);
+    }, false, 26);
 
     this.physics.solidObject = true;
 
@@ -18471,6 +18994,26 @@ var Voxelizer = function(xPos, yPos, width, height, colorValue)
 };
 gameObjects.addObject("voxelizer", createArray(Voxelizer));
 
+var Stalactite = function(xPos, yPos, width, height, imageName)
+{
+    Rect.call(this, xPos, yPos, width, height);
+
+    this.imageName = imageName;
+
+    this.snowflakes = 0;
+
+    this.draw = function()
+    {
+        try{
+            image(loadedImages[this.imageName], this.xPos, this.yPos, this.width, this.height);
+        }
+        catch(e) { }
+    };
+
+    this.notExplosive = true;
+};
+gameObjects.addObject("stalactite", createArray(Stalactite));
+
 var Water = function(xPos, yPos, width, height, colorValue)
 {
     Rect.call(this, xPos, yPos, width, height, colorValue); 
@@ -18656,11 +19199,13 @@ var HardCaseBlock = function(xPos, yPos, width, height, colorValue)
     this.coreTimer = 0;
     this.vel = 0.1;
 
-    this.coinAmt = 3;
+    this.coinAmt = levelInfo.regenCoinCost || 3;
     this.hpAmt = 1;
 
     this.draw = function()
     {
+        noStroke();
+
         fill(this.color);
         fastRect(this.xPos, this.yPos, this.width, this.height);
 
@@ -20380,11 +20925,29 @@ var HookShot = function(xPos, yPos, diameter)
             var setObject;
             for(var i in cell)
             {
-                if(cell[i].arrayName === "voxelizer" && ((setObject = gameObjects.getObject(cell[i].arrayName)[cell[i].index]) !== undefined) &&
+                if(!(setObject = gameObjects.getObject(cell[i].arrayName)[cell[i].index]))
+                {
+                    return;
+                }
+
+                if(cell[i].arrayName === "gem" &&
+                    x > setObject.xPos && x < setObject.width + setObject.xPos && 
+                    y > setObject.yPos && y < setObject.height + setObject.yPos)
+                {   
+                    setObject.onCollect(gameObjects.getObject("player")[0]);
+
+                    power.exit(object, power);
+                }
+                else if((cell[i].arrayName === "voxelizer" || cell[i].arrayName === "bat") &&
                     x > setObject.xPos && x < setObject.width + setObject.xPos && 
                     y > setObject.yPos && y < setObject.height + setObject.yPos)
                 {
-                    setObject.hp -= 1;
+                    if(cell[i].arrayName === "bat")
+                    {
+                        setObject.takeDamage(object);
+                    }else{
+                        setObject.hp -= 1;
+                    }
                     power.exit(object, power);
                 }
             }
@@ -21321,29 +21884,34 @@ var Gem = function(xPos, yPos, width, height)
         image(loadedImages["gem"], this.xPos, this.yPos, this.width * 0.75, this.height * 0.75);
     };
 
+    this.onCollect = function(object)
+    {
+        if(object.gems === 0)
+        {
+            talkHandler.start(this.messages, "start", "");
+        }else{
+            talkHandler.start({
+                "start" : {
+                    message : "Yay you found another gem! You now\nhave " + (object.gems + 1) + " gems.",
+                    up : true,
+                    coices : {
+                        "exit" : "okay"
+                    }
+                }
+            }, "start", "");
+        }
+
+        object.gems++;
+
+        this.onCollide = function() {};
+        this.remove();     
+    };
+
     this.onCollide = function(object)
     {
         if(object.arrayName === "player")
         {
-            if(object.gems === 0)
-            {
-                talkHandler.start(this.messages, "start", "");
-            }else{
-                talkHandler.start({
-                    "start" : {
-                        message : "Yay you found another gem! You now\nhave " + (object.gems + 1) + " gems.",
-                        up : true,
-                        coices : {
-                            "exit" : "okay"
-                        }
-                    }
-                }, "start", "");
-            }
-
-            object.gems++;
-
-            this.onCollide = function() {};
-            this.remove();       
+            this.onCollect(object);
         }
     };
 
@@ -21437,6 +22005,7 @@ var configAreaSaver = {
             {
                 if(!array.input(j).fake && objectsExists[path][j])
                 {
+                    array.input(j).addedDrops = true;
                     array.input(j).remove();
                     array.applyObject(j);
                 }
@@ -21463,7 +22032,10 @@ var configAreaSaver = {
 
             for(var j = 0; j < array.length; j++)
             {
-                recordedObjectBools[path].push(array.input(j).fake || false);
+                if(!array.input(j).doNotSave)
+                {
+                    recordedObjectBools[path].push(array.input(j).fake || false);
+                }
             }
         }
 
@@ -22684,6 +23256,8 @@ levels.applySettings = function(level)
 
     levelInfo.cold = configLevel.cold || level.cold;
 
+    levelInfo.regenCoinCost = configLevel.regenCoinCost;
+
     if(level.background !== undefined)
     {
         backgrounds.setBackground(level.background);
@@ -22806,6 +23380,14 @@ levels.build = function(plan)
                     gameObjects.getObject("dirt").add(xPos, yPos, levelInfo.unitWidth, levelInfo.unitHeight, color(107, 83, 60));
                     break;
                 
+                case ':' :
+                    gameObjects.getObject("stalactite").add(xPos, yPos, levelInfo.unitWidth, levelInfo.unitHeight, "BlueStalactite").physics.solidObject = false;
+                    break;
+
+                case ';' :
+                    gameObjects.getObject("stalactite").add(xPos, yPos, levelInfo.unitWidth, levelInfo.unitHeight, "GreenStalactite").physics.solidObject = false;
+                    break;
+
                 case 'b' : 
                     if(levelInfo.theme === "underground")
                     {
@@ -22976,7 +23558,12 @@ levels.build = function(plan)
                     break;
                 
                 case 'E' :
-                    gameObjects.getObject("waterBeaker").add(xPos, yPos, levelInfo.unitWidth, levelInfo.unitHeight);
+                    if(levelInfo.theme === "underground")
+                    {
+                       gameObjects.getObject("slimeBeaker").add(xPos, yPos, levelInfo.unitWidth, levelInfo.unitHeight);
+                    }else{
+                       gameObjects.getObject("waterBeaker").add(xPos, yPos, levelInfo.unitWidth, levelInfo.unitHeight);
+                    }
                     break;
                 
                 case '%' :
@@ -23007,7 +23594,17 @@ levels.build = function(plan)
                     break;
 
                 case '&' :
-                    gameObjects.getObject("skyViper").add(xPos, yPos, levelInfo.unitWidth * 1.35, levelInfo.unitHeight * 1.45);
+                    if(levelInfo.theme === "underground")
+                    {
+                        var bat = gameObjects.getObject("bat").add(xPos, yPos, levelInfo.unitWidth, levelInfo.unitHeight);
+
+                        if(this.getSymbol(col, row - 1, level.plan) === ' ')
+                        {
+                            bat.state = "flying";
+                        }
+                    }else{
+                        gameObjects.getObject("skyViper").add(xPos, yPos, levelInfo.unitWidth * 1.35, levelInfo.unitHeight * 1.45);
+                    }
                     break;
 
                 case 'I' :
@@ -23044,7 +23641,12 @@ levels.build = function(plan)
                     break;
                     
                 case '+' :
-                    gameObjects.getObject("net").add(xPos, yPos, levelInfo.unitWidth, levelInfo.unitHeight);
+                    if(levelInfo.theme === "underground")
+                    {
+                        gameObjects.getObject("slasher").add(xPos, yPos, levelInfo.unitWidth, levelInfo.unitHeight);
+                    }else{
+                        gameObjects.getObject("net").add(xPos, yPos, levelInfo.unitWidth, levelInfo.unitHeight);
+                    }
                     break;
 
                 case '`' :
@@ -24005,7 +24607,7 @@ game.save = function(checkPoint)
                 }
             }
         }
-    }  
+    }
 
     configAreaSaver.saveToLevelCache(levelInfo.level, f_getArrayNamesToSave(levelInfo.level, levelInfo.theme), levelInfo.theme);
 
@@ -25297,6 +25899,7 @@ if(game.debugMode)
     window.gameObjects = gameObjects;
     window.cam = cam;
     window.storedImages = storedImages;
+    window.levelInfo = levelInfo;
 }
 
 //Done!

@@ -59,6 +59,7 @@ var configs = {
             background : "underground",
             noSong : true,
             specialOneWays : true,
+            regenCoinCost : 6,
             table : {
                 '_' : "cathodes",
                 '5' : "dark",
@@ -66,7 +67,7 @@ var configs = {
                 '7' : "wisp",
                 '=' : "darkBlock"
             },
-            arraysToSave : ["crystal", "coin", "hpCoin", "ice", "voxelizer", "dirtyCat"],
+            arraysToSave : ["crystal", "coin", "hpCoin", "ice", "voxelizer", "dirtyCat", "slimeBeaker", "bat"],
         }
     },
     "other" : {
