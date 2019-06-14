@@ -3,6 +3,7 @@ var configs = {
         name : "Overworld",
         area : "Area 1",
         level : {
+            song : "overworld.mp3",
             arraysToSave : ["crystal", "coin", "hpCoin", "heart"],
         }
     },
@@ -10,7 +11,7 @@ var configs = {
         name : "Ninja Temple",
         area : "Area 2",
         level : {
-            song: "StepUpv2.wav",
+            song: "ninjatemple.mp3",
             background : "dark",
             shade : {
                 r : 0,
@@ -72,6 +73,8 @@ var configs = {
     },
     "other" : {
         hidden : true,
-        level : {}
+        level : {
+            noSong : true
+        }
     }
 };

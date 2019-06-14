@@ -140,10 +140,13 @@ sounds.addSound("Explosion5.wav");
 
 //Made with beepbox
 // sounds.addSound("StepUp.wav", "song");
-sounds.addSound("StepUpv2.wav", "song");
+// sounds.addSound("StepUpv2.wav", "song");
 
 // This stuff einkurogane
 sounds.addSound("PS2.mp3", "song");
 // sounds.addSound("PS2-8bit.mp3", "song");
 sounds.addSound("icy_slopes_ps2-short.mp3", "song");
 // sounds.addSound("icy_slopes_8bit-ps2-short.mp3", "song");
+
+sounds.addSound("overworld.mp3", "song");
+sounds.addSound("ninjatemple.mp3", "song");

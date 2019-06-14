@@ -79,9 +79,9 @@ var sketch = function(processing) /*Wrapper*/
 /**   Hybrid Game Engine (Planet Search 2)  **/
 /**
     @Author Prolight
-    @Version 0.9.1 beta (91% complete)
+    @Version 0.9.2 beta (92% complete)
 
-        64+ gameObjects!
+        80+ gameObjects!
 
     @How :
         Use the arrow keys to move. Down to go through 
@@ -790,6 +790,16 @@ var sketch = function(processing) /*Wrapper*/
         Added level path1FollowUp!
         Added level intersection!
         Added level secretPath!
+        Added a lever puzzle in the "intersection" level that allows you to collect a gem and a chest with a fairy.
+        You can now ride on top of the ice dragon's head.
+        Minor changes:
+            --gem message.
+            --hookshot power-up collection message
+            --amount of switches in intersection level
+            --ceiling height in intersection level
+        Imported new music for overworld and ninjatemple
+
+    * 0.9.2
 
     Next :   
         Will do:           
@@ -804,7 +814,8 @@ var sketch = function(processing) /*Wrapper*/
     Maybe:
         More Weapons, shops.
         Add chest appearing sound effect.
-        Improve dragon boss.
+
+        Improve enemies.
 
     In the future:
         --More overworld levels,
@@ -866,7 +877,7 @@ var game = {
     fps : 60, 
     loadFps : 160,
     gameState : "start", //Default = "start"
-    version : "v0.9.1 beta",
+    version : "v0.9.2 beta",
     fpsType : "manual", //Default = "manual"
     debugMode : true, //Turn this to true to see the fps
     showDebugPhysics : false,
@@ -5650,7 +5661,8 @@ var screenUtils = {
     debugCameraGrid : {
         draw : function()
         {
-            if(game.debugMode && mouseIsPressed && game.gameState === "play" && mouseButton === RIGHT)
+            if(game.debugMode && mouseIsPressed && game.gameState === "play" && mouseButton === RIGHT && 
+                gameObjects.getObject("player")[0].discoveredPowersHandler.currentPower !== "hookShot")
             {
                 cameraGrid.draw();
                 cursor(CROSS);
@@ -5659,7 +5671,8 @@ var screenUtils = {
         },
         update : function()
         {
-            if(game.debugMode && mouseIsPressed && game.gameState === "play" && mouseButton === RIGHT)
+            if(game.debugMode && mouseIsPressed && game.gameState === "play" && mouseButton === RIGHT && 
+                gameObjects.getObject("player")[0].discoveredPowersHandler.currentPower !== "hookShot")
             {
                 try{
                     var place = cameraGrid.getPlace((cam.focusXPos - cam.halfWidth) + mouseX, (cam.focusYPos - cam.halfHeight) + mouseY);
@@ -14387,6 +14400,7 @@ var Slasher = function(xPos, yPos, width, height)
     DynamicRect.call(this, xPos, yPos, width, height);
     LifeForm.call(this, 10);
     this.damage = 1;
+    this.lavaImmune = true;
 
     this.boundingBox.overSized = true;
     this.updateVel = function() {};
@@ -16081,7 +16095,7 @@ var IceDragon = function(xPos, yPos, width, height)
     Boss.call(this, xPos, yPos, width, height, color(15, 120, 220, 220), {
         charging : true,
         handleEdge : true
-    }, false, 26);
+    }, false, 30);
 
     this.physics.solidObject = true;
 
@@ -17578,7 +17592,10 @@ var Player = function(xPos, yPos, width, height, colorValue)
                 return true;
             }
 
-            sounds.mplaySound("Explosion5.wav");
+            if(this.hp >= 0)
+            {
+                sounds.playSound("Explosion5.wav");
+            }
 
             this.hp -= (damage1) * this.subDefense() * this.getNinjaResMult(object);
 
@@ -20834,15 +20851,9 @@ var HookShot = function(xPos, yPos, diameter)
         "next2" : {
             message : "Controls: Right Click to connect to a\npoint. (A square in a circle) Right Click\noutside of the point to disconnect.",
             choices : {
-                "next3" : "..."
-            }
-        },
-        "next3" : {
-            message : "Once connected, press up to reel\nyourself in, press down to reel yourself out.",
-            choices : {
                 "exit" : "..."
             }
-        }
+        },
     };
 
     this.draw = function()
@@ -21892,7 +21903,7 @@ var Gem = function(xPos, yPos, width, height)
         }else{
             talkHandler.start({
                 "start" : {
-                    message : "Yay you found another gem! You now\nhave " + (object.gems + 1) + " gems.",
+                    message : "Yay, you found another gem! You now\nhave " + (object.gems + 1) + " gems.",
                     up : true,
                     coices : {
                         "exit" : "okay"
@@ -22966,6 +22977,8 @@ var levelScripts = {
                 return;
             }
 
+            var _lastXPos = iceDragon.xPos;
+
             iceDragon.update(true);
 
             if(Number(game.fps) === 30)
@@ -22979,6 +22992,8 @@ var levelScripts = {
             if(observer.collisionTypes.rectrect.colliding(player.boundingBox, iceDragon.boundingBox))
             {
                 observer.collisionTypes.rectrect.solveCollision(player, iceDragon);
+
+                player.xPos -= (_lastXPos - iceDragon.xPos);
             }
         },
         draw : function()
@@ -23043,6 +23058,44 @@ var levelScripts = {
             // }
         },
     },
+    "intersection" : {
+        afterLoad : function()
+        {
+            if(levels[levelInfo.level].save.unlockedSecret)
+            {
+                gameObjects.getObject("imageBlock").filter(x => x.green).slice(-3).forEach(element => element.remove());
+
+                var levers = gameObjects.getObject("lever");
+
+                var saveLevers = levels[levelInfo.level].save.levers;
+
+                if(saveLevers !== undefined && saveLevers.length === 4)
+                {
+                    levers[0].set = saveLevers[0] || false;
+                    levers[1].set = saveLevers[1] || false;
+                    levers[2].set = saveLevers[2] || false;
+                    levers[3].set = saveLevers[3] || false;
+                    levers[4].set = saveLevers[4] || false;
+                }
+            }
+        },
+        apply : function() 
+        {
+            var levers = gameObjects.getObject("lever");
+
+            levels[levelInfo.level].save.levers = [levers[0].set, levers[1].set, levers[2].set, levers[3].set, levers[4].set];
+
+            if(!levels[levelInfo.level].save.unlockedSecret)
+            {
+                if(levers[0].set && levers[1].set && !levers[2].set && !levers[3].set && levers[4].set)
+                {
+                    gameObjects.getObject("imageBlock").filter(x => x.green).slice(-3).forEach(element => element.remove());
+                    levels[levelInfo.level].save.unlockedSecret = true;
+                    this.stop = true;
+                }
+            }
+        }
+    }
 };
 levelScripts.restart = function()
 {
@@ -23569,7 +23622,7 @@ levels.build = function(plan)
                 case '%' :
                     if(levelInfo.theme === "underground")
                     {
-                        gameObjects.getObject("imageBlock").add(xPos, yPos, levelInfo.unitWidth, levelInfo.unitHeight, "triangleBlockGreen");
+                        gameObjects.getObject("imageBlock").add(xPos, yPos, levelInfo.unitWidth, levelInfo.unitHeight, "triangleBlockGreen").green = true;
                     }else{
                         gameObjects.getObject("shooter").add(xPos + levelInfo.unitWidth / 2, yPos + levelInfo.unitHeight / 2, levelInfo.unitWidth);
                     }
