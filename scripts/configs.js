@@ -62,13 +62,14 @@ var configs = {
             specialOneWays : true,
             regenCoinCost : 6,
             table : {
+                '2' : "poisonousSlimeBeaker",
                 '_' : "cathodes",
                 '5' : "dark",
                 '8' : "catDogStatue",
                 '7' : "wisp",
                 '=' : "darkBlock"
             },
-            arraysToSave : ["crystal", "coin", "hpCoin", "ice", "voxelizer", "dirtyCat", "slimeBeaker", "bat"],
+            arraysToSave : ["crystal", "coin", "hpCoin", "ice", "voxelizer", "dirtyCat", "slimeBeaker", "bat", "poisonousSlimeBeaker"],
         }
     },
     "other" : {

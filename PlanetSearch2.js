@@ -800,7 +800,21 @@ var sketch = function(processing) /*Wrapper*/
         Imported new music for overworld and ninjatemple
 
     * 0.9.2
-
+        There is a now the poisonousSlimeBeaker enemy --If you get hit with it 
+        Fixed a few bugs in the game and made it easier.
+        Added a room that you have to kill everything in there.
+        Added levels:
+            --CatRoom!
+            --pathways
+            --moreCaves
+        Added a new Enemy a stomper!
+        Distributed the new enemy!
+        Fixed object charging!
+        Added level(s):
+            --moreCaves2
+        Added blue stalagmites!
+        Distributed blue stalagmites!
+        
     Next :   
         Will do:           
            Make gem tradable you can trade for stuff.
@@ -814,8 +828,6 @@ var sketch = function(processing) /*Wrapper*/
     Maybe:
         More Weapons, shops.
         Add chest appearing sound effect.
-
-        Improve enemies.
 
     In the future:
         --More overworld levels,
@@ -889,7 +901,7 @@ var game = {
         titleScreen: "PS2.mp3"
     },
 
-    autoCheckPoints: true
+    autoCheckPoints : true
 };
 var levelInfo = {
     level : "intro", //Default = "intro"
@@ -12830,7 +12842,13 @@ var Enemy = function(xPos, yPos, width, height, colorValue, props, complexDraw, 
                 return;
             }
 
-            self.hitObjectArrayName = object.name;   
+            if(!gameObjects[gameObjects.references[object.name]])
+            {
+                self.hitObjectArrayName = object.arrayName;
+            }else{
+                self.hitObjectArrayName = object.name;   
+            }
+
             self.castHitObject = object;
             if(object.type === "lifeform" && object.arrayName !== self.arrayName)
             {
@@ -13154,20 +13172,25 @@ var Enemy = function(xPos, yPos, width, height, colorValue, props, complexDraw, 
                     this.task = "patrol";
                 }
             }
-            
-            switch(this.task)
+
+            if(this.fastSpeed)
             {
-                case "patrol" :
-                    this.maxXVel = 1;
-                    break;
+                this.maxXVel = this.fastSpeed;
+            }else{
+                switch(this.task)
+                {
+                    case "patrol" :
+                        this.maxXVel = 1;
+                        break;
 
-                case "kill" :
-                    this.maxXVel = 2;
-                    break;
+                    case "kill" :
+                        this.maxXVel = 2;
+                        break;
 
-                case "charge" :
-                    this.maxXVel = 3;
-                    break;
+                    case "charge" :
+                        this.maxXVel = 3;
+                        break;
+                }
             }
         }
 
@@ -13364,7 +13387,7 @@ var SlimeBeaker = function(xPos, yPos, width, height, colorValue)
         charging : true,
         handleEdge : true
     }, true);    
-    this.addCast(this, "waterBeaker");
+    this.addCast(this, "slimeBeaker");
     this.lastGravity = this.gravity;
     this.lastUpdate1 = this.update;
 
@@ -13396,6 +13419,27 @@ var SlimeBeaker = function(xPos, yPos, width, height, colorValue)
     };
 };
 gameObjects.addObject("slimeBeaker", createArray(SlimeBeaker));
+
+var PoisonousSlimeBeaker = function(xPos, yPos, width, height, colorValue)
+{
+    SlimeBeaker.call(this, xPos, yPos, width, height, colorValue || color(0, 163, 61));
+
+    this.addedDrops = true;
+    this.fastSpeed = 2.5;
+
+    var _lastOnCollide = this.onCollide;
+
+    this.onCollide = function(object, info)
+    {
+        if(info.side !== "up" && object.arrayName === "player")
+        {
+            object.gooedTimer = 60 * 7;
+        }
+        return _lastOnCollide.apply(this, arguments);
+    };
+};
+
+gameObjects.addObject("poisonousSlimeBeaker", createArray(PoisonousSlimeBeaker));
 
 var IceBeaker = function(xPos, yPos, width, height, colorValue)
 {
@@ -14631,7 +14675,7 @@ var Bat = function(xPos, yPos, width, height)
 
                 if(this.released)
                 {
-                    this.gravity = 0.3;
+                    this.gravity = 0.32;
 
                     if(this.roostingPlace.yPos + this.fallAmount < this.yPos)
                     {
@@ -14725,7 +14769,7 @@ var Bat = function(xPos, yPos, width, height)
         {
             if(_this.state === "roosting" && object.arrayName === "player")
             {
-                _this.fallAmount = max(0, (object.yPos - _this.roostingPlace.yPos) + random(-20, 20)) || _this.fallAmount;
+                _this.fallAmount = max(0, (object.yPos - _this.roostingPlace.yPos) + random(-10, 20)) || _this.fallAmount;
                 _this.released = true;
             }
         },
@@ -17699,6 +17743,11 @@ var Player = function(xPos, yPos, width, height, colorValue)
             this.autoRun = !this.autoRun;
         }
 
+        if(this.gooedTimer > 0 && this.controls.shake())
+        {
+            this.gooedTimer -= 60;
+        }
+
         if(this.frozen && (this.controls.shake() || this.controls.activate() || 
                            this.controls.up() || this.controls.down() || this.con))
         {
@@ -17903,6 +17952,8 @@ var Player = function(xPos, yPos, width, height, colorValue)
         this.invincibleToLifeForm = false;
         this.air = this.maxAir;
 
+        this.gooedTimer = 0;
+
         this.freeze = 0;
         this.accume = 0;
         this.frozenHits = 0;
@@ -17953,6 +18004,8 @@ var Player = function(xPos, yPos, width, height, colorValue)
             var array = gameObjects.getObject("bubbleShield");
             array.length = 0;
         }
+
+        this.gooedTimer = 0;
 
         this.dead = true;
         this.nextBubbleShield = !isDeath;
@@ -18022,6 +18075,11 @@ var Player = function(xPos, yPos, width, height, colorValue)
             fill(0, 170, 200, 100);
             fastRect(this.xPos, this.yPos, this.width, this.height);
         }
+        if(this.gooedTimer > 0)
+        {
+            fill(0, 156, 54, 100);
+            fastRect(this.xPos, this.yPos, this.width, this.height);
+        }
     };
 
     this.maxAccume = 10;
@@ -18037,6 +18095,21 @@ var Player = function(xPos, yPos, width, height, colorValue)
     this.update = function()
     {
         this.nextBubbleShield = true;
+
+        if(this.gooedTimer > 0)
+        {
+            if(!this.gooedDamageTimer || millis() - this.gooedDamageTimer > 750)
+            {
+                this.hp -= 1;
+                this.gooedDamageTimer = millis();
+
+                this.yVel -= 3;
+            }
+
+            this.xVel += random(-1, 1);
+
+            this.gooedTimer--;
+        }
 
         if(!this.invincibleToLifeForm)
         {
@@ -19014,6 +19087,7 @@ gameObjects.addObject("voxelizer", createArray(Voxelizer));
 var Stalactite = function(xPos, yPos, width, height, imageName)
 {
     Rect.call(this, xPos, yPos, width, height);
+    this.physics.solidObject = false;
 
     this.imageName = imageName;
 
@@ -19030,6 +19104,97 @@ var Stalactite = function(xPos, yPos, width, height, imageName)
     this.notExplosive = true;
 };
 gameObjects.addObject("stalactite", createArray(Stalactite));
+
+var Stalagmite = function(xPos, yPos, width, height, imageName)
+{
+    Rect.call(this, xPos, yPos, width, height);
+    this.physics.solidObject = false;
+
+    this.imageName = imageName || "BlueStalagmite";
+
+    this.snowflakes = 0;
+
+    this.draw = function()
+    {
+        try{
+            image(loadedImages[this.imageName], this.xPos, this.yPos, this.width, this.height);
+        }
+        catch(e) { }
+    };
+
+    this.notExplosive = true;
+};
+gameObjects.addObject("stalagmite", createArray(Stalagmite));
+
+var Stomper = function(xPos, yPos, width, height)
+{
+    Enemy.call(this, xPos, yPos, width, height, color(176, 176, 176), {
+        charging : true
+    }, false, 10);
+
+    this.addCast(this, "stomper");
+
+    this.damage = 3;
+
+    this.snowflakes = 0;
+    this.notExplosive = true;
+
+    this.end = "";
+    var side = "";
+
+    this._imageTimer = 0;
+
+    this.draw = function()
+    {
+        if(millis() - this._imageTimer > 160)
+        {
+            this.end = (this.end === "" ? (side = (side === "Left") ? "Right" : "Left") : "");
+            this._imageTimer = millis();
+        }
+
+        if(this.inAir)
+        {
+            this.end = "";
+        }
+
+        this.imageName = "stomper" + this.end;
+
+        if(this.xVel > 0)
+        {
+            image(loadedImages[this.imageName], this.xPos, this.yPos, this.width, this.height);
+        }else{
+            pushMatrix();
+                translate(this.xPos, this.yPos);
+                scale(-1.0, 1.0);
+                image(loadedImages[this.imageName], -this.width, 0, this.width, this.height);
+            popMatrix();
+        }
+    };
+
+    var _lastUpdate = this.update;
+    this.update = function()
+    {
+        _lastUpdate.apply(this, arguments);
+
+        if(millis() - this.startedJumpTime > 2000)
+        {
+            this.yDir = "";
+        }
+    };
+
+    var _lastOnCollide = this.onCollide;
+    this.onCollide = function(object, info)
+    {
+        if((info.side === "left" || info.side === "right") && object.arrayName === "player")
+        {
+            this.yDir = "up";
+            this.startedJumpTime = millis();
+        }
+
+        return _lastOnCollide.apply(this, arguments);
+    };
+};
+gameObjects.addObject("stomper", createArray(Stomper));
 
 var Water = function(xPos, yPos, width, height, colorValue)
 {
@@ -19173,7 +19338,8 @@ var DirtyBlock = function(xPos, yPos, width, height, colorValue)
         };
     }
 
-    screenUtils.loadImage(this, true, "dirtyBlock" + "--" + nameExtension, undefined, undefined, undefined, undefined, true);
+    // object, constImage, name, notRect, customBackColor, ref, tone, pro
+    screenUtils.loadImage(this, true, "dirtyBlock" + "--" + nameExtension, undefined, undefined, undefined, 200, true);
     this.imageName = "dirtyBlock" + "--";
 
     this.intensity = 18;
@@ -23064,18 +23230,22 @@ var levelScripts = {
             if(levels[levelInfo.level].save.unlockedSecret)
             {
                 gameObjects.getObject("imageBlock").filter(x => x.green).slice(-3).forEach(element => element.remove());
+            }
 
-                var levers = gameObjects.getObject("lever");
+            if(levels[levelInfo.level].save.clearedLava)
+            {
+                gameObjects.getObject("lava").forEach(element => element.remove());
+            }
 
-                var saveLevers = levels[levelInfo.level].save.levers;
+            var levers = gameObjects.getObject("lever");
 
-                if(saveLevers !== undefined && saveLevers.length === 4)
+            var saveLevers = levels[levelInfo.level].save.levers;
+
+            if(saveLevers !== undefined && saveLevers.length === 4)
+            {
+                for(var i = 0; saveLevers.length; i++)
                 {
-                    levers[0].set = saveLevers[0] || false;
-                    levers[1].set = saveLevers[1] || false;
-                    levers[2].set = saveLevers[2] || false;
-                    levers[3].set = saveLevers[3] || false;
-                    levers[4].set = saveLevers[4] || false;
+                    levers[i].set = saveLevers[i] || false;
                 }
             }
         },
@@ -23083,11 +23253,49 @@ var levelScripts = {
         {
             var levers = gameObjects.getObject("lever");
 
-            levels[levelInfo.level].save.levers = [levers[0].set, levers[1].set, levers[2].set, levers[3].set, levers[4].set];
+            levels[levelInfo.level].save.levers = levers.map(lever => lever.set);
+
+            if(levers[0].set && !levels[levelInfo.level].save.clearedLava && !this.triggeredCutScene)
+            {
+                var lavas = gameObjects.getObject("lava");
+               
+                game.cutScening = true;
+
+                var i = lavas.length - 1;
+                var _this = this;
+                var lastRemoveTime = millis();
+
+                cam.attach(function()
+                {
+                    var object = lavas[i];
+
+                    if(millis() - lastRemoveTime >= 150)
+                    {
+                        i--;
+
+                        if(object.remove)
+                        {
+                            object.remove();
+                        }
+
+                        lastRemoveTime = millis();
+                    }
+
+                    return object;
+                },
+                false, (lavas.length + 5) * 150, function()
+                {
+                    game.cutScening = false;
+                    levels[levelInfo.level].save.clearedLava = true;
+                    _this.stop = true;
+                });
+
+                this.triggeredCutScene = true;
+            }
 
             if(!levels[levelInfo.level].save.unlockedSecret)
             {
-                if(levers[0].set && levers[1].set && !levers[2].set && !levers[3].set && levers[4].set)
+                if(levers[1].set && levers[2].set && !levers[3].set && !levers[4].set && levers[5].set)
                 {
                     gameObjects.getObject("imageBlock").filter(x => x.green).slice(-3).forEach(element => element.remove());
                     levels[levelInfo.level].save.unlockedSecret = true;
@@ -23095,7 +23303,59 @@ var levelScripts = {
                 }
             }
         }
-    }
+    },
+    "CatRoom!" : {
+        afterLoad : function()
+        {
+            if(levels[levelInfo.level].save.finished)
+            {
+                // Make sure all doors are unlocked, there are no cats and 
+                // stop this script aka don't run apply
+                gameObjects.getObject("door").forEach(door => door.goto.locked = false);
+
+                gameObjects.getObject("dirtyCat").forEach(element => element.remove());
+                gameObjects.getObject("poisonousSlimeBeaker").forEach(element => element.remove());
+
+                this.stop = true;
+            }else{
+
+                // Make sure doors are locked if the room isn't finished
+                gameObjects.getObject("door").forEach(door => door.goto.locked = true);
+            }
+        },
+        apply : function()
+        {
+            // Get every cat and beaker make sure it is "dead"/"fake".
+            var cats = gameObjects.getObject("dirtyCat");
+            var psbs = gameObjects.getObject("poisonousSlimeBeaker");
+                       
+            if(!this.emitted && cats.every(cat => cat.fake) && psbs.every(psb => psb.fake))
+            {
+                var _this = this;
+                cam.attach(function()
+                {   
+                    var door = gameObjects.getObject("door")[0];
+
+                    if(cam.focusXPos - cam.halfWidth < 100)
+                    {
+                        gameObjects.getObject("door").forEach(door => door.goto.locked = false);
+                    }
+
+                    game.cutScening = true;
+
+                    return door;
+                }, 
+                false, 1500, function()
+                {
+                    game.cutScening = false;
+                    levels[levelInfo.level].save.finished = true;
+                    _this.stop = true;
+                });  
+
+                this.emitted = true;
+            }
+        },
+    },
 };
 levelScripts.restart = function()
 {
@@ -23426,7 +23686,12 @@ levels.build = function(plan)
             switch(level.plan[row][col])
             {
                 case 'g' :
-                    gameObjects.getObject("ground").add(xPos, yPos, levelInfo.unitWidth, levelInfo.unitHeight, color(107, 83, 60));
+                    if(levelInfo.theme === "underground")
+                    {
+                        gameObjects.getObject("stomper").add(xPos, yPos, levelInfo.unitWidth, levelInfo.unitHeight);
+                    }else{
+                        gameObjects.getObject("ground").add(xPos, yPos, levelInfo.unitWidth, levelInfo.unitHeight, color(107, 83, 60));
+                    }
                     break;
 
                 case 'd' :
@@ -23439,6 +23704,10 @@ levels.build = function(plan)
 
                 case ';' :
                     gameObjects.getObject("stalactite").add(xPos, yPos, levelInfo.unitWidth, levelInfo.unitHeight, "GreenStalactite").physics.solidObject = false;
+                    break;
+
+                case ',' :
+                    gameObjects.getObject("stalagmite").add(xPos, yPos, levelInfo.unitWidth, levelInfo.unitHeight, "BlueStalagmite");
                     break;
 
                 case 'b' : 
