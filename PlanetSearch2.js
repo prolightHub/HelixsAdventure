@@ -79,7 +79,7 @@ var sketch = function(processing) /*Wrapper*/
 /**   Hybrid Game Engine (Planet Search 2)  **/
 /**
     @Author Prolight
-    @Version 0.9.2 beta (92% complete)
+    @Version 0.9.3 beta (93% complete)
 
         80+ gameObjects!
 
@@ -810,14 +810,24 @@ var sketch = function(processing) /*Wrapper*/
         Added a new Enemy a stomper!
         Distributed the new enemy!
         Fixed object charging!
+        You can't go back now if you fall off that cliff!
         Added level(s):
             --moreCaves2
         Added blue stalagmites!
         Distributed blue stalagmites!
-        
+        Added levels:
+            --DEEPEntrance
+            --DEEPEntrance2
+            --DEEPEntrance3
+            --DEEPEntrance4
+            --DEEPEntrance5
+        Getting ready to make the DEEP
+
+    * 0.9.3
+
     Next :   
         Will do:           
-           Make gem tradable you can trade for stuff.
+            Make gem(s) tradable you can trade for stuff.
 
             if you get 3 crystals enable teleportation to all warping doors.
 
@@ -832,7 +842,6 @@ var sketch = function(processing) /*Wrapper*/
     In the future:
         --More overworld levels,
         --More music/sound effects utilized.
-        --The underground/underwhere
         --Player's space ship in island in desert.
         --Space
         --Talon's SpaceShip
@@ -889,7 +898,7 @@ var game = {
     fps : 60, 
     loadFps : 160,
     gameState : "start", //Default = "start"
-    version : "v0.9.2 beta",
+    version : "v0.9.3 beta",
     fpsType : "manual", //Default = "manual"
     debugMode : true, //Turn this to true to see the fps
     showDebugPhysics : false,
