@@ -79,7 +79,7 @@ var sketch = function(processing) /*Wrapper*/
 /**   Hybrid Game Engine (Planet Search 2)  **/
 /**
     @Author Prolight
-    @Version 0.9.3 beta (93% complete)
+    @Version 0.9.4 beta (94% complete)
 
         80+ gameObjects!
 
@@ -824,6 +824,38 @@ var sketch = function(processing) /*Wrapper*/
         Getting ready to make the DEEP
 
     * 0.9.3
+        Deep background added
+        Added lamps!
+        Lamps can now be turned on and off.
+        Made a chest that costs coins to unlock it is granted by Agent X aka Leopard X!
+        Added Level DEEP!
+        Fixed lighting wouldn't appear glitch
+        Made lighting more efficient
+        Added levels:
+            --DEEPBoxRoom1
+            --DEEPBoxRoom2
+            --DEEPBoxRoom3
+            --DEEPBoxRoom4
+            --DEEPBoxRoom5
+            --DEEPRoom2
+            --DEEPLeverRoom
+            --DEEPRoom3
+        Added the deep lever room level script.
+        Added levels:
+            --DEEPOutside
+
+    * 0.9.4
+        Added levels:
+            --LightTower
+        Added laser blocks.
+        Added Exclamation Block
+        Made minor level changes.
+        Somewhat finished the laser blocks.
+        Finally finished lazer blocks.
+        Added levels:
+            --LightTowerP1
+            --LightTowerP2
+        Fixed laser blocks. Getting ready to make more puzzles.
 
     Next :   
         Will do:           
@@ -838,7 +870,8 @@ var sketch = function(processing) /*Wrapper*/
     Maybe:
         More Weapons, shops.
         Add chest appearing sound effect.
-
+        The closer you get to DEEP the darker it gets!
+        
     In the future:
         --More overworld levels,
         --More music/sound effects utilized.
@@ -893,13 +926,13 @@ var sketch = function(processing) /*Wrapper*/
 ////////////////////////////////////////////////////////////////////\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
 /*****************************************************************Code*********************************************************************/
 ////////////////////////////////////////////////////////////////////\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
-  
+
 var game = {
     fps : 60, 
     loadFps : 160,
-    gameState : "start", //Default = "start"
-    version : "v0.9.3 beta",
-    fpsType : "manual", //Default = "manual"
+    gameState : "play", //Default = "start"
+    version : "v0.9.4 beta",
+    fpsType : "auto", //Default = "manual"
     debugMode : true, //Turn this to true to see the fps
     showDebugPhysics : false,
     boundingBoxes : false,
@@ -910,10 +943,11 @@ var game = {
         titleScreen: "PS2.mp3"
     },
 
-    autoCheckPoints : true
+    autoCheckPoints : true,
+    globalize : true
 };
 var levelInfo = {
-    level : "intro", //Default = "intro"
+    level : "LightTowerP2", //Default = "intro"
     xPos : 0,
     yPos : 0,
     width : width,
@@ -1056,6 +1090,34 @@ if(MODE === "pjs")
         }
     }
 };
+
+// Found in numerous Khan Academy projects
+var Font = (function () {
+    return this.Function ( "gfName", 
+        "gfName = gfName.replace (/\\s+/g, '+');" + 
+        "var subsets = Array.prototype.slice.call(arguments, 1, arguments.length - 1);" + 
+        "var url = 'https://fonts.googleapis.com/css?family=' + gfName + ( subsets.length > 0 ? '&amp;subset=' + subsets : ''), callback = arguments[arguments.length - 1];" +
+        "var gfs = document.querySelectorAll('link[href=\"' + url+'\"]');" + 
+        "if (!gfs.length) {" + 
+            "var f = document.createElement('link');" + 
+            "f.setAttribute('rel', 'stylesheet');" + 
+            "f.setAttribute('type', 'text/css');" + 
+            "f.onload = callback;" +    
+            "f.setAttribute('href', url);" + 
+            "document.head.appendChild(f);" + 
+        "} else if (typeof callback === 'function') {" + 
+            "callback.call(gfs[0]);" + 
+        "}"
+    );
+})();
+
+try{
+    Font("Lora");
+}
+catch(e)
+{
+    console.log(e);
+}
 
 function removeEndIfNum(v)
 {
@@ -2917,7 +2979,7 @@ var backgrounds = {
             },
         },
         "dark" : {
-            load : function()
+            primeLoad : function()
             {
                 background(3, 0, 123);
 
@@ -3899,6 +3961,56 @@ var backgrounds = {
                     }
                 }
             },
+        },
+        "deep" : {
+            primeLoad : function()
+            {
+                background(10, 10, 24);
+
+                fill(255, 255, 255, 12);
+                for(var x = 0; x < 400 - 32; x += 30)
+                {
+                    for(var y = 0; y < 400 - 32; y += 30)
+                    {
+                        fastRect(x, y, 3, 3);
+                    }
+                }
+
+                var i = 0;
+                for(var y = 0; y < height - 32; y += 30)
+                {
+                    for(var x = (i % 2 === 0) ? 15 : 0; x < width - 32; x += 30)
+                    {
+                        fastRect(x, y, 10, 10);
+                    }
+
+                    i++;
+                }
+
+                backgrounds.backgrounds.deep.img = get(0, 0, width, height);
+            },
+            drawBackground : function()
+            {
+                var layer = backgrounds.backgrounds.deep.img;
+
+                var speed = 0.5;
+
+                var xSpeed = (levelInfo.width - cam.focusXPos || 0) * speed;
+                var x = -floor((xSpeed + width) / layer.width);
+
+                var ySpeed = (levelInfo.height - cam.focusYPos || 0) * speed;
+                var y = -floor((ySpeed + height) / layer.height);
+
+                pushMatrix();
+                    translate(xSpeed, ySpeed);
+
+                    fastImage(layer, layer.width * x, layer.width * y);
+                    fastImage(layer, layer.width * (x + 1), layer.width * y);
+
+                    fastImage(layer, layer.width * x, layer.width * (y + 1));
+                    fastImage(layer, layer.width * (x + 1), layer.width * (y + 1));
+                popMatrix();
+            }
         }
     },
     load : function()
@@ -5853,10 +5965,10 @@ var screenUtils = {
             var lvl = screenUtils.filterLevel(levelInfo.level);
 
             fill(0, 12, 12, 150);
-            rect(285, 0, max(/*85*/ 55, textWidth("Level " + (lvl || 0) + 10)), screenUtils.infoBar.height, 10);
+            rect(281, 0, max(/*85*/ 55, textWidth("Level " + (lvl || 0) + 10)), screenUtils.infoBar.height, 10);
             fill(230, 230, 230, 100);
             textAlign(LEFT, CENTER);
-            text("Level " + (lvl || 0), 290, screenUtils.infoBar.height - 8);
+            text("Level " + (lvl || 0), 286, screenUtils.infoBar.height - 8);
 
             if(player.defense > 0)
             {
@@ -7875,6 +7987,13 @@ cameraGrid.create = function(cols, rows)
         for(var row = 0; row < rows; row++)
         {
             this[col].push({});
+            Object.defineProperty(this[col][row], "_lights",
+            {
+                value : {},
+                enumerable: false,
+                writable: true,
+                configurable: true,
+            });
         }
     }
     this.cols = cols;
@@ -7882,6 +8001,11 @@ cameraGrid.create = function(cols, rows)
 
     this._length = this.length - 1;
     this[0]._length = this[0].length - 1;
+};
+cameraGrid.addLight = function(xPos, yPos, name, value)
+{
+    var place = this.getPlace(xPos, yPos);
+    this[place.col][place.row]._lights[name] = value;
 };
 cameraGrid.reset = function()
 {
@@ -8424,7 +8548,7 @@ var lighting = {
 
         this.img = get(0, 0, 400, 400);   
         this.initFixtures = false;
-        this.pg = createGraphics(cam.width, cam.height, JAVA2D);
+        this.pg = createGraphics(cam.width, cam.height, P2D);
         this.startMillis = millis();
 
         this.pg.noStroke();
@@ -8603,48 +8727,48 @@ var lighting = {
 
         var inCamFixtures = [];
 
-        var ulc = cam.upperLeft.col - 1;
-        var ulr = cam.upperLeft.row - 1;
-        var lrc = cam.lowerRight.col + 1;
-        var lrr = cam.lowerRight.row + 1;
+        var col, row, _lights, i;
 
-        var fixture, fixture1;
-        for(fixture in this.fixtures)
+        for(col = cam.upperLeft.col; col <= cam.lowerRight.col; col++)
         {
-            fixture1 = this.fixtures[fixture];
-
-            if(fixture1.inCam || (fixture1.place !== undefined && 
-            (fixture1.place.col >= ulc && fixture1.place.col <= lrc) && 
-            (fixture1.place.row >= ulr && fixture1.place.row <= lrr)))
+            for(row = cam.upperLeft.row; row <= cam.lowerRight.row; row++)
             {
-                inCamFixtures.push(fixture);
+                for(i in cameraGrid[col][row]._lights)
+                {
+                    inCamFixtures.push(i);
+                }
             }
         }
+
+        inCamFixtures.push("player");
 
         var k, place, halfX, halfY, x, y, cell;
         for(k = 0; k < inCamFixtures.length; k++)
         {
             fixture1 = this.fixtures[inCamFixtures[k]];
 
-            if(fixture1.mapped)
+            if(!fixture1 || !fixture1.mapped)
             {
-                place = this.getPlace(fixture1.xPos, fixture1.yPos);
+                delete this.fixtures[inCamFixtures[k]];
+                continue;
+            }
 
-                halfX = Math.floor(fixture1.map.length / 2);
-                halfY = Math.floor(fixture1.map[0].length / 2);
+            place = this.getPlace(fixture1.xPos, fixture1.yPos);
 
-                for(x = 0; x < fixture1.map.length; x++)
+            halfX = Math.floor(fixture1.map.length / 2);
+            halfY = Math.floor(fixture1.map[0].length / 2);
+
+            for(x = 0; x < fixture1.map.length; x++)
+            {
+                for(y = 0; y < fixture1.map[0].length; y++)
                 {
-                    for(y = 0; y < fixture1.map[0].length; y++)
-                    {
-                        cell = (this.map[x + place.col - halfX] || [])[y + place.row - halfY];
+                    cell = (this.map[x + place.col - halfX] || [])[y + place.row - halfY];
 
-                        if(cell && fixture1.map[x][y] > 0)
+                    if(cell && fixture1.map[x][y] > 0)
+                    {
+                        if(cell.alpha > fixture1.map[x][y])
                         {
-                            if(cell.alpha > fixture1.map[x][y])
-                            {
-                                cell.alpha = fixture1.map[x][y];
-                            }
+                            cell.alpha = fixture1.map[x][y];
                         }
                     }
                 }
@@ -8675,24 +8799,31 @@ var lighting = {
     {
         this.working = false;
 
-        if(((this.lumin <= 0 || this.maxLighting < 3 || this.off) || (!levelInfo.daylightCycle && !levelInfo.nightMode)) &&    
-        (this.startMillis === undefined || (!(levels[levelInfo.level] || {}).nightMode) || millis() - this.startMillis > 1400))
+        // Is it off or too dim?
+        if(this.off || this.lumin <= 0 || this.maxLighting < 3 ||
+            //Wrong game state? 
+            game.gameState !== "play" && game.tempState !== "play" ||
+            //Night mode is off or daylightCycle is off.
+            (!levelInfo.daylightCycle && !levelInfo.nightMode && 
+            !(levels[levelInfo.level] || {}).nightMode))
         {
             return;
         }
 
         this.working = true;
 
-        //Will exec once
+        //Will execute once
         this.setAllFixtures();
 
-        if(millis() % 30 >= ((game.fps === 60) ? 12 : 6) || game.gameState !== "play" || (millis() - this.startMillis) <= 400)
+        if(millis() - this.lastSetImageTime > 36)
         {
             this.setImage();
+            this.lastSetImageTime = millis();
         }
 
         image(this.pg, 0, 0);
     },
+    lastSetImageTime : millis()
 };
 
 var daylightCycle = {
@@ -10029,6 +10160,9 @@ var Lava = function(xPos, yPos, width, height, colorValue, damage)
         };
 
         lighting.fixtures[this.fixturePlace].place = this.getPlace;
+
+        var place = cameraGrid.getPlace(this.xPos, this.yPos);
+        cameraGrid[place.col][place.row]._lights[this.fixturePlace] = this.fixturePlace;
     };
 
     this.lastUpdate1 = this.update;
@@ -10551,7 +10685,10 @@ var UndergroundBlock = function(xPos, yPos, width, height)
     var up = this.yPos;
     var down = this.yPos + this.height;
 
-    this.rotation = 90;
+    physics.getMiddleXPos(this);
+    physics.getMiddleYPos(this);
+
+    this.rotation = 90 * 2;
 
     this.draw = function()
     {
@@ -10589,6 +10726,577 @@ var UndergroundBlock = function(xPos, yPos, width, height)
     };
 };
 gameObjects.addObject("undergroundBlock", createArray(UndergroundBlock));
+
+var LaserCast = function(xPos, yPos, diameter)
+{
+    Circle.call(this, xPos, yPos, diameter);
+
+    this.physics.solidObject = false;
+    this.physics.shape = "point";
+    
+    this.xVel = 0;
+    this.yVel = 0;
+    
+    this.boundingBox.off = true;
+    this.physics.movement = "dynamic";
+
+    this.color = color(0, 90, 160, 200);
+
+    this.update = function() {};
+
+    // this.draw = function() {};
+
+    this.move = function()
+    {
+        this.xPos += this.xVel;
+        this.yPos += this.yVel;
+
+        // Out of bounds!
+        if(this.xPos < levelInfo.xPos || this.xPos > levelInfo.xPos + levelInfo.width || 
+           this.yPos < levelInfo.yPos || this.yPos > levelInfo.yPos + levelInfo.height)
+        {
+            this.destroy();
+        }
+    };
+
+    this.onDestroy = function()
+    {
+        // Used by a laser block
+    };
+
+    this.destroy = function()
+    {
+        if(this.destroyed)
+        {
+            return;
+        }
+
+        this.onDestroy();
+        this.onCollide = function() {};
+
+        if(this.laserCasts.length > 0)
+        {
+            for(var i = this.laserCasts.length - 1; i >= 0; i--)
+            {
+                if(this.laserCasts[i].index === this.index)
+                {
+                    this.laserCasts.splice(i, 1);
+                    break;
+                } 
+            }
+        }
+        this.remove();
+        this.update = function() {};
+
+        this.destroyed = true;
+    };
+
+    this.onDirectionChange = function(object, info)
+    {
+        // Used by a laser block
+    };
+
+    this.avoidCollision = function(object)
+    {
+        return ["exclamationBlock", "imageBlock", "undergroundBlock"].indexOf(object.arrayName) === -1;
+    };
+
+    this.onCollide = function(object, info)
+    {
+        // Never have I used a switch-case with in a switch-case
+        switch(object.arrayName)
+        {
+            case "exclamationBlock" :
+                object.activate();
+                break;
+
+            case "imageBlock" :
+                this.onCollide = function() {};
+                this.destroy();
+                return;
+
+            case "undergroundBlock" :
+                switch(object.rotation)
+                {
+                    // left / up open
+                    case 0 :
+                        if(this.direction === 'r')
+                        {
+                            this.yVel = -this.xVel;
+                            this.xVel = 0;
+
+                            this.xPos = object.middleXPos;
+                            this.direction = 'u';
+
+                            this.onDirectionChange(object, info, this.direction);
+                        }
+                        else if(this.direction === 'd')
+                        {
+                            this.xVel = -this.yVel;
+                            this.yVel = 0;
+
+                            this.yPos = object.middleYPos;
+                            this.direction = 'l';
+
+                            this.onDirectionChange(object, info, this.direction);
+                        }
+                        else if(this.direction === 'l' && this.xVel < 0 && this.xPos > object.middleXPos)
+                        {
+                            this.xPos = object.xPos + object.width;
+                            this.destroy();
+                        }
+                        else if(this.direction === 'u' && this.yVel < 0 && this.yPos > object.middleYPos)
+                        {
+                            this.yPos = object.yPos + object.height;
+                            this.destroy();
+                        }
+                        break;
+
+                    // up / right open
+                    case 90 :
+                        if(this.direction === 'l')
+                        {
+                            this.yVel = this.xVel;
+                            this.xVel = 0;
+
+                            this.xPos = object.middleXPos;
+                            this.direction = 'u';
+
+                            this.onDirectionChange(object, info, this.direction);
+                        }
+                        else if(this.direction === 'd')
+                        {
+                            this.xVel = this.yVel;
+                            this.yVel = 0;
+
+                            this.yPos = object.middleYPos;
+                            this.direction = 'r';
+
+                            this.onDirectionChange(object, info, this.direction);
+                        }
+                        else if(this.direction === 'r' && this.xVel > 0 && this.xPos < object.middleXPos)
+                        {
+                            this.xPos = object.xPos;
+                            this.destroy();    
+                        }
+                        else if(this.direction === 'u' && this.yVel < 0 && this.yPos > object.middleYPos)
+                        {
+                            this.yPos = object.yPos + object.height;
+                            this.destroy();
+                        }
+                        break;
+
+                    // right / down open
+                    case 180 :
+                        if(this.direction === 'l')
+                        {
+                            this.yVel = -this.xVel;
+                            this.xVel = 0;
+
+                            this.xPos = object.middleXPos;
+                            this.direction = 'd';
+
+                            this.onDirectionChange(object, info, this.direction);
+                        }
+                        else if(this.direction === 'u')
+                        {
+                            this.xVel = -this.yVel;
+                            this.yVel = 0;
+
+                            this.yPos = object.middleYPos;
+                            this.direction = 'r';
+
+                            this.onDirectionChange(object, info, this.direction);
+                        }
+                        else if(this.direction === 'r' && this.xVel > 0 && this.xPos < object.middleXPos)
+                        {
+                            this.xPos = object.xPos;
+                            this.destroy();
+                        }
+                        else if(this.direction === 'd' && this.yVel > 0 && this.yPos < object.middleYPos)
+                        {
+                            this.yPos = object.yPos;
+                            this.destroy();
+                        }
+                        break;
+
+                    // down / left open
+                    case 270 :
+                        if(this.direction === 'r')
+                        {
+                            this.yVel = this.xVel;
+                            this.xVel = 0;
+
+                            this.xPos = object.middleXPos;
+                            this.direction = 'd';
+
+                            this.onDirectionChange(object, info, this.direction);
+                        }
+                        else if(this.direction === 'u')
+                        {
+                            this.xVel = this.yVel;
+                            this.yVel = 0;
+
+                            this.yPos = object.middleYPos;
+                            this.direction = 'l';
+
+                            this.onDirectionChange(object, info, this.direction);
+                        }
+                        else if(this.direction === 'l' && this.xVel < 0 && this.xPos > object.middleXPos)
+                        {
+                            this.xPos = object.xPos + object.width;
+                            this.destroy();
+                        }
+                        else if(this.direction === 'd' && this.yVel > 0 && this.yPos < object.middleYPos)
+                        {
+                            this.yPos = object.yPos;
+                            this.destroy();
+                        }
+                        break;
+                }
+                return;
+        }
+    };  
+};
+gameObjects.addObject("laserCast", createArray(LaserCast));
+
+var LaserPath = function(xPos, yPos, width, height)
+{
+    Rect.call(this, xPos, yPos, width, height);
+    this.physics.solidObject = false;
+
+    this.points = [];
+
+    this.color = color(23, 134, 176, 200);
+
+    this.draw = function()
+    {
+        strokeWeight(1);
+        stroke(this.color);
+        if(this.points.length >= 2)
+        {
+            for(var i = 1; i < this.points.length; i++)
+            {
+                line(this.points[i - 1].x, this.points[i - 1].y, this.points[i].x, this.points[i].y);
+            }
+        }
+        noStroke();
+    };
+
+    this.update = function() {};
+
+    this.follow = function(laserCast)
+    {
+        if(!laserCast)
+        {
+            return;
+        }
+
+        var index = this.points.length - 1;
+        this.points[index].x = laserCast.xPos;
+        this.points[index].y = laserCast.yPos;
+    };
+
+    this.followMultiple = function(laserCasts)
+    {
+        this.follow(laserCasts[0]);
+    };
+
+    this.split = function(laserCast, direction)
+    {
+        this.points.push({
+            x : laserCast.xPos,
+            y : laserCast.yPos
+        });
+    };
+};
+gameObjects.addObject("laserPath", createArray(LaserPath));
+
+var LaserBlock = function(xPos, yPos, width, height, direction)
+{
+    Rect.call(this, xPos, yPos, width, height);
+
+    this.direction = direction;
+
+    physics.getMiddleXPos(this);
+    physics.getMiddleYPos(this);
+
+    this.getAngle = function(direction)
+    {
+        switch(direction)
+        {
+            // Left
+            case 'l' :
+                return 180;
+
+            // Right
+            case 'r' :
+                return 0;
+                      
+            // Up
+            case 'u' :
+                return 270;
+
+            // Down
+            case 'd' :
+                return 90;
+        }
+    };
+    this.getDirection = function(angle)
+    {
+        switch(angle)
+        {
+            // Left
+            case 180 :
+                return 'l';
+
+            // Right
+            case 0 :
+                return 'r';
+                      
+            // Up
+            case 270 :
+                return 'u';
+
+            // Down
+            case 90 :
+                return 'd';
+        }
+    };
+
+    this.rotation = this.getAngle(direction);
+
+    this.draw = function()
+    {
+        pushMatrix();
+            translate(this.middleXPos, this.middleYPos);
+            rotate(this.rotation);
+            translate(-this.middleXPos, -this.middleYPos);
+
+            fill(10, 83, 180, 200);
+            ellipse(this.middleXPos, this.middleYPos, this.halfWidth, this.halfWidth);
+
+            fill(0, 0, 0, 100);
+            fastRect(this.xPos, this.yPos, this.width, this.height);
+
+            fill(245, 245, 245, 90);
+            fastRect(this.xPos, this.yPos, this.halfWidth, this.height);
+
+            var h = this.height * 0.2;
+            fastRect(this.xPos + this.halfWidth, this.yPos, this.halfWidth, h);
+            fastRect(this.xPos + this.halfWidth, this.yPos + this.height - h, this.halfWidth, h);
+        popMatrix();
+    };
+
+    this.lastTwistTime = 0;
+    this.update = function()
+    {
+        // if(!this._activated)
+        // {
+        //     this.activate();
+        //     this._activated = true;
+        // }
+
+        // if(this.laserPath && this.laserCasts)
+        // {
+        //     this.laserPath.followMultiple(this.laserCasts);
+        // }
+
+        if(mouseIsPressed && millis() - this.lastTwistTime > 250)
+        {
+            var x = cam.focusXPos - cam.halfWidth + mouseX;
+            var y = cam.focusYPos - cam.halfHeight + mouseY;
+
+            if(observer.collisionTypes.pointrect.colliding({
+                xPos : x, 
+                yPos : y
+            }, this))
+            {
+                this.rotation = physics.formulas.resolveAngle(this.rotation + 90);
+                this.direction = this.getDirection(this.rotation);
+            }
+
+            this.lastTwistTime = millis();
+        }
+    };
+
+    this.activate = function()
+    {
+        this.laserCasts = [];
+        this.sendCast();
+        this.setupLaserBeam();
+    };
+
+    this.sendCast = function()
+    {
+        var laserCast = gameObjects.getObject("laserCast").add(this.middleXPos, this.middleYPos, 3);
+
+        var _angle = this.rotation * DEG_TO_RAD;
+        var _speed = laserCast.speed = 3;
+        laserCast.xVel = cos(_angle) * _speed;
+        laserCast.yVel = sin(_angle) * _speed;
+        laserCast.direction = this.getDirection(this.rotation);
+
+        laserCast.laserCasts = this.laserCasts;
+
+        var _this = this; 
+        laserCast.onDirectionChange = function(object, info, direction)
+        {
+            var point = _this.laserPath.points[_this.laserPath.points.length - 1];
+
+            point.x = object.xPos + object.halfWidth;
+            point.y = object.yPos + object.halfHeight;
+            
+            _this.laserPath.split(this, direction);
+        };
+        laserCast.onDestroy = function()
+        {
+            _this.laserPath.farthestXPos = this.xPos;
+            _this.laserPath.farthestYPos = this.yPos;
+
+            var lc = _this.sendCast();
+        };
+
+        cameraGrid.addReference(laserCast);
+        this.laserCasts.push(laserCast);
+
+        if(this.laserPath)
+        {
+            laserCast.xPos = this.middleXPos;
+            laserCast.yPos = this.middleYPos;
+            this.laserPath.points.length = 0;
+            this.laserPath.split(laserCast);
+            this.laserPath.split(laserCast);
+        }
+
+        return laserCast;
+    };
+
+    this.setupLaserBeam = function()
+    {
+        // Yeah just zeros
+        this.laserPath = gameObjects.getObject("laserPath").add(0, 0, 0, 0);
+
+        this.laserPath.split(this.laserCasts[0], this.direction);
+        this.laserPath.split(this.laserCasts[0], this.direction);
+    };
+};
+gameObjects.addObject("laserBlock", createArray(LaserBlock));
+
+var ExclamationBlock = function(xPos, yPos, width, height)
+{
+    Rect.call(this, xPos, yPos, width, height);
+
+    physics.getMiddleXPos(this);
+    physics.getMiddleYPos(this);
+
+    var font;
+
+    try{
+        font = createFont("Lora");
+    }
+    catch(e)
+    {
+        console.log("failed", e);
+        font = createFont("cursive");
+    }
+
+    this.xScale = 0;
+    this.xScaleVel = 0.05;
+
+    this.message = '!';
+
+    this.draw = function()
+    {
+        fill(7, 45, 151, 146);
+        rect(this.xPos, this.yPos, this.width, this.height, 6);
+
+        pushMatrix();
+            translate(this.middleXPos, this.middleYPos);
+            scale(this.xScale, 1.0);
+
+            textFont(font);
+            textSize(20);
+            textAlign(CENTER, CENTER);
+            fill(255, 255, 255, 200);
+
+            text(this.message, 0, 0);
+        popMatrix();
+    };
+
+    this.update = function()
+    {
+        this.xScale += this.xScaleVel;
+
+        if(Math.abs(this.xScale) > 1.0)
+        {
+            this.xScaleVel = -this.xScaleVel;
+        }
+
+        if(this.activated)
+        {
+            this.scaleStart += this.scaleVel;
+
+            if(this.scaleStart > 1.3)
+            {
+                this.scaleVel = -this.scaleVel;   
+            }
+
+            if(this.scaleStart < 0.1)
+            {
+                if(!this.didEvent)
+                {
+                    this.event();
+
+                    this.didEvent = true;
+                }
+            }
+        }
+    };
+
+    this.event = function() 
+    {
+        // Will be overridden by level scripts
+        console.log(true);
+    };
+
+    this.activate = function()
+    {
+        if(this.activated || (this.okay !== undefined && !this.okay()))
+        {
+            return;
+        }
+
+        this.activated = true;
+        this.scaleStart = 1;
+        this.scaleVel = 0.15;
+
+        var _lastDraw = this.draw;
+        this.draw = function()
+        {
+            var cs = 0;
+
+            for(var i = 0; i < 3; i++)
+            {
+                cs = this.scaleStart - i * 0.1;
+
+                if(cs > 0)
+                {
+                    pushMatrix();
+                        translate(this.middleXPos, this.middleYPos);
+                        scale(cs, cs);
+                        translate(-this.middleXPos, -this.middleYPos);
+
+                        _lastDraw.apply(this, arguments); 
+                    popMatrix();
+                }
+            }
+        };
+    };
+};
+gameObjects.addObject("exclamationBlock", createArray(ExclamationBlock));
+
+// Maybe '?' block next
 
 var BehindBlock = function(xPos, yPos, width, height)
 {
@@ -10909,6 +11617,11 @@ var Door = function(xPos, yPos, width, height, colorValue)
     this.goto = {};
     this.type = "use";
     
+    if(backgrounds.background === "deep")
+    {
+        this.color = color(74, 74, 74);
+    }
+
     this.draw = function()
     {
         fill(this.color);
@@ -11691,6 +12404,12 @@ var ItemChest = function(xPos, yPos, width, height)
 
         this.img = (this.goto.isOpen) ? "itemChest-open" : "itemChest";
         image(storedImages[this.img], this.xPos, this.yPos, this.width, this.height);
+
+        if(this.goto.locked)
+        {
+            fill(0, 0, 0, 100);
+            fastRect(this.xPos, this.yPos, this.width, this.height);
+        }
     };
 
     var self = this;
@@ -11728,6 +12447,11 @@ var ItemChest = function(xPos, yPos, width, height)
 
     this.onOpen = function(object)
     {
+        if(this.goto.locked)
+        {
+            return;
+        }
+
         inventoryMenu.open("chest", {
             init : function(scene)
             {
@@ -11915,7 +12639,22 @@ var ItemChest = function(xPos, yPos, width, height)
 
     this.onCollide = function(object)
     {
-        if(this.goto.hidden)
+        if(object.coins && this.goto.locked && typeof this.goto.costToUnlock === "number" && object.openChest !== undefined && object.openChest())
+        {
+            if(object.coins >= this.goto.costToUnlock)
+            {
+                object.coins -= this.goto.costToUnlock;
+                this.goto.locked = false;
+
+                // Yeah this is a "bad" fix, generally you'd want to avoid doing something like this!
+                // Just so if the player presses 'r' they don't gain back those coins.
+                // But then again almost no-one would know...
+                game.save();
+                return;
+            }
+        }
+
+        if(this.goto.hidden || this.goto.locked)
         {
             return;
         }
@@ -12056,6 +12795,9 @@ var CloudMine = function(xPos, yPos, diameter)
         };
 
         lighting.fixtures[this.fixturePlace].place = this.getPlace;
+
+        var place = cameraGrid.getPlace(this.xPos, this.yPos);
+        cameraGrid[place.col][place.row]._lights[this.fixturePlace] = this.fixturePlace;
     };
 
     this.lastUpdate = this.update;
@@ -14729,7 +15471,6 @@ var Bat = function(xPos, yPos, width, height)
     var _lastTakeDamage = this.takeDamage;
     this.takeDamage = function(object, amt)
     {
-        console.log(this.state);
         if(this.state === "flying")
         {
             return _lastTakeDamage.apply(this, arguments);
@@ -17676,6 +18417,15 @@ var Player = function(xPos, yPos, width, height, colorValue)
             halfWidth : this.halfWidth,
             halfHeight : this.halfHeight,
         };
+
+        // try{
+        //     var place = cameraGrid.getPlace(this.xPos, this.yPos);
+        //     cameraGrid[place.col][place.row]._lights["player"] = "player";
+        // }
+        // catch(e)
+        // {
+
+        // }
     };
 
     this.setFixture();
@@ -21533,7 +22283,12 @@ var HookShot = function(xPos, yPos, diameter)
                 return;
             }
 
-            stroke(0, 0, 0);
+            if(levelInfo.nightMode)
+            {
+                stroke(255, 255, 255, 200);
+            }else{
+                stroke(0, 0, 0);
+            }
             strokeWeight(2);
 
             var ox = object.xPos + object.halfWidth;
@@ -21541,7 +22296,13 @@ var HookShot = function(xPos, yPos, diameter)
 
             line(ox, oy, power.position.x || ox, power.position.y || oy);
 
-            stroke(0, 0, 0, 100);
+            if(levelInfo.nightMode)
+            {
+                stroke(255, 255, 255, 100);
+            }else{
+                stroke(0, 0, 0, 100);
+            }
+
             strokeWeight(0.5);
             line(power.target.x - 8, power.target.y, power.target.x + 8, power.target.y);
             line(power.target.x, power.target.y - 8, power.target.x, power.target.y + 8);
@@ -21813,6 +22574,143 @@ var Crystal = function(xPos, yPos, diameter, config)
     };
 };
 gameObjects.addObject("crystal", createArray(Crystal));
+
+var Lamp = function(xPos, yPos, width, height, useAlt)
+{
+    Rect.call(this, xPos, yPos, width, height);
+
+    this.physics.solidObject = false;
+
+    // Renders with a light fixture, that's it!
+
+    this.wiggle = 0;
+    this.wiggleVel = 0.1;
+
+    this.on = true;
+    this.lastOn = this.on;
+
+    this.useAlt = useAlt;
+
+    this.draw = function()
+    {   
+        var xMiddle = ceil(xPos + this.halfWidth);
+
+        if(this.on)
+        {
+            // Light!
+            var x = xMiddle;
+            var y = yPos - 7;
+
+            noStroke();
+
+            fill(200, 175, 23, 130);
+            ellipse(x, y, 18 + this.wiggle, 18 + this.wiggle);
+
+            fill(200, 175, 23, 60);
+            ellipse(x, y, 40 + this.wiggle, 40 + this.wiggle);
+
+            if(!this.useAlt)
+            {
+                fill(200, 175, 23, 193);
+                ellipse(x, y, 5 + this.wiggle * 0.14, 5 + this.wiggle * 0.14);
+            }
+        }
+
+        // Vertical line
+        stroke(0, 0, 0, 200);
+        strokeWeight(2);
+        line(xMiddle, yPos - 2, xMiddle, yPos + height);
+
+        // Base
+        noFill();
+        rect(xMiddle - 6, yPos + height * 0.7, 12, height * 0.3);
+
+        // Lamp
+        line(xMiddle - 5, yPos, xMiddle + 5, yPos);
+        line(xMiddle - 7, yPos - 14, xMiddle + 7, yPos - 14);
+        line(xMiddle - 5, yPos, xMiddle - 7, yPos - 14);
+        line(xMiddle + 5, yPos, xMiddle + 7, yPos - 14);
+    };
+
+    this.setDynamicTime = 0;
+
+    this.update = function()
+    {
+        this.wiggle += this.wiggleVel;
+        
+        if(this.wiggleVel < 0)
+        {
+            this.wiggleVel = -random(0.05, 0.3) * 2;
+        }else{
+            this.wiggleVel = random(0.05, 0.3) * 2;
+        }
+
+        if(this.wiggle > 3 || this.wiggle < 1)
+        {
+            this.wiggleVel = -this.wiggleVel;
+        }
+
+        this.wiggle = constrain(this.wiggle, -1, 4);
+
+        this.fixturePlace = this.arrayName + this.index;
+
+        if(lighting.fixtures[this.fixturePlace])
+        {
+            if(this.lastOn !== this.on)
+            {
+                lighting.fixtures[this.fixturePlace].state = "dynamic";
+                this.setDynamicTime = millis();
+
+                if(!this.on)
+                {
+                    lighting.fixtures[this.fixturePlace].xPos = -999;
+                }else{
+                    lighting.fixtures[this.fixturePlace].xPos = this.xPos;
+                }
+            }else{
+                if(millis() - this.setDynamicTime > 400)
+                {
+                    lighting.fixtures[this.fixturePlace].state = "static";
+                }
+            }
+        }
+
+        this.lastOn = this.on;
+    };
+
+    this.setFixture = function()
+    {
+        if(!levelInfo.nightMode)
+        {
+            return;
+        }
+
+        this.fixturePlace = (this.arrayName + this.index);
+
+        this.getPlace = cameraGrid.getPlace(this.xPos + this.halfWidth, this.yPos - 30);
+        
+        lighting.fixtures[this.fixturePlace] = {
+            xPos : this.xPos,
+            yPos : this.yPos,
+            range : 130,
+            brightness : 100, //0-100
+            centeredLighting : 80,
+            state : "static",
+        };
+
+        lighting.fixtures[this.fixturePlace].place = this.getPlace;
+
+        var place = cameraGrid.getPlace(this.xPos, this.yPos);
+        cameraGrid[place.col][place.row]._lights[this.fixturePlace] = this.fixturePlace;
+    };
+
+    this.toSetAfter = true;
+    this.setAfter = function()
+    {
+        this.setFixture();
+    };
+};
+gameObjects.addObject("lamp", createArray(Lamp));
 
 var Lever = function(xPos, yPos, width, height, colorValue)
 {
@@ -23245,24 +24143,10 @@ var levelScripts = {
             {
                 gameObjects.getObject("lava").forEach(element => element.remove());
             }
-
-            var levers = gameObjects.getObject("lever");
-
-            var saveLevers = levels[levelInfo.level].save.levers;
-
-            if(saveLevers !== undefined && saveLevers.length === 4)
-            {
-                for(var i = 0; saveLevers.length; i++)
-                {
-                    levers[i].set = saveLevers[i] || false;
-                }
-            }
         },
-        apply : function() 
+        apply : function()
         {
             var levers = gameObjects.getObject("lever");
-
-            levels[levelInfo.level].save.levers = levers.map(lever => lever.set);
 
             if(levers[0].set && !levels[levelInfo.level].save.clearedLava && !this.triggeredCutScene)
             {
@@ -23365,7 +24249,314 @@ var levelScripts = {
             }
         },
     },
+    "DEEPEntrance5" : {
+        afterLoad : function()
+        {
+            // Shift over the backblocks in this level to align them with the pillars.
+            gameObjects.getObject("backBlock").forEach(function(element)
+            {
+                element.xPos += levelInfo.unitWidth;
+                element.updateBoundingBox();
+            });
+        },
+    },
+    "DEEPLeverRoom" : {
+        afterLoad : function()
+        {
+            // Gets the lamp we want flicker on and off
+            var _this = this;
+            gameObjects.getObject("lamp").some(function(lamp)
+            {
+                if(lamp.useAlt)
+                {
+                    _this.lamp = lamp;
+                    return true;
+                }
+            });
+
+            this.code = [true, true, false, false, true];
+            this.codeIndex = 0;
+
+            this.lastFlickerTime = 0;
+            this.flickerInterval = 500;
+
+            this.shortTime = 120;
+            this.longTime = this.shortTime * 4;
+            this.offTime = 500;
+            this.resetTime = 3000;
+
+            ///////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+            if(levels[levelInfo.level].save.finished)
+            {
+                gameObjects.getObject("door")[1].goto.locked = false;
+            }else{
+                gameObjects.getObject("door")[1].goto.locked = true;
+            }
+        },
+        apply : function()
+        {
+            var lamp = this.lamp;
+            var code = this.code;
+
+            if(millis() - this.lastFlickerTime > this.flickerInterval)
+            {
+                lamp.on = !lamp.on;
+
+                if(lamp.on)
+                {
+                    if(this.codeIndex < this.code.length)
+                    {
+                        // Step code.
+                        this.flickerInterval = (code[this.codeIndex] ? this.longTime : this.shortTime);
+                        this.codeIndex++;
+                    }else{
+                        // End of code wait 3000 milliseconds until we show the code again.
+                        this.codeIndex = 0;
+                        lamp.on = false;
+                        this.flickerInterval = this.resetTime;
+                    }
+                }else{
+                    this.flickerInterval = this.offTime;
+                }
+
+                this.lastFlickerTime = millis();
+            }
+
+            ///////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+            if(!levels[levelInfo.level].save.finished && !this.startedCutscene)
+            {
+                // If the levers match the code
+                var levers = gameObjects.getObject("lever");
+
+                if(levers.every(function(element, index)
+                {
+                    return element.set === code[index];
+                }))
+                {
+                    game.cutScening = true;
+                    this.startedCutscene = true;
+
+                    cam.attach(function()
+                    {   
+                        return gameObjects.getObject("door")[1];
+                    }, 
+                    false, 2000, function()
+                    {
+                        game.cutScening = false;
+                        levels[levelInfo.level].save.finished = true;
+                        gameObjects.getObject("door")[1].goto.locked = false;
+                    });
+                }
+            }
+        }
+    },
+    "LightTower" : {
+        afterLoad : function()
+        {
+            var w = levelInfo.unitWidth * 4;
+            var h = levelInfo.unitHeight * 4;
+
+            for(var x = 0; x < levelInfo.width; x += w)
+            {
+                for(var y = 0; y < levelInfo.height; y += h)
+                {
+                    cameraGrid.addReference(gameObjects.getObject("backBlock").add(x, y, w, h));
+                }
+            }
+        },
+    },
+    "LightTowerP1" : {
+        afterLoad : function()
+        {
+            this.laserCasts = gameObjects.getObject("laserCast");
+            this.laserPaths = gameObjects.getObject("laserPath");
+            this.laserBlocks = gameObjects.getObject("laserBlock");
+
+            this.laserBlocks.forEach(function(element)
+            {
+                element.activate();
+            });
+
+            if(levels[levelInfo.level].save.finished)
+            {
+                gameObjects.getObject("exclamationBlock").forEach(element => element.remove());
+                return;
+            }
+
+            this.counter = 0;
+
+
+
+            var _this = this;
+            gameObjects.getObject("exclamationBlock").forEach(function(element)
+            {
+                element.okay = function()
+                {
+                    return (typeof this.message !== "number" || _this.counter + 1 === this.message);
+                };
+
+                element.event = function()
+                {   
+                    _this.counter++;
+                };
+            });
+
+            // var _this = this;
+            // gameObjects.getObject("exclamationBlock")[0].event = function()
+            // {
+            //     game.cutScening = true;
+            //     var startTime = millis();
+            //     cam.attach(function()
+            //     {   
+            //         var itemChest = gameObjects.getObject("itemChest")[0];
+
+            //         if(millis() - startTime > 1000)
+            //         {
+            //             itemChest.goto.hidden = false;
+            //         }
+
+            //         return itemChest;
+            //     }, 
+            //     false, 2000, function()
+            //     {
+            //         game.cutScening = false;
+            //         levels[levelInfo.level].save.finished = true;
+            //     });
+            // };
+        },
+        apply : function()
+        {
+            this.laserCasts = gameObjects.getObject("laserCast");
+            this.laserPaths = gameObjects.getObject("laserPath");
+            this.laserBlocks = gameObjects.getObject("laserBlock");
+
+            this.laserCasts.forEach(function(element) 
+            {
+                if(element.move)
+                {
+                    element.move();
+
+                    cameraGrid.removeReference(element);
+                    cameraGrid.addReference(element);
+
+                    gameObjects.applyCollision(element);
+                }
+            });
+
+            this.laserBlocks.forEach(function(element)
+            {
+                if(element.laserPath && element.laserCasts)
+                {
+                    element.laserPath.followMultiple(element.laserCasts);
+                }
+            });
+
+            if(levels[levelInfo.level].save.finished)
+            {
+                return;
+            }
+
+            var blocks = gameObjects.getObject("exclamationBlock");
+
+            if(this.counter >= blocks.length)
+            {
+                if(!this._doneThis)
+                {
+                    var _this = this;
+                    game.cutScening = true;
+                    var startTime = millis();
+                    cam.attach(function()
+                    {   
+                        var itemChest = gameObjects.getObject("itemChest")[0];
+
+                        if(millis() - startTime > 1000)
+                        {
+                            itemChest.goto.hidden = false;
+                        }
+
+                        return itemChest;
+                    }, 
+                    false, 2000, function()
+                    {
+                        game.cutScening = false;
+                        levels[levelInfo.level].save.finished = true;
+                    });
+
+                    this._doneThis = true;
+                }
+            }
+        },
+        draw : function()
+        {
+            this.laserCasts = gameObjects.getObject("laserCast");
+            this.laserPaths = gameObjects.getObject("laserPath");
+            this.laserBlocks = gameObjects.getObject("laserBlock");
+
+            this.laserPaths.forEach(function(element) 
+            {
+                if(element.draw)
+                {
+                    element.draw();
+                }
+            });
+        }
+    }
 };
+
+function _$$_()
+{
+    for(var j = 2; j <= 2; j++)
+    {   
+        levelScripts["LightTowerP" + j] = {};
+        for(var i in levelScripts["LightTowerP1"])
+        {
+            levelScripts["LightTowerP" + j][i] = levelScripts["LightTowerP1"][i];
+        }
+    }
+
+    var _lastApply = levelScripts["LightTowerP2"].apply;
+    levelScripts["LightTowerP2"].apply = function()
+    {
+        _lastApply.apply(this, arguments);
+        var levers = gameObjects.getObject("lever");
+        var greenBlocks = gameObjects.getObject("imageBlock").filter(element => element.imageName === "triangleBlockGreen");
+
+        var blocks = gameObjects.getObject("exclamationBlock");
+
+        blocks[0].message = 1;
+        blocks[1].message = 2;
+
+        var lever = levers[0];
+
+        if(lever._lastSet === undefined)
+        {
+            lever._lastSet = lever.set;
+            lever._firstXPos = lever.xPos;
+            return;
+        }
+
+        if(lever._lastSet !== lever.set)
+        {
+            if(lever.set)
+            {
+                greenBlocks[0].xPos = lever._firstXPos;
+            }else{
+                greenBlocks[0].xPos = lever._firstXPos + levelInfo.unitWidth * 7;
+            }
+
+            greenBlocks[0].boundingBox.xPos = greenBlocks[0].xPos;
+            cameraGrid.removeReference(greenBlocks[0]);
+            cameraGrid.addReference(greenBlocks[0]);
+        }
+
+        lever._lastSet = lever.set;
+    };
+}
+
+_$$_();
+
 levelScripts.restart = function()
 {
     for(var i in this)
@@ -23639,7 +24830,9 @@ levels.applySettings = function(level)
 
     levelInfo.lastSong = levelInfo.currentSong || "";
     levelInfo.currentSong = level.song || configLevel.song || "";
-},
+
+    levelInfo.isLightTower = levelInfo.level !== levelInfo.level.replace("LightTower", "");
+};
 levels.build = function(plan)
 {
     var level = this[plan.level];
@@ -23652,7 +24845,7 @@ levels.build = function(plan)
 
         this.applySettings(level);
     }
-    
+
     var done = false;
     var start = max((plan.minRow || 0), 0);
     var end = min((plan.maxRow || level.plan.length), level.plan.length);
@@ -23704,7 +24897,12 @@ levels.build = function(plan)
                     break;
 
                 case 'd' :
-                    gameObjects.getObject("dirt").add(xPos, yPos, levelInfo.unitWidth, levelInfo.unitHeight, color(107, 83, 60));
+                    if(levelInfo.isLightTower)
+                    {
+                        gameObjects.getObject("laserBlock").add(xPos, yPos, levelInfo.unitWidth, levelInfo.unitHeight, 'd');
+                    }else{
+                        gameObjects.getObject("dirt").add(xPos, yPos, levelInfo.unitWidth, levelInfo.unitHeight, color(107, 83, 60));
+                    }
                     break;
                 
                 case ':' :
@@ -23717,6 +24915,10 @@ levels.build = function(plan)
 
                 case ',' :
                     gameObjects.getObject("stalagmite").add(xPos, yPos, levelInfo.unitWidth, levelInfo.unitHeight, "BlueStalagmite");
+                    break;
+
+                case '!' :
+                    gameObjects.getObject("exclamationBlock").add(xPos, yPos, levelInfo.unitWidth, levelInfo.unitHeight);
                     break;
 
                 case 'b' : 
@@ -23837,7 +25039,7 @@ levels.build = function(plan)
                 case '0' :
                     if(levelInfo.theme === "underground")
                     {
-                        gameObjects.getObject("rect").add(xPos, yPos, levelInfo.unitWidth, levelInfo.unitHeight).color = color(0, 0, 0, 230);
+                        gameObjects.getObject("rect").add(xPos, yPos, levelInfo.unitWidth, levelInfo.unitHeight).color = color(0, 0, 0);
                     }
                     else if(table['W'] === "unWater")
                     {
@@ -23939,7 +25141,11 @@ levels.build = function(plan)
                     break;
 
                 case 'I' :
-                    if(table['I'] === "ice")
+                    if(levelInfo.theme === "underground")
+                    {
+                        gameObjects.getObject("lamp").add(xPos + levelInfo.unitWidth * 0.25, yPos - levelInfo.unitHeight - 16, levelInfo.unitWidth / 2, levelInfo.unitHeight * 2 + 16, true);
+                    }
+                    else if(table['I'] === "ice")       
                     {
                         gameObjects.getObject("ice").add(xPos, yPos, levelInfo.unitWidth, levelInfo.unitHeight, undefined, undefined, true);
                     }else{
@@ -24011,7 +25217,12 @@ levels.build = function(plan)
                     break;
 
                 case '/' :
-                    gameObjects.getObject("pillar").add(xPos, yPos, levelInfo.unitWidth, levelInfo.unitHeight, 122, true);
+                    if(levelInfo.theme === "underground")
+                    {
+                        gameObjects.getObject("lamp").add(xPos + levelInfo.unitWidth * 0.25, yPos - levelInfo.unitHeight - 16, levelInfo.unitWidth / 2, levelInfo.unitHeight * 2 + 16);
+                    }else{
+                        gameObjects.getObject("pillar").add(xPos, yPos, levelInfo.unitWidth, levelInfo.unitHeight, 122, true);
+                    }
                     break;
 
                 case 'X' :
@@ -24069,7 +25280,12 @@ levels.build = function(plan)
                     break;
 
                 case 'u' : 
-                    gameObjects.getObject("backBlock").add(xPos, yPos, levelInfo.unitWidth * 4, levelInfo.unitHeight * 4);
+                    if(levelInfo.isLightTower)
+                    {
+                        gameObjects.getObject("laserBlock").add(xPos, yPos, levelInfo.unitWidth, levelInfo.unitHeight, 'u');
+                    }else{
+                        gameObjects.getObject("backBlock").add(xPos, yPos, levelInfo.unitWidth * 4, levelInfo.unitHeight * 4);
+                    }
                     break;
 
                 case '<' : case '>' : case '^' : case 'v' :
@@ -24127,6 +25343,20 @@ levels.build = function(plan)
                         }
                     }
                     break;
+
+                case 'l' :
+                    if(levelInfo.isLightTower)
+                    {
+                        gameObjects.getObject("laserBlock").add(xPos, yPos, levelInfo.unitWidth, levelInfo.unitHeight, 'l');
+                        break;
+                    }
+
+                case 'r' :
+                    if(levelInfo.isLightTower)
+                    {
+                        gameObjects.getObject("laserBlock").add(xPos, yPos, levelInfo.unitWidth, levelInfo.unitHeight, 'r');
+                        break;
+                    }
 
                 case 'l' : case 'r' : case 'L' : case 'R' :
                     var clr = (level.theme !== "winter") ? color(0, 0, 0, 150) : color(33, 178, 227, 200);
@@ -25622,6 +26852,7 @@ game.selectSaveFile.activateSaveFile = function(noSetFile)
     {
         saver.setCurrent(this.seSaveFile.saveFileName);
         game.gameState = "menu";
+        game.tempState = "menu";
         //Make sure we load the right level!
         levelInfo.level = saver.saveData[this.seSaveFile.saveFileName].level || levelInfo.level;
         loader.startLoadLevel(levelInfo.level);
@@ -25690,7 +26921,7 @@ game.selectSaveFile.mousePressed = function()
         {
             if(saveDataHandler.buttons.play.clicked())
             {
-                this.activateSaveFile(true);
+                this.activateSaveFile();
                 sounds.stopSound(game.sounds.titleScreen);
                 return;
             }
@@ -26225,12 +27456,13 @@ if(browserDetection.isFireFox)
 }
 
 /*Globalize things for debugging*/
-if(game.debugMode)
+if(game.globalize)
 {
     window.gameObjects = gameObjects;
     window.cam = cam;
     window.storedImages = storedImages;
     window.levelInfo = levelInfo;
+    window.lighting = lighting;
 }
 
 //Done!
