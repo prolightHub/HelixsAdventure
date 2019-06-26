@@ -72,6 +72,12 @@ var sketch = function(processing) /*Wrapper*/
     processing.hint(processing.DISABLE_OPENGL_ERROR_REPORT);
 
     window.ctx = processing.externals.context;
+    window.gl = processing.externals.gl = processing.externals.canvas.getContext("webgl");
+
+    if(gl)
+    {
+        console.log("using webgl for images");
+    }
 
     with(processing)
     {
@@ -79,7 +85,7 @@ var sketch = function(processing) /*Wrapper*/
 /**   Hybrid Game Engine (Planet Search 2)  **/
 /**
     @Author Prolight
-    @Version 0.9.4 beta (94% complete)
+    @Version 0.9.5 beta (95% complete)
 
         80+ gameObjects!
 
@@ -855,7 +861,25 @@ var sketch = function(processing) /*Wrapper*/
         Added levels:
             --LightTowerP1
             --LightTowerP2
-        Fixed laser blocks. Getting ready to make more puzzles.
+        Fixed laser blocks. 
+        Getting ready to make more puzzles.
+        Added levels:
+            --LightTowerTopFloor
+            --LightTowerP3
+            --LightTowerP4
+            --LightTowerP5
+            --LightTowerP6
+            --LightTowerP7
+            --LightTowerP8
+        
+    * 0.9.5
+        Finished light tower!
+        Fixed 2 songs playing at once bug.
+        Removed numerous getObject calls to player and made player a global object!
+        backgrounds now render with ctx.drawImage so it's faster!
+        The sign in LightTowerTopFloor now tells you how much of "something" you need!
+        Altered lamp image to be different than the others (in those repeating rooms!)
+        Finally fixed the door glitch in cutscene LightTowerTopFloor
 
     Next :   
         Will do:           
@@ -865,12 +889,12 @@ var sketch = function(processing) /*Wrapper*/
 
             More NPCs!
 
-        Cannot add anything else here until June 20th
+            Just realized things put into an offscreen cell will cause fps drops.
 
     Maybe:
         More Weapons, shops.
         Add chest appearing sound effect.
-        The closer you get to DEEP the darker it gets!
+        Speed up image rendering by doing it directly!
         
     In the future:
         --More overworld levels,
@@ -930,8 +954,8 @@ var sketch = function(processing) /*Wrapper*/
 var game = {
     fps : 60, 
     loadFps : 160,
-    gameState : "play", //Default = "start"
-    version : "v0.9.4 beta",
+    gameState : "start", //Default = "start"
+    version : "v0.9.5 beta",
     fpsType : "auto", //Default = "manual"
     debugMode : true, //Turn this to true to see the fps
     showDebugPhysics : false,
@@ -947,7 +971,7 @@ var game = {
     globalize : true
 };
 var levelInfo = {
-    level : "LightTowerP2", //Default = "intro"
+    level : "intro", //Default = "intro"
     xPos : 0,
     yPos : 0,
     width : width,
@@ -1057,6 +1081,24 @@ var keyReleased = function()
     ESC_KEY = keys[ESC];
 };
 
+function accelerateImg(img)
+{
+     if(img.__isDirty)
+    {
+        img.updatePixels();
+    }
+
+    if(!img.toImageData && img.loadPixels)
+    {
+        img.loadPixels();
+    }
+    
+    if(!img.noSourceImg && img.toImageData)
+    {
+        img.sourceImg = getSourceImg(img);
+    }
+}
+
 if(MODE === "pjs")
 {
     canvas.onkeydown = function(event)
@@ -1128,6 +1170,9 @@ function removeEndIfNum(v)
 
     return v;
 }
+
+// This gets referenced a lot and I mean a LOT!
+var player = {};
 
 ////////////////////////////////////////////////////////////////////\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
 /******************************************************************UI**********************************************************************/
@@ -2282,7 +2327,7 @@ var talkHandler = {
     },
     cureMessage : function(message)
     {
-        message = message.replace("/username", gameObjects.getObject("player").input(0).username);
+        message = message.replace("/username", player.username);
         return message;
     },
     setMessage : function(message)
@@ -2966,13 +3011,13 @@ var backgrounds = {
                 }
                 fill(0, 0, 0, 30);
                 fastRect(0, 0, width, height);
-                backgrounds.backgrounds.air.img = get(0, 0, width, height);
+                var img = backgrounds.backgrounds.air.img = get(0, 0, width, height);
 
                 screenUtils.speedUpImage(backgrounds.backgrounds.air.img);
             },
             drawBackground : function()
             {
-                if(backgrounds.backgrounds.air.img !== undefined)
+                if(backgrounds.backgrounds.air.img)
                 {
                     fastImage(backgrounds.backgrounds.air.img, 0, 0);
                 }
@@ -3019,7 +3064,8 @@ var backgrounds = {
 
                 backgrounds.backgrounds.dark.img = get(0, 0, width, height);
 
-                screenUtils.speedUpImage(backgrounds.backgrounds.dark.img);
+                // screenUtils.speedUpImage(backgrounds.backgrounds.dark.img);
+                accelerateImg(backgrounds.backgrounds.dark.img);
 
                 backgrounds.backgrounds.dark.streaks = [];
 
@@ -3040,9 +3086,9 @@ var backgrounds = {
             },
             drawBackground : function()
             {
-                if(backgrounds.backgrounds.dark.img !== undefined)
+                if(backgrounds.backgrounds.dark.img)
                 {
-                    fastImage(backgrounds.backgrounds.dark.img, 0, 0);
+                    ctx.drawImage(backgrounds.backgrounds.dark.img.sourceImg, 0, 0, width, height);
                 }
 
                 var streaks = backgrounds.backgrounds.dark.streaks || [];
@@ -3378,18 +3424,14 @@ var backgrounds = {
                 this.diff = (levelInfo.width - cam.focusXPos * 10 || 0);
                 this.speeds = [this.diff / 68, this.diff / 56, this.diff / 52, this.diff / 42, this.diff / 30, this.diff / 20];
 
-                for(var i = 0; i < this.layers.length; i++)
+                var i, layer, index;
+                for(i = 0; i < this.layers.length; i++)
                 {
-                    var layer = this.layers[i];
+                    layer = this.layers[i];
+                    index = -floor((this.speeds[i] + width) / layer.width);
 
-                    pushMatrix();
-                        translate(this.speeds[i], 0);
-
-                        var index = -floor((this.speeds[i] + width) / layer.width);
-
-                        image(layer, layer.width * (index + 1), 0);
-                        image(layer, layer.width * index, 0);
-                    popMatrix();
+                    ctx.drawImage(layer.sourceImg, layer.width * (index + 1) + this.speeds[i], 0, width, height);
+                    ctx.drawImage(layer.sourceImg, layer.width * index + this.speeds[i], 0, width, height);
                 }
             },
             moves : true
@@ -3549,7 +3591,8 @@ var backgrounds = {
                 popMatrix();
 
                 backgrounds.backgrounds.winter.img = get(0, 0, screen.width, screen.height);
-                screenUtils.speedUpImage(backgrounds.backgrounds.winter.img);
+                // screenUtils.speedUpImage(backgrounds.backgrounds.winter.img);
+                accelerateImg(backgrounds.backgrounds.winter.img);
                 popMatrix();
             },
             load : function()
@@ -3560,7 +3603,7 @@ var backgrounds = {
             {
                 if(backgrounds.backgrounds.winter.img !== undefined)
                 {
-                    fastImage(backgrounds.backgrounds.winter.img, 0, 0, width, height);
+                    ctx.drawImage(backgrounds.backgrounds.winter.img.sourceImg, 0, 0, width, height);
 
                     graphics.inClouds.draw();
                     if(!screenUtils.fade.fading)
@@ -3586,11 +3629,12 @@ var backgrounds = {
                     backgrounds.backgrounds.spaceFromEarth.drawBackground();
                     var spaceFromEarth = get(0, 0, screen.width, screen.height);//400, 400
 
-                    screenUtils.speedUpImage(spaceFromEarth);
+                    // screenUtils.speedUpImage(spaceFromEarth);
+                    accelerateImg(spaceFromEarth);
                 popMatrix();
                 backgrounds.backgrounds.spaceFromEarth.drawBackground = function()
                 {
-                    fastImage(spaceFromEarth, 0, 0, width, height);
+                    ctx.drawImage(spaceFromEarth.sourceImg, 0, 0, width, height);
                     graphics.inClouds.draw();
                     if(!screenUtils.fade.fading)
                     {
@@ -3907,9 +3951,9 @@ var backgrounds = {
             },
             drawBackground : function()
             {
-                if(backgrounds.backgrounds.high.img !== undefined)
+                if(backgrounds.backgrounds.high.img)
                 {
-                    fastImage(backgrounds.backgrounds.high.img, 0, 0, width, height);
+                    ctx.drawImage(backgrounds.backgrounds.high.img.sourceImg, 0, 0, width, height);
 
                     ctx.fillStyle = "rgb(255, 255, 255)";
 
@@ -4001,15 +4045,11 @@ var backgrounds = {
                 var ySpeed = (levelInfo.height - cam.focusYPos || 0) * speed;
                 var y = -floor((ySpeed + height) / layer.height);
 
-                pushMatrix();
-                    translate(xSpeed, ySpeed);
+                ctx.drawImage(layer.sourceImg, layer.width * x + xSpeed, layer.width * y + ySpeed, width, height);
+                ctx.drawImage(layer.sourceImg, layer.width * (x + 1) + xSpeed, layer.width * y + ySpeed, width, height);
 
-                    fastImage(layer, layer.width * x, layer.width * y);
-                    fastImage(layer, layer.width * (x + 1), layer.width * y);
-
-                    fastImage(layer, layer.width * x, layer.width * (y + 1));
-                    fastImage(layer, layer.width * (x + 1), layer.width * (y + 1));
-                popMatrix();
+                ctx.drawImage(layer.sourceImg, layer.width * x + xSpeed, layer.width * (y + 1) + ySpeed, width, height);
+                ctx.drawImage(layer.sourceImg, layer.width * (x + 1) + xSpeed, layer.width * (y + 1) + ySpeed, width, height);
             }
         }
     },
@@ -5124,7 +5164,7 @@ var inventoryMenu = {
             }
         }
 
-        var player = gameObjects.getObject("player").input(0);
+        // var player = gameObjects.getObject("player").input(0);
         var scene = this.scenes[this.scene];
         var self = this;
 
@@ -5397,7 +5437,7 @@ var inventoryMenu = {
     },
     draw : function()
     {
-        var player = gameObjects.getObject("player").input(0);
+        // var player = gameObjects.getObject("player").input(0);
         var returned = (this.oFuncs.close || function() {})(this.scenes[this.scene]);
 
         if(returned && returned.length)
@@ -5795,7 +5835,7 @@ var screenUtils = {
         draw : function()
         {
             if(game.debugMode && mouseIsPressed && game.gameState === "play" && mouseButton === RIGHT && 
-                gameObjects.getObject("player")[0].discoveredPowersHandler.currentPower !== "hookShot")
+                player.discoveredPowersHandler.currentPower !== "hookShot")
             {
                 cameraGrid.draw();
                 cursor(CROSS);
@@ -5805,7 +5845,7 @@ var screenUtils = {
         update : function()
         {
             if(game.debugMode && mouseIsPressed && game.gameState === "play" && mouseButton === RIGHT && 
-                gameObjects.getObject("player")[0].discoveredPowersHandler.currentPower !== "hookShot")
+                player.discoveredPowersHandler.currentPower !== "hookShot")
             {
                 try{
                     var place = cameraGrid.getPlace((cam.focusXPos - cam.halfWidth) + mouseX, (cam.focusYPos - cam.halfHeight) + mouseY);
@@ -5870,7 +5910,7 @@ var screenUtils = {
             fastRect(0, 0, width, screenUtils.infoBar.height);
             screenUtils.infoBar.healthMeter.draw();
             
-            var player = gameObjects.getObject("player").input(0);
+            // var player = gameObjects.getObject("player").input(0);
             screenUtils.infoBar.healthMeter.set(player.hp, player.maxHp);
             screenUtils.infoBar.defenseMeter.set(player.defense, player.maxDefense);
             
@@ -6208,7 +6248,9 @@ var screenUtils = {
     },
     speedLetImage : function(object, name, pro)
     {
-        screenUtils.speedUpImage(storedImages[name]);
+        // screenUtils.speedUpImage(storedImages[name]);
+
+        accelerateImg(storedImages[name]);
 
         object.imageName = name;
         object.draw = (pro) ? function()
@@ -6308,7 +6350,7 @@ var screenUtils = {
         textSize(11);
         
         //Debug menu
-        var player = gameObjects.getObject("player").input(0);
+        // var player = gameObjects.getObject("player").input(0);
         fill(!lighting.working ? color(0, 0, 0, 200) : color(255, 255, 255, 100));
         if(screenUtils.debugMenuWhite)
         {
@@ -6335,6 +6377,11 @@ var screenUtils = {
     noB : 0,
     loadingScreen : function()
     {
+        if(game.cutScening)
+        {
+            return;
+        }
+
         if(game.gameState === "load")
         {
             keys[32] = false; // Stop from double spacing the story screen
@@ -6381,7 +6428,7 @@ var screenUtils = {
             return;
         }
 
-        var player = gameObjects.getObject("player")[0];
+        // var player = gameObjects.getObject("player")[0];
         noFill();
         stroke(0, 0, 0);
         strokeWeight(460);
@@ -7777,7 +7824,7 @@ var Camera = function(xPos, yPos, width, height)
         this.focusXPos = constrain(this.focusXPos, levelInfo.xPos + this.halfWidth * this.cScale, 
                                     levelInfo.xPos + levelInfo.width - this.halfWidth * this.cScale);
         this.focusYPos = constrain(this.focusYPos, levelInfo.yPos + this.halfHeight * this.cScale, 
-                                    levelInfo.yPos + levelInfo.height - this.halfHeight * this.cScale);
+                                    levelInfo.yPos + levelInfo.height - this.halfHeight * this.cScale + (this.yMost || 0));
 
         //Get the corners position on the grid
         this.upperLeft = cameraGrid.getPlace(this.focusXPos + EPSILON - this.halfWidth, this.focusYPos + EPSILON - this.halfHeight);
@@ -7871,8 +7918,8 @@ var createArray = function(object, inArray)
         {
             return this[this.references[name]];
         }else{
-            println("Error referencing object '" + name + "'"); 
-            delete this.references[name];
+            // println("Error referencing object '" + name + "'"); 
+            // delete this.references[name];
             return {
                 fake : true,
             };
@@ -7886,21 +7933,22 @@ var createArray = function(object, inArray)
             delete this.references[name];
         }
     };
+
     //Want to reference your array as if when it was first created?
     //Call this while iterating if you're constantly moving objects around
     array.applyObject = function(i)
     {
-        if(this[i] === undefined)
+        if(!this[i])
         {
             return;
         }
 
-        if(this[i].delete)
-        {
-            this.splice(i, 1);
-            return;
-        }
-        
+        // if(this[i].delete)
+        // {
+        //     this.splice(i, 1);
+        //     return;
+        // }
+
         if(this[i].hideDelete && !this[i].fake)
         {
             //Dummy object
@@ -9928,9 +9976,16 @@ var MovingPlatform = function(xPos, yPos, width, height, colorValue, direction, 
 
     if(levelInfo.theme === "underground")
     {
+        var img = loadedImages["triangleBlockYellow"];
+
+        if(img.__isDirty)
+        {
+            img.updatePixels();
+        }
+
         this.draw = function()
         {
-            image(loadedImages["triangleBlockYellow"], this.xPos, this.yPos, this.width, this.height);
+            ctx.drawImage(img.sourceImg, 0, 0, img.sourceImg.width, img.sourceImg.height, round(this.xPos), round(this.yPos), this.width, this.height);
         };
     }
 
@@ -10445,12 +10500,27 @@ var ImageBlock = function(xPos, yPos, width, height, imageName)
 
     this.snowflakes = 0;
 
+    var img = loadedImages[imageName];
+
+    if(!img)
+    {
+        this.draw = function() {};
+        return;
+    }
+
+    if(img.__isDirty)
+    {
+        img.updatePixels();
+    }
+
     this.draw = function()
     {
-        try{
-            image(loadedImages[this.imageName], this.xPos, this.yPos, this.width, this.height);
-        }
-        catch(e) { }
+        // try{
+        //     image(loadedImages[this.imageName], this.xPos, this.yPos, this.width, this.height);
+        // }
+        // catch(e) { }
+
+        ctx.drawImage(img.sourceImg, 0, 0, img.sourceImg.width, img.sourceImg.height, round(this.xPos), round(this.yPos), this.width, this.height);
     };
 
     this.notExplosive = true;
@@ -10807,7 +10877,10 @@ var LaserCast = function(xPos, yPos, diameter)
         switch(object.arrayName)
         {
             case "exclamationBlock" :
-                object.activate();
+                if(!object.activate())
+                {
+                    this.destroy();
+                }
                 break;
 
             case "imageBlock" :
@@ -11220,7 +11293,8 @@ var ExclamationBlock = function(xPos, yPos, width, height)
             textAlign(CENTER, CENTER);
             fill(255, 255, 255, 200);
 
-            text(this.message, 0, 0);
+            // text(this.message, 0, 0);
+            text('!', 0, 0);
         popMatrix();
     };
 
@@ -11262,9 +11336,15 @@ var ExclamationBlock = function(xPos, yPos, width, height)
 
     this.activate = function()
     {
-        if(this.activated || (this.okay !== undefined && !this.okay()))
+        if(this.activated)
         {
-            return;
+            this.physics.solidObject = false;
+            return true;
+        }
+
+        if((this.okay !== undefined && !this.okay()))
+        {
+            return false;
         }
 
         this.activated = true;
@@ -11292,6 +11372,8 @@ var ExclamationBlock = function(xPos, yPos, width, height)
                 }
             }
         };
+
+        return true;
     };
 };
 gameObjects.addObject("exclamationBlock", createArray(ExclamationBlock));
@@ -11560,7 +11642,7 @@ var Sign = function(xPos, yPos, width, height, colorValue, message, textColor, f
         
         if(!this.messageScanned)
         {
-            this.message = this.message.replace("/username", gameObjects.getObject("player").input(0).username);
+            this.message = this.message.replace("/username", player.username);
             this.messageScanned = true;
         }
 
@@ -12054,7 +12136,7 @@ var Key = function(xPos, yPos, width, height, colorValue)
         //Remove if the player already has the key
         if(!this.checked)
         {
-            var object = gameObjects.getObject("player").input(0);
+            var object = player;
             if(object.goto.keysHolding !== undefined &&
             object.goto.keysHolding[this.goto.level + this.goto.symbol] !== undefined &&
             object.goto.keysHolding[this.goto.level + this.goto.symbol].collected)
@@ -13294,7 +13376,7 @@ var Bullet = function(xPos, yPos, diameter, colorValue, blastAngle, damage, homi
     
     this.getTarget = function()
     {
-        var player = gameObjects.getObject("player").getLast();
+        // var player = gameObjects.getObject("player").getLast();
         return {
             xPos : player.xPos + player.halfWidth,
             yPos : player.yPos + player.halfHeight,
@@ -13437,7 +13519,7 @@ var Shooter = function(xPos, yPos, diameter, colorValue)
     
     this.getTarget = function()
     {
-        var player = gameObjects.getObject("player").getLast();
+        // var player = gameObjects.getObject("player").getLast();
         return {
             xPos : player.xPos + player.halfWidth,
             yPos : player.yPos + player.halfHeight,
@@ -13845,7 +13927,7 @@ var Enemy = function(xPos, yPos, width, height, colorValue, props, complexDraw, 
                 circle(_x2, _y2, _diameter);
             }
             
-            var player = gameObjects.getObject("player").getLast();
+            // var player = gameObjects.getObject("player").getLast();
             if(player !== undefined)
             {
                 this.eyeAngle = atan2(player.yPos - this.yPos, player.xPos - this.xPos);
@@ -14802,7 +14884,7 @@ var CatDogStatue = function(xPos, yPos, width, height)
 
         if(this.useLaser)
         {
-            var player = gameObjects.getObject("player").input(0);
+            // var player = gameObjects.getObject("player").input(0);
 
             if(Math.pow(Math.abs(physics.getMiddleXPos(player) - physics.getMiddleXPos(this)), 2) + 
                Math.pow(Math.abs(physics.getMiddleYPos(player) - physics.getMiddleYPos(this)), 2) < 150 * 150)
@@ -16241,7 +16323,7 @@ var SpaceBreaker = function(xPos, yPos, diameter, colorValue, amt)
                         var a = 0;
                         if(this.delag)
                         {
-                            var player = gameObjects.getObject("player").input(0);
+                            // var player = gameObjects.getObject("player").input(0);
                             a = atan2(player.yPos - this.yPos, player.xPos - this.xPos) + round(random(-0.12, 0.12));
                         }else{
                             var a = atan2(this.hits[0].yVel, this.hits[0].xVel);
@@ -16653,7 +16735,7 @@ var NinjaBoss = function(xPos, yPos, width, height)
         physics.getMiddleXPos(this);
         physics.getMiddleYPos(this);
 
-        this.hitObject = gameObjects.getObject("player")[0];  
+        this.hitObject = player;  
 
         if(this.hitObject !== undefined)
         {
@@ -16678,7 +16760,7 @@ var NinjaBoss = function(xPos, yPos, width, height)
 
     this.remove = function()
     { 
-        if(gameObjects.getObject("player").input(0).maxHp < 15)
+        if(player.maxHp < 15)
         {
             gameObjects.getObject("heart").add(
                 levelInfo.xPos + levelInfo.width / 2,
@@ -17813,7 +17895,7 @@ var IceDragon = function(xPos, yPos, width, height)
     var _lastRemove = this.remove;
     this.remove = function()
     { 
-        if(!this.addedHeart && gameObjects.getObject("player").input(0).maxHp < 20)
+        if(!this.addedHeart && player.maxHp < 20)
         {
             gameObjects.getObject("heart").add(
                 this.xPos + this.halfWidth,
@@ -18822,7 +18904,9 @@ var Player = function(xPos, yPos, width, height, colorValue)
 
         if(!this.exploding && (!this.invincibleToLifeForm || millis() % 600 >= 300))
         {
-            image(storedImages[this.imageName], this.xPos, this.yPos, this.width, this.height);
+            // image(storedImages[this.imageName], this.xPos, this.yPos, this.width, this.height);
+
+            ctx.drawImage(storedImages[this.imageName].sourceImg, 0, 0, width, height, round(this.xPos), round(this.yPos), this.width, this.height);
         }
 
         this.drawExplosion();
@@ -19536,7 +19620,7 @@ var Wisp = function(xPos, yPos, diameter, colorValue)
         this.downY = this.yPos + this.radius - 2;
 
         //The only object this will attack
-        var player = gameObjects.getObject("player").getLast();
+        // var player = gameObjects.getObject("player").getLast();
 
         if(player.yPos - this.yPos < -60)
         {
@@ -19732,7 +19816,7 @@ var Voxelizer = function(xPos, yPos, width, height, colorValue)
         switch(this.following)
         {
             case 0 : case 2 :
-                this.target = gameObjects.getObject("player")[0];
+                this.target = player;
 
                 var a = atan2(physics.getMiddleYPos(this.target) - this.middleYPos, 
                               physics.getMiddleXPos(this.target) - this.middleXPos);
@@ -19754,7 +19838,7 @@ var Voxelizer = function(xPos, yPos, width, height, colorValue)
                 break;
 
             case 4 :
-                this.target = gameObjects.getObject("player")[0];
+                this.target = player;
 
                 var a = atan2(physics.getMiddleYPos(this.target) - this.middleYPos, 
                               physics.getMiddleXPos(this.target) - this.middleXPos);
@@ -21870,7 +21954,7 @@ var HookShot = function(xPos, yPos, diameter)
                     x > setObject.xPos && x < setObject.width + setObject.xPos && 
                     y > setObject.yPos && y < setObject.height + setObject.yPos)
                 {   
-                    setObject.onCollect(gameObjects.getObject("player")[0]);
+                    setObject.onCollect(player);
 
                     power.exit(object, power);
                 }
@@ -22509,7 +22593,7 @@ var Crystal = function(xPos, yPos, diameter, config)
 
     this.generateTriangles();
 
-    var player = gameObjects.getObject("player")[0];
+    // var player = gameObjects.getObject("player")[0];
     if(player && player.crystals)
     {
         if(player.crystals[this.kind])
@@ -22603,16 +22687,26 @@ var Lamp = function(xPos, yPos, width, height, useAlt)
 
             noStroke();
 
-            fill(200, 175, 23, 130);
-            ellipse(x, y, 18 + this.wiggle, 18 + this.wiggle);
-
-            fill(200, 175, 23, 60);
-            ellipse(x, y, 40 + this.wiggle, 40 + this.wiggle);
-
             if(!this.useAlt)
             {
+                fill(200, 175, 23, 130);
+                circle(x, y, 18 + this.wiggle);
+
+                fill(200, 175, 23, 60);
+                circle(x, y, 40 + this.wiggle);
+
                 fill(200, 175, 23, 193);
-                ellipse(x, y, 5 + this.wiggle * 0.14, 5 + this.wiggle * 0.14);
+                circle(x, y, 5 + this.wiggle * 0.14);
+            }else{
+
+                // fill(200, 175, 23, 130);
+                // circle(x, y, 18 + this.wiggle);
+
+                fill(200, 175, 23, 60);
+                circle(x, y, 40 + this.wiggle);
+
+                fill(200, 175, 23, 86);
+                circle(x, y, 17 + this.wiggle * 0.14);
             }
         }
 
@@ -23181,7 +23275,7 @@ var levelScripts = {
 
             if(!checkPoint.checked)
             {
-                var player = gameObjects.getObject("player").input(0);
+                // var player = gameObjects.getObject("player").input(0);
 
                 if(player.username !== undefined)
                 {
@@ -23216,7 +23310,7 @@ var levelScripts = {
                 this.stop = true;
             }
 
-            var player = gameObjects.getObject("player").getLast();
+            // var player = gameObjects.getObject("player").getLast();
             if(gameObjects.getObject("lever").getLast().set)
             {
                 cam.lowerRight.col += 3;
@@ -23448,7 +23542,7 @@ var levelScripts = {
         {
             var bossDefeated = gameObjects.getObject("ninjaBoss").input(0).fake;
             var lever = gameObjects.getObject("lever").input(0);
-            var player = gameObjects.getObject("player").input(0);
+            // var player = gameObjects.getObject("player").input(0);
             var spikes = gameObjects.getObject("spike");
 
             if(bossDefeated && !player.dead && !this.doneThis)
@@ -24059,7 +24153,7 @@ var levelScripts = {
                 iceDragon.update(true);
             }
 
-            var player = gameObjects.getObject("player")[0];
+            // var player = gameObjects.getObject("player")[0];
             iceDragon.applyCollision(player);
 
             if(observer.collisionTypes.rectrect.colliding(player.boundingBox, iceDragon.boundingBox))
@@ -24366,6 +24460,105 @@ var levelScripts = {
                 }
             }
         },
+        apply : function()
+        {
+            if(levels["LightTowerTopFloor"].save.finished)
+            {
+                levels["DEEPOutside"].doors.b.locked = false;
+            }
+        }
+    },
+    "LightTowerTopFloor" : {
+        afterLoad : function()
+        {
+            this.done = false;
+
+            levels["DEEPOutside"].doors.b.locked = false;
+            levels["LightTowerTopFloor"].save.finished = false;
+        },   
+        apply : function()
+        {
+            var energyAmt = levels["LightTowerTopFloor"].itemChests.a.items.filter(i => i.contains === "energy").length;
+
+            levels[levelInfo.level].signs.a.message = "Drop something In!\n " + energyAmt + " out of 8 required";
+
+            if(levels["LightTowerTopFloor"].save.finished)
+            {
+                levels["DEEPOutside"].doors.b.locked = false;
+                return;
+            }
+
+            if(energyAmt === 8 && levels["DEEPOutside"].doors.b.locked)
+            {   
+                var _this = this;
+
+                // var player = gameObjects.getObject("player")[0];
+
+                var playerXPos = player.xPos;
+                var playerYPos = player.yPos;
+
+                loader.startLoadLevel("DEEPOutside", "door", 1, function()
+                {
+                    if(_this.done)
+                    {
+                        return;
+                    }
+
+                    game.cutScening = true;
+
+                    cam.focusXPos = levelInfo.width * 0.4;
+
+                    cam.attach(function()
+                    {   
+                        if(gameObjects.getObject("door")[3])
+                        {
+                            return gameObjects.getObject("door")[3];
+                        }else{
+                            return gameObjects.getObject("imageBlock")[0];
+                        }
+                    }, 
+                    false, 2000, function()
+                    {
+                        if(_this.getOutStartTime === undefined)
+                        {
+                            _this.getOutStartTime = millis();
+                            gameObjects.getObject("door")[3].goto.locked = false;
+
+                            // Make sure he's out of view
+                            physics.teleport(player, 200, 200);
+                        }
+
+                        cam.attach(function()
+                        {
+                            if(millis() - _this.getOutStartTime > 2000)
+                            {
+                                
+                                physics.teleport(player, playerXPos, playerYPos);
+                                delete _this.getOutStartTime;
+
+                                loader.startLoadLevel("LightTowerTopFloor", "door", 1, function()
+                                {
+                                    physics.teleport(player, playerXPos, playerYPos);
+
+                                    levels["LightTowerTopFloor"].save.finished = true;
+
+                                    game.cutScening = false;
+                                    _this.done = true;
+                                }); 
+                            }
+
+                            if(gameObjects.getObject("door")[3])
+                            {
+                                return gameObjects.getObject("door")[3];
+                            }else{
+                                return gameObjects.getObject("imageBlock")[0];
+                            }           
+                        }, 
+                        false);
+                    });
+                });
+            }
+        }
     },
     "LightTowerP1" : {
         afterLoad : function()
@@ -24386,8 +24579,6 @@ var levelScripts = {
             }
 
             this.counter = 0;
-
-
 
             var _this = this;
             gameObjects.getObject("exclamationBlock").forEach(function(element)
@@ -24507,8 +24698,13 @@ var levelScripts = {
 
 function _$$_()
 {
-    for(var j = 2; j <= 2; j++)
+    for(var j = 2; j <= 8; j++)
     {   
+        if(!levels["LightTowerP" + j])
+        {
+            continue;
+        }
+
         levelScripts["LightTowerP" + j] = {};
         for(var i in levelScripts["LightTowerP1"])
         {
@@ -24552,6 +24748,109 @@ function _$$_()
         }
 
         lever._lastSet = lever.set;
+    };
+
+
+    var _lastApply = levelScripts["LightTowerP4"].apply;
+    levelScripts["LightTowerP4"].apply = function()
+    {
+        _lastApply.apply(this, arguments);
+
+        var blocks = gameObjects.getObject("exclamationBlock");
+
+        blocks[0].message = 1;
+        blocks[1].message = 2;
+        blocks[2].message = 5;
+        blocks[3].message = 4;
+        blocks[4].message = 3;
+
+        var levers = gameObjects.getObject("lever");
+        var greenBlocks = gameObjects.getObject("imageBlock").filter(element => element.imageName === "triangleBlockGreen");
+
+        var lever = levers[0];
+
+        if(lever._lastSet === undefined)
+        {
+            lever._lastSet = lever.set;
+            greenBlocks[0]._firstXPos = greenBlocks[0].xPos;
+            return;
+        }
+
+        if(lever._lastSet !== lever.set)
+        {
+            if(lever.set)
+            {
+                greenBlocks[0].xPos = greenBlocks[0]._firstXPos;
+            }else{
+                greenBlocks[0].xPos = greenBlocks[0]._firstXPos + levelInfo.unitWidth * 10;
+            }
+
+            greenBlocks[0].boundingBox.xPos = greenBlocks[0].xPos;
+            cameraGrid.removeReference(greenBlocks[0]);
+            cameraGrid.addReference(greenBlocks[0]);
+        }
+
+        lever._lastSet = lever.set;
+    };
+
+    var _lastApply = levelScripts["LightTowerP6"].apply;
+    levelScripts["LightTowerP6"].apply = function()
+    {
+        _lastApply.apply(this, arguments);
+
+        var blocks = gameObjects.getObject("exclamationBlock");
+
+        blocks[0].message = 2;
+        blocks[1].message = 3;
+        blocks[2].message = 1;
+    };
+
+    var _lastAfterLoad = levelScripts["LightTowerP7"].afterLoad;
+    levelScripts["LightTowerP7"].afterLoad = function()
+    {
+        _lastAfterLoad.apply(this, arguments);
+        
+        cam.yMost = -levelInfo.unitHeight * 3;
+    };
+
+    var _lastApply = levelScripts["LightTowerP7"].apply;
+    levelScripts["LightTowerP7"].apply = function()
+    {
+        _lastApply.apply(this, arguments);
+
+        var blocks = gameObjects.getObject("exclamationBlock");
+
+        blocks[0].message = 3;
+        blocks[1].message = 2;
+        blocks[2].message = 1;
+        blocks[3].message = 6;
+        blocks[4].message = 5;
+        blocks[5].message = 4;
+    };
+
+    var _lastApply = levelScripts["LightTowerP8"].apply;
+    levelScripts["LightTowerP8"].apply = function()
+    {
+        _lastApply.apply(this, arguments);
+
+        var blocks = gameObjects.getObject("exclamationBlock");
+
+        blocks[6].message = 1;
+        blocks[9].message = 2;
+        blocks[13].message = 3;
+        blocks[12].message = 4;
+        blocks[8].message = 5;
+        blocks[5].message = 6;
+        blocks[1].message = 7;
+        blocks[0].message = 8;
+        blocks[4].message = 9;
+        blocks[7].message = 10;
+
+        blocks[10].message = 11;
+        blocks[11].message = 12;
+
+        blocks[2].message = 13;
+        blocks[3].message = 14;
     };
 }
 
@@ -24752,11 +25051,12 @@ levels.setPlayer = function(xPos, yPos, colorValue)
     gameObjects.getObject("checkPoint").add(xPos, yPos, levelInfo.unitWidth, levelInfo.unitHeight, undefined, true);
     if(gameObjects.getObject("player").length <= 0)
     {
-        gameObjects.getObject("player").add(xPos, yPos - abs(levelInfo.unitHeight * 2 - levelInfo.unitHeight), levelInfo.unitWidth, levelInfo.unitHeight * 2, colorValue);
+        player = gameObjects.getObject("player").add(xPos, yPos - abs(levelInfo.unitHeight * 2 - levelInfo.unitHeight), levelInfo.unitWidth, levelInfo.unitHeight * 2, colorValue);
+
         //Set checkPoint
-        gameObjects.getObject("checkPoint").getLast().setObjectProps(gameObjects.getObject("player").getLast(0));
+        gameObjects.getObject("checkPoint").getLast().setObjectProps(player);
     }
-    this.setObjectAtCheckPoint(gameObjects.getObject("player").getLast(), xPos, yPos);
+    this.setObjectAtCheckPoint(player, xPos, yPos);
 };
 levels.applySettings = function(level)
 {
@@ -25621,7 +25921,7 @@ loader.setProps = function(level)
     this.step = 0;
     this.returned = {};
 };
-loader.startLoadLevel = function(level, actType, objectIndex)
+loader.startLoadLevel = function(level, actType, objectIndex, onToLoadFunc)
 {
     levelInfo._lastLevel = levelInfo.level; 
     this.level = level;
@@ -25636,6 +25936,8 @@ loader.startLoadLevel = function(level, actType, objectIndex)
 
     this.objectIndex = objectIndex;
     this.actType = actType;
+
+    this.onToLoadFunc = onToLoadFunc;
 
     if(actType === "door")
     {
@@ -25662,6 +25964,8 @@ loader.loadLevel = function(level, step, levelStep)
             levelScripts.beforeLoad();
             lighting.end();
             delete screenUtils.infoBar.bossArrayName;
+
+            delete cam.yMost;
             break;
         
         case 1 :
@@ -25714,7 +26018,35 @@ loader.loadLevel = function(level, step, levelStep)
                 sounds.playSound(levelInfo.currentSong, true);
             }
 
-            var player = gameObjects.getObject("player").input(0);
+            // Make sure we're not playing multiple songs at once!
+            for(var i in sounds.sounds)
+            {
+                if(sounds.sounds[i].type === "song" && i !== levelInfo.currentSong)
+                {
+                    sounds.stopSound(i, true);
+                }
+            }
+
+            for(var i in storedImages)
+            {
+                if(storedImages[i].__isDirty)
+                {
+                    storedImages[i].updatePixels();
+                }
+
+                if(!storedImages[i].toImageData && storedImages[i].loadPixels)
+                {
+                    storedImages[i].loadPixels();
+                }
+
+                if(!storedImages[i].noSourceImg && storedImages[i].toImageData)
+                {
+                    storedImages[i].sourceImg = getSourceImg(storedImages[i]);
+                }
+            }
+
+            // Set player reference and attach it to the camera directly
+            player = gameObjects.getObject("player").input(0);
             cam.attach(function()
             {
                 return player;
@@ -25725,6 +26057,12 @@ loader.loadLevel = function(level, step, levelStep)
             levelScripts.afterLoad();
 
             configAreaSaver.setFromLevelCache(loader.level, f_getArrayNamesToSave(loader.level, levelInfo.theme), levelInfo.theme);
+
+            if(loader.onToLoadFunc !== undefined)
+            {
+                loader.onToLoadFunc();
+                delete loader.onToLoadFunc;
+            }
 
             toReturn = {
                 loaded : true,
@@ -25763,7 +26101,7 @@ loader.update = function()
         screenUtils.fade.stopped = !this.tempLoaded;
         if(!this.firstLoad && this.tempLoaded && game.tempState !== "menu")
         {
-            var player = gameObjects.getObject("player").getLast();
+            // var player = gameObjects.getObject("player").getLast();
             game.play(game.tempState !== "play" && player.goto.travelType !== "door");
             screenUtils.messages.length = 0;
 
@@ -25782,7 +26120,7 @@ loader.update = function()
     /*A little hack to stop the background from snapping*/
     if(backgrounds.backgrounds[backgrounds.background].moves)
     {
-        var object = gameObjects.getObject("player").getLast();
+        var object = player;
 
         if(this.loadCount >= (firstGameState === "play" ? 0 : 2) && object && object.xPos)
         {
@@ -25864,7 +26202,7 @@ game.loadSave = function(saveDataName)
         (configs[i] || {}).shownName = discoveredAreas[i].shownName;
     }
 
-    var player = gameObjects.getObject("player").getLast();
+    // var player = gameObjects.getObject("player").getLast();
     if(player.dead)
     {
         gameObjects.getObject("chest").forEach(function(element, index, array)
@@ -26010,7 +26348,7 @@ game.loadSaveAfterLoad = function()
     }
 
     //Find Player
-    var player = gameObjects.getObject("player").getLast();
+    // var player = gameObjects.getObject("player").getLast();
     player.alias = saver.current.name;
     player.username = removeEndIfNum(saver.current.name);
 
@@ -26127,7 +26465,7 @@ game.loadSaveAfterLoad = function()
 };
 game.save = function(checkPoint)
 {
-    var player = gameObjects.getObject("player").getLast();
+    // var player = gameObjects.getObject("player").getLast();
 
     this.customSaveData = {};
 
@@ -27072,7 +27410,7 @@ game.pauseMenu = function()
     {
         this.gameState = "play";
         talkHandler.end(); //Make sure we're not talking to the npc anymore
-        gameObjects.getObject("player").input(0).handleDeath();
+        player.handleDeath();
     }
     
     buttons.menu.draw();
@@ -27240,7 +27578,7 @@ game.play.keyPressed = function()
         return;
     }
 
-    var player = gameObjects.getObject("player").getLast();
+    // var player = gameObjects.getObject("player").getLast();
     player.keyPressed();
 
     talkHandler.keyPressed();
@@ -27287,7 +27625,7 @@ game.play.keyReleased = function()
 };
 game.play.mousePressed = function()
 {
-    var player = gameObjects.getObject("player").input(0);
+    // var player = gameObjects.getObject("player").input(0);
 
     try{
         player.discoveredPowersHandler.mousePressed();
@@ -27302,6 +27640,22 @@ game.doCursor = function()
 {
     game.cursor = false;
     game.noCursor = false;
+
+    // Set player if he/she doesn't exist.
+    if(!player || !player.draw)
+    {
+        player = gameObjects.getObject("player")[0];
+
+        if(player && player.draw)
+        {
+            // Make sure we're done checking if the player exists or not!
+            game.doCursor = function()
+            {
+                 game.cursor = false;
+                game.noCursor = false;
+            };
+        }
+    }
 };
 
 var draw = function()
@@ -27463,6 +27817,7 @@ if(game.globalize)
     window.storedImages = storedImages;
     window.levelInfo = levelInfo;
     window.lighting = lighting;
+    window.backgrounds = backgrounds;
 }
 
 //Done!

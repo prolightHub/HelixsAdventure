@@ -864,7 +864,7 @@ var levels = {
             "bbbbbbbb          b           bbbbbbbbbbb UU b     b     UU ",
             "                  b             cc        UU b   AAb     UU ",
             "a d               b             hh        UU bsssbbb   i UU ",
-            "K S           II  b     ch      cc        UU b     b   i UU ",
+            "K S              Ib     ch      cc        UU b     b   i UU ",
             "^^^^^^^^^^^^^^^^^^b     hc   PPPPPbbbPPPP UU b     b   i UU ",
             "vvvvvvvvvvvvvvvvvvb          bb           UU   hh  b   i UU ",
             "                             bb           UU       bsssi UU ",
@@ -2501,6 +2501,13 @@ var levels = {
                 symbol : 'c'
             }
         },
+        signs : {
+            'a' : {
+                message : "💣",
+                adjustW : 36,
+                adjustH : 36
+            }
+        },
         itemChests : {
             'c' : {
                 items : [{
@@ -2548,7 +2555,7 @@ var levels = {
                 }, {
 
                 }]
-            }
+            },
         },
         plan : [
             "                                                                                         ",
@@ -2561,12 +2568,12 @@ var levels = {
             "                                              bPPPPPPPPPb                                ",
             "                                            PPI         IPP                              ",
             "                                             PI         IP                 i             ",
-            "                                             PI    c    IP                 i_            ",
-            "               cccc                          PI    ]    IP                 ii_           ",
+            "                                             PI  a c    IP                 i_            ",
+            "               cccc                          PI pS ]    IP                 ii_           ",
             "                 2                          bbbbbbbbbbbbbbb                iii___        ",
             "              PPPPPP                           PWWWWWWWP                    iiiii_       ",
             "      hhh                                      PWWWWWWWP                     iiiii_      ",
-            "a  p  hhh                                      PWWWWWWWP                    iiiiiii_    b",
+            "a     hhh                                      PWWWWWWWP                    iiiiiii_    b",
             "D  f  hhh                r iiiiiiiiiiiiissiiiiiPWWWWWWWP                  iiiiiiiiii  f D",
             "iiiiiiiiiiiiiiiiiiiiiiiiiii11111111111111111111iPPPPPPPiiiissiiiiiiiiiiiiiiiiiiiiiiiiiiii",
             "wwwwwwwwwwwwwWWWWWWww1111www1111111111111111111111111111111111111111111111111111111111111",        
@@ -4908,7 +4915,7 @@ var levels = {
             }
         },
         itemChests : {
-            'a' : {
+            'z' : {
                 items : [{
                     contains : "fairy"
                 }, {
@@ -4961,7 +4968,7 @@ var levels = {
             "               cccc   E    E  bb~_                                     ww  ",
             "                  bbbbbbbbbbbb~_                                       ww  ",
             "a              Ebb~~__~~~_~~                                           ww  ",
-            "D     f       bb~_cccccc    a                                          ww  ",
+            "D     f       bb~_cccccc    z                                          ww  ",
             "bbbbbbbbbbbbbbb~_ cccccc '  ]                                          ww  ",
             "~~_~_~_~_~~_~~~__~~~___~~~~~~___wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww",
             "~~__~__~~~~_~~~~___~~__~__~__~_~_~~__~~_~_wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww",
@@ -5720,8 +5727,8 @@ var levels = {
             "00= z z z z z     /  S=00000000= ccc               =00",
             "005===========UU=======00000000= ccc               =00",
             "00=           UU      =00000000= ccc               =00",
-            "00=           UU      =00000000= ccc               =00",
-            "00=a          UU     b=00000000= ccc              c=00",
+            "00=     hh    UU      =00000000= ccc               =00",
+            "00=a    hh    UU     b=00000000= ccc              c=00",
             "00=D /      / UU  /  D=00000000=    p     I       D=00",
             "005===================5000000005===================500",
             "000000000000000000000000000000000000000000000000000000",
@@ -5767,8 +5774,8 @@ var levels = {
                 symbol : 'b'
             },
             'b' : {
-                level : "DEEPOutside",
-                symbol : 'b',
+                level : "DEEPRoom4",
+                symbol : 'a',
                 locked : true
             },
             'c' : {
@@ -5776,6 +5783,11 @@ var levels = {
                 symbol : 'a'
             }
         },
+        itemChests : {
+            'x' : {
+                items : [],
+            }
+        },  
         plan : [
             "000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
             "000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
@@ -5806,8 +5818,8 @@ var levels = {
             "0aa    cccc                                      |    |                                       cccc    bb0",
             "0DD  /            cccc                            u                                cccc            /  DD0",
             "0^^^^^^^^^^^^^^^5        cccc                                               cccc    g   5^^^^^^^^^^^^^^^0",
-            "00000000000000005^^^^^^5    g    ccc               cc                ccc         5^^^^^^50000000000000000",
-            "000000000000000000000005^^^^^^5       f  /    /  | DD |  /    /  QQ       5^^^^^^500000000000000000000000",
+            "00000000000000005^^^^^^5    g    ccc    x          cc                ccc         5^^^^^^50000000000000000",
+            "000000000000000000000005^^^^^^5       f ]/    /  | DD |  /    /  QQ       5^^^^^^500000000000000000000000",
             "0000000000000000000000000000005^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^5000000000000000000000000000000",
             "000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
             "000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
@@ -5827,36 +5839,121 @@ var levels = {
             'c' : {
                 level : "LightTowerP2",
                 symbol : 'a'
+            },
+            'd' : {
+                level : "LightTowerP4",
+                symbol : 'a'
+            },
+            'e' : {
+                level : "LightTowerP3",
+                symbol : 'a'
+            }, 
+            'f' : {
+                level : "LightTowerP5",
+                symbol : 'a'
+            },
+            'g' : {
+                level : "LightTowerP6",
+                symbol : 'a'
+            },
+            'h' : {
+                level : "LightTowerP7",
+                symbol : 'a'
+            },
+            'I' : {
+                level : "LightTowerP8",
+                symbol : 'a'
+            },
+            'x' : {
+                level : "LightTowerTopFloor",
+                symbol : 'a'
+            },
+            'y' : {
+                level : "LightTowerTopFloor",
+                symbol : 'b'
+            },
+        },
+        signs : {
+            'a' : {
+                message : "Please enter door\n'b' first! <--"
+            },
+            'b' : {
+                message : "Welcome to Laser\nLight Tower",
+                adjustW : 100
             }
         },
         plan : [
             "500000000000000005",
-            ">       UU       <",
-            ">       UU       <",
-            ">       UU       <",
-            ">       UU       <",
-            ">       UU       <",
-            ">       UU       <",
-            ">       UU       <",
-            ">                <",
-            ">                <",
-            ">                <",
-            ">                <",
-            ">                <",
+            ">x              y<",
+            ">D f          f D<",
             "50000000UU00000005",
             ">       UU       <",
             ">       UU       <",
             ">       UU       <",
             ">       UU       <",
-            ">       UU       <",
-            ">       UU       <",
-            ">       UU       <",
+            ">I      UU      h<",
+            ">D      UU      D<",
+            ">0000000UU0000000<",
             ">                <",
             ">                <",
             ">                <",
-            ">b      aa      c<",
-            ">D      DD      D<",
+            ">g              f<",
+            ">D              D<",
+            "50000000UU00000005",
+            ">       UU       <",
+            ">       UU       <",
+            ">       UU       <",
+            ">       UU       <",
+            ">e      UU      d<",
+            ">D      UU      D<",
+            ">0000000UU0000000<",
+            ">                <",
+            ">                <",
+            ">                <",
+            ">b    b aa a    c<",
+            ">D    S DD S    D<",
             "5^^^^^^^^^^^^^^^^5",
+        ]
+    },
+    "LightTowerTopFloor" : {
+        theme : "underground",
+        darkGrid : true,
+        doors : {
+            'a' : {
+                level : "LightTower",
+                symbol : 'x'
+            },
+            'b' : {
+                level : "LightTower",
+                symbol : 'y'
+            }
+        },
+        itemChests : {
+            'a' : {
+                items : []
+            }
+        },
+        signs : {
+            'a' : {
+                // message : "0 out of 8"
+                message : "Drop something In!\n 8 required!"
+            }
+        },
+        plan : [
+            "5vvvvvvvvvvvvvvvv5",
+            ">                <",
+            ">                <",
+            ">                <",
+            ">                <",
+            ">                <",
+            ">                <",
+            ">                <",
+            ">                <",
+            ">                <",
+            ">                <",
+            ">a      aa      b<",
+            ">D  p   S]      D<",
+            ">0000000000000000<",
         ]
     },
     "LightTowerP1" : {
@@ -5869,13 +5966,27 @@ var levels = {
             }
         },
         itemChests : {
-            'a' : {
+            'b' : {
                 items : [{
                     contains : "energy",
                 }],
                 hidden : true
             }
         },  
+        signs : {
+            'a' : {
+                message : "This is the first puzzle,\nclick things to rotate them.",
+                adjustW : 140
+            },
+            'b' : {
+                message : "The goal is to get the\nlaser to touch the '!' block.",
+                adjustW : 144
+            },
+            'c' : {
+                message : "Other puzzles expect you to do\nthis in an unknown certain order.",
+                adjustW : 160
+            }
+        },
         plan : [
             "5vvvvvvvvvvvvvvvvvvvvvvv5",
             ">   *   *b              <",
@@ -5888,9 +5999,9 @@ var levels = {
             ">                       <",
             ">r      *b              <",
             ">       b               <",
-            ">             a        a<",
-            ">             ]    p   D<",
-            "5^^^^^^^^^^^^^^^^^^^^^^^5",
+            ">          b  c  b  a  a<",
+            ">          ]  S  S  S pD<",
+            "5000000000000000000000005",
         ]
     },
     "LightTowerP2" : {
@@ -5903,7 +6014,7 @@ var levels = {
             }
         },
         itemChests : {
-            'a' : {
+            'b' : {
                 items : [{
                     contains : "energy",
                 }],
@@ -5922,14 +6033,261 @@ var levels = {
             ">                      b<",
             ">                  b    <",
             ">*             u      * <",
-            ">a         a            <",
-            ">D  p  bz  ]            <",
-            "5^^^^^^^^^^^^^^^^^^^^^^^5",
+            ">a         b            <",
+            ">D  p   z  ]            <",
+            "5000000000000000000000005",
+        ]
+    },
+    "LightTowerP3" : {
+        theme : "underground",
+        background : "deep",
+        doors : {
+            'a' : {
+                level : "LightTower",
+                symbol : 'e'
+            }
+        },
+        itemChests : {
+            'b' : {
+                items : [{
+                    contains : "energy",
+                }],
+                hidden : true
+            }
+        },  
+        plan : [
+            "5vvvvvvvvvvvvvvvvvvvvvvv5",
+            ">                       <",
+            ">                       <",
+            ">                       <",
+            ">r    *          !      <",
+            ">                       <",
+            ">r            *  !      <",
+            ">                       <",
+            ">r    *          !      <",
+            ">                       <",
+            ">     *       *         <",
+            ">             b        a<",
+            ">             ]    p   D<",
+            "5000000000000000000000005",
+        ]
+    },
+    "LightTowerP4" : {
+        theme : "underground",
+        background : "deep",
+        doors : {
+            'a' : {
+                level : "LightTower",
+                symbol : 'd'
+            }
+        },
+        itemChests : {
+            'b' : {
+                items : [{
+                    contains : "energy",
+                }],
+                hidden : true
+            }
+        }, 
+        plan : [
+            "5vvvvvvvvvvvvvvvvvvvvvvv5",
+            ">*                   *  <",
+            ">        *        *     <",
+            ">                       <",
+            ">                      0<",
+            ">*       %     !! *  * l<",
+            ">                 !    0<",
+            ">                 !     <",
+            ">*                !  *  <",
+            ">                       <",
+            ">        *        *     <",
+            ">a         b            <",
+            ">D  p      ]   z        <",
+            "5000000000000000000000005",
+        ]
+    },
+    "LightTowerP5" : {
+        theme : "underground",
+        background : "deep",
+        doors : {
+            'a' : {
+                level : "LightTower",
+                symbol : 'f'
+            }
+        },
+        itemChests : {
+            'b' : {
+                items : [{
+                    contains : "energy",
+                }],
+                hidden : true
+            }
+        }, 
+        plan : [
+            "5vvvvvvvvvvvvvvvvvvvvvvv5",
+            ">*     *bb*            *<",
+            ">                       <",
+            ">*                     *<",
+            ">b                      <",
+            ">                 b     <",
+            ">     b!b *       **   *<",
+            ">      br          *b   <",
+            ">                  b    <",
+            ">                       <",
+            ">                       <",
+            ">a         b            <",
+            ">D  p     *]      *    *<",
+            "5000000000000000000000005",
+        ]
+    },
+    "LightTowerP6" : {
+        theme : "underground",
+        background : "deep",
+        doors : {
+            'a' : {
+                level : "LightTower",
+                symbol : 'g'
+            }
+        },
+        itemChests : {
+            'b' : {
+                items : [{
+                    contains : "energy",
+                }],
+                hidden : true
+            }
+        }, 
+        plan : [
+            "5vvvvvvvvvvvvvvvvvvvvvvv5",
+            ">                       <",
+            ">                       <",
+            ">     *     *     *    l<",
+            ">                       <",
+            ">                       <",
+            ">    b!b   b!b   b!b    <",
+            ">                       <",
+            ">                       <",
+            ">           *     *     <",
+            ">                       <",
+            ">     *     * b        a<",
+            ">             ]    p   D<",
+            "5000000000000000000000005",
+        ]
+    },
+    "LightTowerP7" : {
+        theme : "underground",
+        background : "deep",
+        doors : {
+            'a' : {
+                level : "LightTower",
+                symbol : 'h'
+            }
+        },
+        itemChests : {
+            'b' : {
+                items : [{
+                    contains : "energy",
+                }],
+                hidden : true
+            }
+        }, 
+        signs : {
+            'a' : {
+                message : "tunnel below!"
+            }
+        },
+        plan : [
+            "5vvvvvvvvvvvvvvvvvvvvvvv5",
+            ">   b*       *        **<",
+            ">                       <",
+            ">                       <",
+            ">b                      <",
+            ">r   ** !!!            *<",
+            ">b         !            <",
+            ">          !            <",
+            ">          !            <",
+            ">*   **                 <",
+            ">     *          *      <",
+            ">a  a     b* *        * <",
+            ">Dp S     ]             <",
+            "50000UU00000000000UU00005",
+            ">                       <",
+            ">                       <",
+            "5000000000000000000000000",
+        ]
+    },
+    "LightTowerP8" : {
+        theme : "underground",
+        background : "deep",
+        doors : {
+            'a' : {
+                level : "LightTower",
+                symbol : 'I'
+            }
+        },
+        itemChests : {
+            'b' : {
+                items : [{
+                    contains : "energy",
+                }],
+                hidden : true
+            }
+        }, 
+        signs : {
+            'a' : {
+                message : "What is a backwards 's' flipped on it's\nside to the left? Then do the rest\n(left to right)!",
+                adjustW : 186,
+                adjustH : 50
+            }
+        },
+        plan : [
+            "5vvvvvvvvvvvvvvvvvvvvvvv5",
+            ">                       <",
+            ">                       <",
+            ">* !! * !! *   d        <",
+            ">                       <",
+            ">!    !    !            <",
+            ">!    !    !            <",
+            ">                       <",
+            ">* !! * !! *            <",
+            ">                       <",
+            ">                       <",
+            ">             b  a     a<",
+            ">r            ]  S p   D<",
+            "5000000000000000000000005",
+        ]
+    },
+    "DEEPRoom4" : {
+        theme : "underground",
+        background : "deep",
+        doors : {
+            'a' : {
+                level : "DEEPOutside",
+                symbol : 'b'
+            }
+        },
+        plan : [
+            "0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+            "0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+            "005=================================================================================================500",
+            "00=                                                                                                 =00",
+            "00=                                                                                                 =00",
+            "00=                                                                                                 =00",
+            "00=                                                                                                 =00",
+            "00=                                                                                                 =00",
+            "00=                                                                                                 =00",
+            "00=                                                                                                 =00",
+            "00=                                                                                                 =00",
+            "00=aa                                                                                               =00",
+            "00=DD                                                                                               =00",
+            "005=================================================================================================500",
+            "0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+            "0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
         ]
     },
     "test" : {
         theme : "winter",
-        background : "winter",
+        background : "deep",
         doors : {
             'a' : {
                 level : "test2",
