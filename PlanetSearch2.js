@@ -880,6 +880,7 @@ var sketch = function(processing) /*Wrapper*/
         The sign in LightTowerTopFloor now tells you how much of "something" you need!
         Altered lamp image to be different than the others (in those repeating rooms!)
         Finally fixed the door glitch in cutscene LightTowerTopFloor
+        Refined fix to be "unbreakable"!
 
     Next :   
         Will do:           
@@ -24471,35 +24472,36 @@ var levelScripts = {
     "LightTowerTopFloor" : {
         afterLoad : function()
         {
-            this.done = false;
+            if(levels["LightTowerTopFloor"].save.finished && !levels["DEEPOutside"].doors.b.locked)
+            {
+                this.stop = true;
+                return;
+            }
 
-            levels["DEEPOutside"].doors.b.locked = false;
-            levels["LightTowerTopFloor"].save.finished = false;
+            if(levels["LightTowerTopFloor"].save.finished && levels["DEEPOutside"].doors.b.locked)
+            {
+                this.somethingBroke = true;
+            }
+
+            this.doneWithCutScene = false;
         },   
         apply : function()
         {
             var energyAmt = levels["LightTowerTopFloor"].itemChests.a.items.filter(i => i.contains === "energy").length;
 
-            levels[levelInfo.level].signs.a.message = "Drop something In!\n " + energyAmt + " out of 8 required";
+            gameObjects.getObject("sign")[0].message = ("Drop something In!\n " + energyAmt + " out of 8 required");
 
-            if(levels["LightTowerTopFloor"].save.finished)
-            {
-                levels["DEEPOutside"].doors.b.locked = false;
-                return;
-            }
-
-            if(energyAmt === 8 && levels["DEEPOutside"].doors.b.locked)
+            if((energyAmt === 8 || this.somethingBroke) && levels["DEEPOutside"].doors.b.locked)
             {   
+                this.somethingBroke = false;
                 var _this = this;
-
-                // var player = gameObjects.getObject("player")[0];
 
                 var playerXPos = player.xPos;
                 var playerYPos = player.yPos;
 
                 loader.startLoadLevel("DEEPOutside", "door", 1, function()
                 {
-                    if(_this.done)
+                    if(_this.doneWithCutScene)
                     {
                         return;
                     }
@@ -24507,6 +24509,10 @@ var levelScripts = {
                     game.cutScening = true;
 
                     cam.focusXPos = levelInfo.width * 0.4;
+
+                    var playerDraw = player.draw;
+                    player.draw = function() {};
+                    player.solidObject = false;
 
                     cam.attach(function()
                     {   
@@ -24532,18 +24538,20 @@ var levelScripts = {
                         {
                             if(millis() - _this.getOutStartTime > 2000)
                             {
-                                
                                 physics.teleport(player, playerXPos, playerYPos);
                                 delete _this.getOutStartTime;
 
                                 loader.startLoadLevel("LightTowerTopFloor", "door", 1, function()
                                 {
                                     physics.teleport(player, playerXPos, playerYPos);
+                                    player.draw = playerDraw;
+
+                                    levels["LightTowerTopFloor"].itemChests.a.items = Array(10).fill({});
 
                                     levels["LightTowerTopFloor"].save.finished = true;
 
                                     game.cutScening = false;
-                                    _this.done = true;
+                                    _this.doneWithCutScene = true;
                                 }); 
                             }
 
