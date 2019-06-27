@@ -872,7 +872,7 @@ var sketch = function(processing) /*Wrapper*/
             --LightTowerP7
             --LightTowerP8
         
-    * 0.9.5
+    * 0.9.5 #Finishing DEEP
         Finished light tower!
         Fixed 2 songs playing at once bug.
         Removed numerous getObject calls to player and made player a global object!
@@ -881,6 +881,17 @@ var sketch = function(processing) /*Wrapper*/
         Altered lamp image to be different than the others (in those repeating rooms!)
         Finally fixed the door glitch in cutscene LightTowerTopFloor
         Refined fix to be "unbreakable"!
+        Gems now serve a purpose --Expand your max coin space!
+        Added levels:
+            --DEEPRoom4
+            --DEEPRoom5
+            --DEEPCorridor
+            --FlashLightRoom /w levelScript
+        Added flashLight power-up
+        Added levels:
+            --DEEPHallway
+            --DEEPRoom6
+            --DEEPBossRoom
 
     Next :   
         Will do:           
@@ -5176,7 +5187,7 @@ var inventoryMenu = {
                 case "home" :
                     scene.buttons.name.message = "Name  " + player.name;
                     scene.buttons.hp.message = "Hp  " + player.hp.toFixed(1) + " / " + player.maxHp.toFixed(1);
-                    scene.buttons.coins.message = "Coins  " + player.coins;
+                    scene.buttons.coins.message = "Coins  " + player.coins + " / " + player.maxCoins;
                     scene.buttons.score.message = "Score  " + player.score;
                     scene.buttons.gems.message = "Gems " + (player.gems || 0);
 
@@ -6075,6 +6086,11 @@ var screenUtils = {
                     var txt = "";
                     for(var i in player.discoveredPowers)
                     {
+                        if(!player.discoveredPowers[i].key)
+                        {
+                            continue;
+                        }
+
                         txt += "   ";
 
                         powerKeys.push(player.discoveredPowers[i].key);
@@ -18113,6 +18129,7 @@ var Player = function(xPos, yPos, width, height, colorValue)
     
     this.restart = false;
     this.coins = 0;
+    this.maxCoins = 400;
     this.gems = 0;
     this.score = 0;
     this.damage = 1;
@@ -18495,11 +18512,17 @@ var Player = function(xPos, yPos, width, height, colorValue)
             inCam : true,
 
             /* Offset settings*/
-            perX : levelInfo.unitWidth * 4,
-            perY : levelInfo.unitHeight * 4,
+            perX : levelInfo.unitWidth * 6,
+            perY : levelInfo.unitHeight * 6,
             halfWidth : this.halfWidth,
             halfHeight : this.halfHeight,
         };
+
+        if(this.discoveredPowers["flashLight"] !== undefined)
+        {
+            lighting.fixtures.player.range = 140;
+            lighting.fixtures.player.centeredLighting = 80;
+        }
 
         // try{
         //     var place = cameraGrid.getPlace(this.xPos, this.yPos);
@@ -18861,6 +18884,7 @@ var Player = function(xPos, yPos, width, height, colorValue)
         loader.startLoadLevel(this.goto.checkPointLevel || levelInfo.level);
     };
 
+    // this.lastPower = "";
     this.updateLighting = function()
     {
         if(levelInfo.daylightCycle || levelInfo.nightMode)
@@ -18869,6 +18893,25 @@ var Player = function(xPos, yPos, width, height, colorValue)
             {
                 this.setFixture();
             }
+
+            // if(this.discoveredPowersHandler.currentPower === "flashLight")
+            // {
+            //     lighting.fixtures.player.range = 140;
+            //     lighting.fixtures.player.centeredLighting = 80;
+            // }else{
+            //     lighting.fixtures.player.range = 120;
+            //     lighting.fixtures.player.centeredLighting = 100;
+            // }
+
+            // if(this.lastPower !== this.discoveredPowersHandler.currentPower && 
+            //     (this.lastPower === "flashLight" || this.discoveredPowersHandler.currentPower === "flashLight"))
+            // {
+            //     lighting.fixtures.player.state = "dynamic";
+            //     // lighting.setAllFixtures();
+            //     // lighting.end();
+            // }
+
+            // this.lastPower = this.discoveredPowersHandler.currentPower;
 
             lighting.fixtures.player.xPos = this.xPos + ((this.xVel >= 0) ? this.halfWidth : this.width);
             lighting.fixtures.player.yPos = this.yPos + this.halfHeight;
@@ -18924,6 +18967,9 @@ var Player = function(xPos, yPos, width, height, colorValue)
             fill(0, 156, 54, 100);
             fastRect(this.xPos, this.yPos, this.width, this.height);
         }
+
+        this.maxCoins = 400 + this.gems * 75;
+        this.coins = Math.min(this.coins, this.maxCoins);
     };
 
     this.maxAccume = 10;
@@ -22425,6 +22471,77 @@ var HookShot = function(xPos, yPos, diameter)
 };
 gameObjects.addObject("hookShot", createArray(HookShot));
 
+var FlashLight = function(xPos, yPos, width, height)
+{
+    Rect.call(this, xPos, yPos, width, height);
+
+    this.draw = function()
+    {
+        fastImage(loadedImages["flashLight"], this.xPos, this.yPos, this.width, this.height);
+    };
+
+    this.messages = {
+        up : true,
+        "start" : {
+            messages : [{
+                message : "You got the ",
+                color : color(255, 255, 255, 160),
+            }, {
+                message : "Flashlight!",
+                color : color(0, 70, 200, 190),
+            }],
+            choices : {
+                "next" : "..."
+            }
+        },
+        "next" : {
+            message : "Use this to help you see\nyour way through!",
+            choices : {
+                "next2" : "..."
+            }
+        },
+        "next2" : {
+            message : "That's all it does!",
+            choices : {
+                "exit" : "..."
+            }
+        }
+    };
+
+    this.actObject = {
+        description : "A flashlight to help you see your way through the darkness!",
+        key : '',
+        name : "flashlight"
+    };
+
+    this.onCollide = function(object)
+    {
+        if(object.arrayName === "player")
+        {
+            object.xVel = 0;
+            object.yVel = 0;
+
+            if(typeof object.discoveredPowers[this.arrayName] === "undefined")
+            {
+                talkHandler.start(this.messages, "start", "");
+
+                var self = this;
+                talkHandler.onEnd = function()
+                {
+                    self.remove();
+                    self.draw = function() {};
+                };
+            }else{
+                this.remove();
+                this.draw = function() {};
+            }
+
+            object.discoveredPowersHandler.addPower(this.arrayName, this.actObject);
+        }
+    };
+};
+gameObjects.addObject("flashLight", createArray(FlashLight));
+
 var Heart = function(xPos, yPos, diameter, amt)
 {
     Circle.call(this, xPos, yPos, diameter);
@@ -24702,6 +24819,73 @@ var levelScripts = {
                     element.draw();
                 }
             });
+        }
+    },
+    "DEEPRoom5" : {
+        afterLoad : function()
+        {
+            this.greenBlocks = gameObjects.getObject("imageBlock").filter(o => o.imageName === "triangleBlockGreen");
+        },
+        apply : function()
+        {
+            if(gameObjects.getObject("lever")[0].set)
+            {
+                this.greenBlocks.forEach((element) => 
+                {
+                    element.yPos -= 5;
+
+                    element.boundingBox.yPos = element.yPos;
+
+                    cameraGrid.removeReference(element);
+                    cameraGrid.addReference(element);
+                });
+            }
+        },
+    },
+    "FlashLightRoom" : {
+        afterLoad : function()
+        {
+            if(levels[levelInfo.level].save.finished)
+            {
+                levels[levelInfo.level].chests.a.hidden = false;
+                levels[levelInfo.level].doors.a.locked = false;
+
+                levelInfo.nightMode = false;
+                lighting.off = true;
+
+                gameObjects.getObject("stomper").forEach(element => element.remove());
+                this.stop = true;
+                return;
+            }
+
+            levels[levelInfo.level].doors.a.locked = true;
+            levels[levelInfo.level].chests.a.hidden = true;
+        },
+        apply : function()
+        {
+            if(!this.activated && gameObjects.getObject("stomper").every(element => element.fake))
+            {
+                game.cutScening = true;
+                this.activated = true;
+
+                levelInfo.nightMode = false;
+                lighting.off = true;
+
+                var _this = this;
+                cam.attach(function()
+                {
+                    return gameObjects.getObject("chest")[0];
+                }, 
+                false, 2000, function()
+                {
+                    levels[levelInfo.level].chests.a.hidden = false;
+                    levels[levelInfo.level].doors.a.locked = false;
+
+                    levels[levelInfo.level].save.finished = true;
+                    game.cutScening = false;
+                    _this.stop = true;
+                });
+            }
         }
     }
 };
