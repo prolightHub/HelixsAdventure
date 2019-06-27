@@ -5936,7 +5936,7 @@ var levels = {
         signs : {
             'a' : {
                 // message : "0 out of 8"
-                message : "Drop something In!\n 8 required!"
+                message : "Drop something In!\n 0 out of 8 required!"
             }
         },
         plan : [
@@ -6260,6 +6260,8 @@ var levels = {
     "DEEPRoom4" : {
         theme : "underground",
         background : "deep",
+        darkGrid : true,
+        nightMode : true,
         doors : {
             'a' : {
                 level : "DEEPOutside",

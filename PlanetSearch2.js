@@ -24447,6 +24447,15 @@ var levelScripts = {
             }
         }
     },
+    "DEEPOutside" : {
+        apply : function()
+        {
+            if(levels["LightTowerTopFloor"].save.finished)
+            {
+                levels["DEEPOutside"].doors.b.locked = false;
+            }
+        }
+    },
     "LightTower" : {
         afterLoad : function()
         {
@@ -24461,13 +24470,6 @@ var levelScripts = {
                 }
             }
         },
-        apply : function()
-        {
-            if(levels["LightTowerTopFloor"].save.finished)
-            {
-                levels["DEEPOutside"].doors.b.locked = false;
-            }
-        }
     },
     "LightTowerTopFloor" : {
         afterLoad : function()
