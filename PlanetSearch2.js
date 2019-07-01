@@ -85,7 +85,7 @@ var sketch = function(processing) /*Wrapper*/
 /**   Hybrid Game Engine (Planet Search 2)  **/
 /**
     @Author Prolight
-    @Version 0.9.5 beta (95% complete)
+    @Version 0.9.6 beta (96% complete)
 
         80+ gameObjects!
 
@@ -892,16 +892,30 @@ var sketch = function(processing) /*Wrapper*/
             --DEEPHallway
             --DEEPRoom6
             --DEEPBossRoom
+        Added new effect:
+        RedHurt effect will hurt you in a less than a second if you don't press the shake button
+        Fixed projectile collision!
+        Fixed item loss (when reloading a save you lose items you used).
+        Created Captain Fleep Boss.
+        Finished BossRoom
+        Added warp ability.
+
+    * 0.9.6
 
     Next :   
         Will do:           
-            Make gem(s) tradable you can trade for stuff.
-
-            if you get 3 crystals enable teleportation to all warping doors.
 
             More NPCs!
 
             Just realized things put into an offscreen cell will cause fps drops.
+
+            Make flashlight power-up be able the flash the screen and stun enemies if you charge it up.
+
+            // Ugh need to make it so you have to hold it and there is a bar! In the warping.
+            And make a message when you collect that final crystal saying you can warp!
+            Need to think about flashlight / power ups place-ment!
+
+            Add a bunch of secrets and extra stuff you can go do, after collecting all the crystals.
 
     Maybe:
         More Weapons, shops.
@@ -930,7 +944,7 @@ var sketch = function(processing) /*Wrapper*/
 
             Music:
                 PS2.mp3 & PS2-8bit.mp3 & icy_slopes_ps2-short.mp3 by Einkurogane on Reddit.
-    
+
         Code:
             CookieHandler object and isEmpty function in saver.js 
             and browserDetection.js were made by their respectable authors on stackoverflow :)
@@ -938,24 +952,12 @@ var sketch = function(processing) /*Wrapper*/
         Levels:
             All levels made by ProlightHub, except one by my brother.
 
-        All other code is by (Me) ProlightHub on Github & Phantom Falcon on Khan Academy! 
-
-    Most Important :
-        Fix other physics? Fix circle-rect / spike-rect collision physics!
+        All other code is by (Me) ProlightHub on Github & Phantom Falcon on Khan Academy!
 
     Future Updates :
         To be added :
             More levels
             More Backgrounds
-
-        AIs :
-            Make space breakers not get stuck on the ceiling.
-            (Maybe make them return to their original position?)
-            Make AIs not get stuck on blocks like the space breaker
-
-        (Maybe or way later)
-            +Music
-            +Pixelated story cut-scene at the start
 **/
 
 //////////////////////////////////////////////////Feel free to look through the code!\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
@@ -967,7 +969,7 @@ var game = {
     fps : 60, 
     loadFps : 160,
     gameState : "start", //Default = "start"
-    version : "v0.9.5 beta",
+    version : "v0.9.6 beta",
     fpsType : "auto", //Default = "manual"
     debugMode : true, //Turn this to true to see the fps
     showDebugPhysics : false,
@@ -5379,6 +5381,70 @@ var inventoryMenu = {
                     scene.buttons["options_drop"].overrideColor = scene.buttons["options_drop"].firstColor;
                 }
                 break;
+
+            case "crystals" :
+                if(!mouseIsPressed || this.countedCrystals < 3)
+                {
+                    this.counterTimer = 0;
+                    break;
+                }
+
+                var dx = -mouseX + 260 * (2 / 3);
+                var dy = -mouseY + 300 * (2 / 3);
+                var inside = (dx * dx + dy * dy < 25 * 25);
+
+                this.warpClicked = inside;
+
+                if(inside !== this.lastWarpClicked)
+                {
+                    if(inside)
+                    {
+                        this.counting = true;
+                    }else{
+                        this.counting = false;
+                    }
+
+                    this.counterTimer = 0;
+                    this.maxCounterTimer = 200;
+                }
+
+                this.lastWarpClicked = inside;
+
+                if(this.counting)
+                {
+                    this.counterTimer++;
+
+                    if(this.counterTimer > this.maxCounterTimer)
+                    {
+                        switch(this.currentCrystal)
+                        {
+                            case "ninja" :
+                                game.gameState = "play";
+                                player.goto.doorSymbol = 'c';
+                                player.goto.travelType = "door";
+                                loader.startLoadLevel("ninjaTempleEntrance", "door");
+                                return;
+
+                            case "winter" :
+                                game.gameState = "play";
+                                player.goto.doorSymbol = 'a';
+                                player.goto.travelType = "door";
+                                loader.startLoadLevel("outerMountain", "door");
+                                return;
+
+                            case "underground" :
+                                game.gameState = "play";
+                                player.goto.doorSymbol = 'b';
+                                player.goto.travelType = "door";
+                                loader.startLoadLevel("DEEPBossRoom", "door");
+                                return;
+                        }
+
+                        this.counting = false;
+                    }
+                }
+
+                break;
         }
 
         for(var i in scene.buttons)
@@ -5522,8 +5588,6 @@ var inventoryMenu = {
 
                         pushMatrix();
                             translate(170, 100);
-                            fill(0, 0, 0, 200);
-                            circle(0, 0, 20);
 
                             if(this.autoAngle === undefined)
                             {
@@ -5538,10 +5602,25 @@ var inventoryMenu = {
                                 this.rDir = random(-3, 3);
                             }
 
+                            this.countedCrystals = 0;
+
+                            for(var i in crystals)
+                            {
+                                if(typeof crystals[i].object === "object")
+                                {
+                                    this.countedCrystals++;
+                                }
+                            }
+
                             var a = 0;
                             for(var i in crystals)
                             {
                                 a += 60;
+
+                                if(this.countedCrystals >= 3)
+                                {
+                                    a += 60;
+                                }
 
                                 if(!crystals[i].object)
                                 {
@@ -5555,12 +5634,59 @@ var inventoryMenu = {
                                 crystals[i].object.yPos = cos(radians(oAngle)) * 50;
                                 crystals[i].object.draw();
 
+                                if(this.countedCrystals >= 3)
+                                {
+                                    stroke(crystals[i].object.color);
+                                    strokeWeight(2);
+                                    line(0, 0, crystals[i].object.xPos, crystals[i].object.yPos);
+                                    noStroke();
+                                }
+
                                 if(oAngle > 320 || oAngle < 40)
                                 {
                                     toText = i.toString().upper();
                                     toFill = crystals[i].object.color;
+                                    this.currentCrystal = i;
                                 }
                             }
+
+                            if(this.countedCrystals >= 3)
+                            {
+                                fill(0, 0, 0, 100);
+                                if(this.warpClicked)
+                                {
+                                    fill(255, 255, 255, 100);
+                                }
+                                ellipse(0, 0, 50, 50);
+
+                                fill(0, 0, 0, 150);
+                                if(this.warpClicked)
+                                {
+                                    fill(255, 255, 255, 150);
+                                }
+                                arc(0, 0, 50, 50, (45) * DEG_TO_RAD, (45 + 180) * DEG_TO_RAD);
+
+                                textAlign(CENTER, CENTER);
+                                fill(255, 255, 255, 120);
+                                if(this.warpClicked)
+                                {
+                                    fill(0, 0, 0, 120);
+                                }
+                                textSize(14);
+                                text("warp", 0, 0);
+
+                                if(this.countedCrystals >= 3 && this.warpClicked && this.counterTimer !== undefined)
+                                {
+                                    stroke(0, 0, 0, 200);
+                                    strokeWeight(6);
+
+                                    arc(0, 0, 44, 44, this.counterTimer * TWO_PI / this.maxCounterTimer, TWO_PI);
+
+                                    noStroke();
+                                }
+                            }
+
+                            this.goPressed = false;
 
                             if(keys[LEFT])
                             {
@@ -5591,6 +5717,10 @@ var inventoryMenu = {
 
                             case "winter" : 
                                 scene.onHover = "A Winter crystal! From your adventure in Icy Slopes, after\ndefeating an Ice Dragon!";
+                                break;
+
+                            case "underground" :
+                                scene.onHover = "An Underground crystal! From your adventure in the Underground,\nafter defeating Captain Fleep --one of Talon's minions";
                                 break;
                         }
                       
@@ -6047,7 +6177,7 @@ var screenUtils = {
                 if(!boss.fake)
                 {
                     this.bossBar.set(boss.hp, boss.maxHp);
-                    this.bossBar.color = (boss.hp <= 5) ? color(200, 25, 25, 190) : color(17, 183, 40, 200);
+                    this.bossBar.color = (boss.hp <= (boss.redHp || 5)) ? color(200, 25, 25, 190) : color(17, 183, 40, 200);
                     this.bossBar.draw();
                     this.bossBar.noStroke = true;
 
@@ -6918,7 +7048,7 @@ var observer = {
                 return ((point1.xPos > rect1.xPos - (xDiv ? xDiv : 0) && 
                          point1.xPos < rect1.xPos + rect1.width + (xDiv ? xDiv : 0)) &&
                         (point1.yPos > rect1.yPos - (yDiv ? yDiv : 0) && 
-                         point1.yPos < rect1.yPos + rect1.height + (yDiv ? yDiv : 0)));   
+                         point1.yPos < rect1.yPos + rect1.height + (yDiv ? yDiv : 0)));
             },
             solveCollision : function() {},
         },
@@ -7330,8 +7460,16 @@ var observer = {
 
                 //Step 3  : check if the point is colliding with the circle
                 circle1.pointDist = dist(circle1.xPos, circle1.yPos, point1.xPos, point1.yPos);
-                circle1.inputAngle = circle1.inputAngle;                
-                return(circle1.pointDist <= circle1.radius);
+
+                if(circle1.physics.solidObject)
+                {
+                    return (circle1.pointDist <= circle1.radius);
+                }else{
+                    return (circle1.xPos + circle1.radius > rect1.xPos &&
+                            circle1.yPos + circle1.radius > rect1.yPos &&
+                            circle1.xPos - circle1.radius < rect1.xPos + rect1.width &&
+                            circle1.yPos - circle1.radius < rect1.yPos + rect1.height);
+                }
             },
             solveCollision : function(rect1, circle1)
             {
@@ -15898,6 +16036,7 @@ var LaunchBall = function(xPos, yPos, diameter, colorValue, damage, speed)
         fill(red(this.color), green(this.color), blue(this.color), this.fadeLife * 255 / this.maxFadeLife);
         stroke(11, 93, 140);
         circle(this.xPos, this.yPos, this.diameter);
+        noStroke();
     };
 
     this.primeMode = function()
@@ -15920,9 +16059,20 @@ var LaunchBall = function(xPos, yPos, diameter, colorValue, damage, speed)
 
     this.maxDiameter = diameter;
 
+    this.useRemote = false;
+
+    this.corrections = 0;
+    this.maxCorrections = Infinity;
+    this.lastCorrectionTime = millis();
+
     this.lastUpdate = this.update;
-    this.update = function()
+    this.update = function(remote)
     {
+        if(!remote && this.useRemote)
+        {
+            return;
+        }
+
         if(this.mode !== "rotate" &&
         (this.xPos < levelInfo.xPos + this.radius ||
         this.xPos > levelInfo.xPos + levelInfo.width - this.radius || 
@@ -15931,6 +16081,9 @@ var LaunchBall = function(xPos, yPos, diameter, colorValue, damage, speed)
         {
             this.remove();
         }
+
+        cameraGrid.removeReference(this);
+        cameraGrid.addReference(this);
 
         this.growth = this.growth || 0;
 
@@ -15957,6 +16110,23 @@ var LaunchBall = function(xPos, yPos, diameter, colorValue, damage, speed)
             case "launch" :
                 this.xVel = this.setXVel || this.xVel || 0;
                 this.yVel = this.setYVel || this.yVel || 0;
+
+                if(this.homing && this.corrections <= this.maxCorrections && (!this.correctionInterval || millis() - this.lastCorrectionTime > this.correctionInterval))
+                {
+                    var target = player;
+                    if(this.homingTarget)
+                    {
+                        target = this.homingTarget;
+                    }
+
+                    var a = atan2(target.yPos + target.halfHeight - this.yPos, target.xPos + target.halfWidth - this.xPos);
+
+                    this.setXVel = cos(a) * (this.speed || 3);
+                    this.setYVel = sin(a) * (this.speed || 3);
+
+                    this.corrections++;
+                    this.lastCorrectionTime = millis();
+                }
                 break;
         }
 
@@ -15979,6 +16149,11 @@ var LaunchBall = function(xPos, yPos, diameter, colorValue, damage, speed)
                     {
                         this.remove();
                         this.onCollide = function() {};
+
+                        if(this.addEffect)
+                        {
+                            this.addEffect(object);
+                        }
                     }else{
                         var d = Math.sqrt(Math.pow(this.outerYVel2, 2) + Math.pow(this.outerXVel2, 2));
                         var a = atan2(this.outerYVel2, 
@@ -17941,6 +18116,673 @@ var IceDragon = function(xPos, yPos, width, height)
 };
 gameObjects.addObject("iceDragon", createArray(IceDragon));
 
+// One of Talon's minions
+var CaptainFleep = function(xPos, yPos, diameter)
+{
+    DynamicCircle.call(this, xPos, yPos, diameter);
+    LifeForm.call(this, 36);
+    this.scoreValue = 2600;
+    this.isBoss = true;
+
+    this.gravity = 0;
+
+    this.messages = {
+        up : true,
+        "start" : {
+            message : "What do think you're doing here boy?",
+            choices : {
+                "igetit" : "I have no Idea",
+                "igetit2" : "nothing"
+            }
+        },
+        "igetit" : {
+            message : "I get it! you haven't seen a human in\na very long time.",
+            choices : {
+                "next" : "..."
+            }
+        },
+        "igetit2" : {
+            message : "I get it! you haven't seen a human in\na very long time.",
+            choices : {
+                "next" : "..."
+            }
+        },
+        "next" : {
+            message : "Well whatever, but I was sent by Talon to\nguard this location!",
+            choices : {
+                "here" : "..."
+            }
+        },
+        "here" : {
+            message : "You'll never be able to pass this location,\nunless you want to showdown you here?",
+            choices : {
+                "here2" : "..."
+            }
+        },
+        "here2" : {
+            message : "I will not let Talon down!",
+            choices : {
+                "exit" : "..."
+            }
+        }
+    };
+
+    var len, a;
+    var pPoint = {
+        x: 0,
+        y: 0
+    };
+
+    len = this.diameter + 9;
+    var l = len - 7;
+    var bAngle;
+
+    this.angles = [atan2(7, this.radius), atan2(4.4, l)];
+
+    var third = 120 * DEG_TO_RAD;
+
+    this.turn = 1;
+    this.msTime = 0;
+
+    this.draw = function()
+    {
+        a = (this.msTime * this.turn / 10) % 360;
+        this.ang = a * DEG_TO_RAD;
+
+        noStroke();
+
+        // fill(23, 84, 146);
+        fill(23, 40, 146);
+
+        beginShape();
+            vertex(this.xPos + cos(this.ang - this.angles[0]) * this.radius, this.yPos + sin(this.ang - this.angles[0]) * this.radius);
+            vertex(this.xPos + cos(this.ang + this.angles[0]) * this.radius, this.yPos + sin(this.ang + this.angles[0]) * this.radius);
+            vertex(this.xPos + cos(this.ang + this.angles[1]) * l, this.yPos + sin(this.ang + this.angles[1]) * l);
+            vertex(this.xPos + cos(this.ang - this.angles[1]) * l, this.yPos + sin(this.ang - this.angles[1]) * l);
+        endShape(CLOSE);
+
+        this.ang += third;
+        beginShape();
+            vertex(this.xPos + cos(this.ang - this.angles[0]) * this.radius, this.yPos + sin(this.ang - this.angles[0]) * this.radius);
+            vertex(this.xPos + cos(this.ang + this.angles[0]) * this.radius, this.yPos + sin(this.ang + this.angles[0]) * this.radius);
+            vertex(this.xPos + cos(this.ang + this.angles[1]) * l, this.yPos + sin(this.ang + this.angles[1]) * l);
+            vertex(this.xPos + cos(this.ang - this.angles[1]) * l, this.yPos + sin(this.ang - this.angles[1]) * l);
+        endShape(CLOSE);
+
+        this.ang += third;
+        beginShape();
+            vertex(this.xPos + cos(this.ang - this.angles[0]) * this.radius, this.yPos + sin(this.ang - this.angles[0]) * this.radius);
+            vertex(this.xPos + cos(this.ang + this.angles[0]) * this.radius, this.yPos + sin(this.ang + this.angles[0]) * this.radius);
+            vertex(this.xPos + cos(this.ang + this.angles[1]) * l, this.yPos + sin(this.ang + this.angles[1]) * l);
+            vertex(this.xPos + cos(this.ang - this.angles[1]) * l, this.yPos + sin(this.ang - this.angles[1]) * l);
+        endShape(CLOSE);
+
+        // fill(23, 40, 146);
+        // circle(this.xPos, this.yPos, this.diameter);
+
+        // stroke(2, 93, 140);
+        // fill(2, 102, 140);
+        // circle(this.xPos - 4.4, this.yPos - 4, 4);
+        // circle(this.xPos + 4.4, this.yPos - 4, 4);
+
+        if(this.state === "circle")
+        {
+            this.imageName = "captainFleepAngryTeeth";
+        }
+        else if(this.state === "follow") 
+        {
+            this.imageName = "captainFleepTeeth";
+        }else{
+            this.imageName = "captainFleep";
+        }
+
+        image(loadedImages[this.imageName], this.xPos - this.radius * 1.5, this.yPos - this.radius * 1.5 - 1, this.diameter * 1.5, this.diameter * 1.5);
+    };
+
+    this.lastTakeDamageTime = millis();
+
+    var _lastTakeDamage = this.takeDamage;
+    this.takeDamage = function()
+    {
+        _lastTakeDamage.apply(this, arguments);
+
+        this.lastTakeDamageTime = millis();
+    };
+
+    this.lastFollowTime = millis();
+
+    this.state = "move";
+    this.lastYDir = "";
+
+    this.dirUpTime = millis();
+
+    var yLine = (levelInfo.yPos + levelInfo.height) * 0.54;
+    var yLineMiddle = levelInfo.yPos + levelInfo.height / 2;
+
+    this.actionAngle = 0;
+
+    this.talked = false;
+
+    var _lastUpdate = this.update;
+    this.update = function(remote)
+    {
+        if(!remote)
+        {
+            return;
+        }
+
+        if(!this.talked)
+        {
+            talkHandler.start(this.messages, "start");
+            this.talked = true;
+        }
+
+        if(!messageHandler.active)
+        {
+            _lastUpdate.apply(this, arguments);
+
+            this.stepEmitters();
+        }
+
+        a = (this.msTime * this.turn / 10) % 360;
+
+        for(var i = 0; i < this.launchBalls.length; i++)
+        {
+            // We wouldn't want to lose a launchBall
+            cameraGrid.removeReference(this.launchBalls[i]);
+            cameraGrid.addReference(this.launchBalls[i]);
+
+            if(this.launchBalls[i].useRemote = (this.launchBalls[i].mode === "rotate"))
+            {
+                this.launchBalls[i].update(true);
+            }
+
+            a = (a + 120) % 360;
+            this.ang = a * DEG_TO_RAD;
+            if(this.launchBalls[i].mode === "rotate")
+            {
+                this.launchBalls[i].xPos = this.xPos + cos(this.ang) * len;
+                this.launchBalls[i].yPos = this.yPos + sin(this.ang) * len;
+            }
+        }
+
+        noStroke();
+
+        if(messageHandler.active)
+        {
+            return;
+        }
+
+        this.msTime += 40 * this.turn;
+
+        this.redHp = this.maxHp * 30 / 100;
+        if(this.hp < this.redHp)
+        {
+            this.xSpeed = 4;
+            this.ySpeed = 4;
+            this.msTime += 40 * this.turn;
+            this.forceShootInterval = 360;
+            this.state = "circle";
+        }
+
+        switch(this.state)
+        {
+            case "move" :
+                if(this.hs)
+                {
+                    var hookShot = this.hs;
+
+                    if(!this.yDir && Math.pow(hookShot.ox - this.xPos, 2) + Math.pow(hookShot.oy - this.yPos, 2) < 100 * 100)
+                    {
+                        this.yDir = "up";
+                        
+                        this.emit([], 500, function()
+                        {
+                            this.yDir = "";
+                        }); 
+
+                        this.emit([], 8000, function()
+                        {   
+                            this.yDir = "down";
+                        });
+                    }
+                }
+
+                if(this.returnToYLine)
+                {
+                    this.yPos -= (this.yPos - yLine) * 0.225;
+
+                    if(abs(this.yPos - yLine) < 2)
+                    {
+                        this.yPos = yLine;
+                        this.returnToYLine = false;
+                    }
+                }
+                else if(this.yPos > yLine)
+                {
+                    this.yPos = yLine;
+
+                    if(this.yDir === "down")
+                    {
+                        this.yDir = "";
+                    }
+                }
+
+                if(this.lastYDir !== this.yDir)
+                {
+                    if(this.yDir === "up")
+                    {
+                        this.dirUpTime = millis();
+
+                        this.emit([], 15000, function()
+                        { 
+                            this.returnToYLine = true;
+                        });
+                    }
+                }
+
+                this.lastYDir = this.yDir;
+
+                // this.keyUp = (player.yVel < 0 && player.controls.up() && player.yPos < this.yPos && this.yPos - player.yPos < 50);
+
+                if(millis() - this.lastFollowTime > 20000 && millis() - this.lastTakeDamageTime > 2000)
+                {
+                    this.state = "follow";
+                    this.shootInterval = 500;
+
+                    this.emit([], 8000, function() 
+                    {
+                        this.returnToYLine = true;
+                        this.state = "move";
+                        this.shootInterval = 750;
+                        this.yDir = "";
+                    });
+
+                    this.lastFollowTime = millis();
+                }
+                break;
+
+            case "follow" :
+                var dx = player.xPos - this.xPos;
+                var dy = player.yPos - this.yPos;
+
+                var angle = atan2(dy, dx);
+                var speed = 7;
+
+                this.xVel = cos(angle) * speed;
+                this.yVel = sin(angle) * speed;
+                return;
+
+            case "circle" :
+                this.actionAngle += 2.5 * DEG_TO_RAD;
+                this.actionAngle %= TWO_PI;
+
+                var speed = 5;
+
+                // Go crazy
+                var _angle = this.actionAngle + random(-1, 1) * DEG_TO_RAD;
+
+                this.xPos += cos(_angle) * speed;
+                this.yPos += sin(_angle) * speed;
+
+                this.yPos -= (this.yPos - yLineMiddle) * 0.015;
+
+                if(abs(this.yPos - yLineMiddle) < 2)
+                {
+                    this.yPos = yLineMiddle;
+                    this.returnToYLine = false;
+                }
+                return;
+        }
+
+        if(this.controls.left())
+        {
+            this.xVel = -this.xSpeed;
+        }
+        else if(this.controls.right())
+        {
+            this.xVel = this.xSpeed;
+        }
+        if(this.controls.up())
+        {
+            this.yVel = -this.ySpeed;
+        }
+        else if(this.controls.down())
+        {
+            this.yVel = this.ySpeed;
+        }
+    };
+
+    this.xSpeed = 2;
+    this.ySpeed = 2;
+
+    this.xDir = random(0, 10) < 5 ? "left" : "right";
+    this.yDir = "";
+
+    var self = this;
+    this.controls = {
+        left : function() 
+        {
+            return (self.xDir === "left" || self.keyLeft);
+        },
+        right : function() 
+        {
+            return (self.xDir === "right" || self.keyRight);
+        },
+        up : function() 
+        {  
+            return (self.yDir === "up" || self.keyUp);
+        },
+        down : function()
+        {
+            return (self.yDir === "down" || self.keyDown);
+        },
+    };
+
+    this.launchBalls = [];
+
+    this.colors = [color(38, 140, 68, 100), color(34, 43, 146, 100), color(168, 45, 20, 100)];
+    this.maxGrowth = 100;
+
+    this.shootInterval = 750;
+
+    this.toSetAfter = true;
+    this.setAfter = function()
+    {
+        this.addLaunchBall(0);
+        this.addLaunchBall(1);
+        this.addLaunchBall(2);
+
+        // You can really do a lot with emitters, including loops!
+        this.emit([], this.shootInterval, function launch()
+        {
+            var closest = Infinity;
+            var dist;
+            var closestIndex = 0;
+
+            var dx, dy;
+            for(var i = 0; i < this.launchBalls.length; i++)
+            {
+                dx = player.xPos - this.launchBalls[i].xPos;
+                dy = player.yPos - this.launchBalls[i].yPos;
+
+                if(closest > (dist = dx * dx + dy * dy))
+                {
+                    closest = dist;
+                    closestIndex = i;
+                }
+            }
+
+            this.tryToLaunchBall(closestIndex, 1000, 14);
+
+            this.emit([], this.forceShootInterval || this.shootInterval, launch);
+        });
+
+        this.emit([], 1500, function change()
+        {
+            if(random(0, 100) < 10)
+            {
+                this.turn = -this.turn;
+            }
+
+            this.emit([], 1500, change);
+        });
+    };
+
+    this.tryToLaunchBall = function(index, regenTime, speed)
+    {
+        var ball = this.launchBalls[index];
+
+        if(ball && ball.growth >= ball.maxGrowth && ball.mode === "rotate")
+        {
+            var angle = atan2(player.yPos + player.halfHeight - ball.yPos, player.xPos + player.halfWidth - ball.xPos);
+            ball.setXVel = cos(angle) * speed;
+            ball.setYVel = sin(angle) * speed;
+            ball.mode = "launch";
+            ball.maxGrowth = this.maxGrowth;
+            ball.homing = true;
+            ball.speed = speed;
+            ball.maxCorrections = 2;
+            ball.correctionInterval = 520;
+
+            this.emit([index], regenTime, this.addLaunchBall);
+
+            // Just a little bit of a course correction.
+            // this.emit([], 140, function()
+            // {
+            //     if(ball.mode === "launch")
+            //     {
+            //         var angle = atan2(player.yPos + player.halfHeight - ball.yPos, player.xPos + player.halfWidth - ball.xPos);
+            //         ball.setXVel = cos(angle) * speed;
+            //         ball.setYVel = sin(angle) * speed;
+            //     }
+            // });
+
+            // this.emit([], 230, function()
+            // {
+            //     if(ball.mode === "launch")
+            //     {
+            //         var angle = atan2(player.yPos + player.halfHeight - ball.yPos, player.xPos + player.halfWidth - ball.xPos);
+            //         ball.setXVel = cos(angle) * speed;
+            //         ball.setYVel = sin(angle) * speed;
+            //     }
+            // });
+
+            // this.emit([], 350, function()
+            // {
+            //     if(ball.mode === "launch")
+            //     {
+            //         var angle = atan2(player.yPos + player.halfHeight - ball.yPos, player.xPos + player.halfWidth - ball.xPos);
+            //         ball.setXVel = cos(angle) * speed;
+            //         ball.setYVel = sin(angle) * speed;
+            //     }
+            // });
+
+            // this.emit([], 500, function()
+            // {
+            //     if(ball.mode === "launch")
+            //     {
+            //         var angle = atan2(player.yPos + player.halfHeight - ball.yPos, player.xPos + player.halfWidth - ball.xPos);
+            //         ball.setXVel = cos(angle) * speed;
+            //         ball.setYVel = sin(angle) * speed;
+            //     }
+            // });
+
+            return true;
+        }
+
+        return false;
+    };
+
+    this.addLaunchBall = function(index)
+    {
+        var item = gameObjects.getObject("launchBall").add(this.xPos, this.yPos, 10, this.colors[index % 3], 3);
+        item.useRemote = true;
+
+        if(!player.frozen && player.gooedTimer <= 0 && player.redHurtTime <= 0)
+        {
+            switch(index % 3)
+            {
+                // Green (goo)
+                case 0 :
+                    item.addEffect = function(object)
+                    {
+                        object.gooedTimer = 60 * 7;
+                    };
+                    break;
+
+                // Blue (freeze)
+                case 1 : 
+                    item.addEffect = function(object)
+                    {
+                        object.accume = 1;
+                    };
+                    break;
+
+                // Red (damage)
+                case 2 :
+                    item.addEffect = function(object)
+                    {
+                        object.redHurtTime = object.maxRedHurtTime;
+                    };
+                    break;
+            }
+        }
+
+        item.maxGrowth = this.maxGrowth;
+        cameraGrid.addReference(item);
+        item.hostObject = this;
+
+        this.launchBalls.splice(index, 1, item);
+    };
+
+    this.emitters = [];
+    this.stepEmitters = function()
+    {
+        for(var i = this.emitters.length - 1; i >= 0; i--)
+        {
+            if(millis() - this.emitters[i].startTime > this.emitters[i].time)
+            {
+                this.emitters[i].func.apply(this, this.emitters[i].info);
+                this.emitters.splice(i, 1);
+            }
+        }
+    };
+    this.emit = function(info, time, func)
+    {
+        this.emitters.push({
+            info : info,
+            time : time,
+            func : func,
+            startTime : millis()
+        });
+    };
+
+    var _lastRemove = this.remove;
+    this.remove = function()
+    {
+        for(var i = 0; i < this.launchBalls.length; i++)
+        {
+            this.launchBalls[i].remove();
+        }
+
+        _lastRemove.apply(this, arguments);
+    };
+
+    this.avoidCollision = function(object)
+    {
+        return object.arrayName === "launchBall";
+    };
+
+    var hitTimes = 0;
+    var lastHitTime = millis();
+
+    var lastDamageTime = millis();
+
+    this.lastChoiceTime = millis();
+    this.onCollide = function(object, info)
+    {
+        if(object.arrayName === "xStar" && millis() - lastHitTime > 350)
+        {
+            hitTimes++;
+
+            if(hitTimes > 3)
+            {
+                this.yDir = "up";
+
+                this.emit([], 500, function()
+                {
+                    this.yDir = "";
+                }); 
+
+                this.emit([], 5000, function()
+                {   
+                    this.yDir = "down";
+
+                    this.emit([], 500, function()
+                    {
+                        this.yDir = "";
+                    }); 
+                });
+
+                hitTimes = 0;
+            }
+
+            lastHitTime = millis();
+        }   
+        else if(object.physics.solidObject && object.physics.shape === "rect" && object.physics.movement === "static")
+        {
+            if(millis() - this.lastChoiceTime > 200 && this.yPos + this.radius - 3 > object.yPos && this.yPos - this.radius + 3 < object.yPos + object.height)
+            {
+                if(this.xDir === "left" && this.xVel < 0)
+                {
+                    this.xDir = "right";
+                }
+                else if(this.xDir === "right" && this.xVel > 0)
+                {
+                    this.xDir = "left";
+                }
+
+                this.lastChoiceTime = millis();
+            }
+        }
+        else if(object.arrayName === "xStar")
+        {
+            this.takeDamage(object);
+        }
+        else if(object.arrayName === "player" && millis() - lastDamageTime > 1000 && object.yPos + object.height - object.yVel <= this.yPos - this.radius)
+        {
+            object.yVel = -8;
+            this.takeDamage(object, object.damage * 2);
+
+            lastDamageTime = millis();
+        }   
+
+        // We don't want to push the player into the ground!
+        if(object.arrayName === "player" && this.state === "follow" && this.yPos < object.yPos)
+        {
+            this.emit([], 500, function()
+            {
+                this.returnToYLine = true;
+                this.state = "move";
+                this.shootInterval = 1000;
+                this.yDir = "";
+            });
+        }
+    };
+
+    var _lastRemove2 = this.remove;
+    this.remove = function()
+    { 
+        if(!this.addedHeart && player.maxHp < 25)
+        {
+            gameObjects.getObject("heart").add(
+                levelInfo.xPos + levelInfo.width * 0.5,
+                levelInfo.yPos + levelInfo.height * 0.5, 
+                levelInfo.unitWidth, 5);
+
+            var heart = gameObjects.getObject("heart").getLast();
+
+            heart.falling = true;
+            heart.gravity = 5;
+
+            heart.minimumYPos = levelInfo.yPos + levelInfo.height - 200;
+
+            cameraGrid.addReference(heart);
+
+            this.addedHeart = true;
+        }
+
+        _lastRemove2.apply(this, arguments);
+
+        this.draw = function() {};
+        this.update = function() {};
+        this.onCollide = function() {};
+        this.remove = function() {};
+    };
+};
+gameObjects.addObject("captainFleep", createArray(CaptainFleep));
+
 var XStar = function(xPos, yPos, diameter, colorValue)
 {
     Circle.call(this, xPos, yPos, diameter);
@@ -18506,7 +19348,7 @@ var Player = function(xPos, yPos, width, height, colorValue)
         lighting.fixtures.player = {
             xPos : this.xPos,
             yPos : this.yPos + this.halfHeight,
-            range : 120,
+            range : 100,
             brightness : 100, //0-100
             centeredLighting : 100,
             inCam : true,
@@ -18520,7 +19362,7 @@ var Player = function(xPos, yPos, width, height, colorValue)
 
         if(this.discoveredPowers["flashLight"] !== undefined)
         {
-            lighting.fixtures.player.range = 140;
+            lighting.fixtures.player.range = 146;
             lighting.fixtures.player.centeredLighting = 80;
         }
 
@@ -18967,6 +19809,13 @@ var Player = function(xPos, yPos, width, height, colorValue)
             fill(0, 156, 54, 100);
             fastRect(this.xPos, this.yPos, this.width, this.height);
         }
+        if(this.redHurtTime > 0)
+        {
+            fill(178, 0, 12, 100);
+            fastRect(this.xPos, this.yPos, this.width, this.height);
+            fill(124, 64, 12, 100);
+            fastRect(this.xPos, this.yPos, this.width, max(0, this.height * (this.redHurtTime / this.maxRedHurtTime)));
+        }
 
         this.maxCoins = 400 + this.gems * 75;
         this.coins = Math.min(this.coins, this.maxCoins);
@@ -18981,10 +19830,38 @@ var Player = function(xPos, yPos, width, height, colorValue)
     this.freeze = 0;
     this.frozenHits = 0;
 
+    this.redHurtTime = 0;
+    this.maxRedHurtTime = 50;
+
     this.lastUpdate = this.update;
     this.update = function()
     {
         this.nextBubbleShield = true;
+
+        if(this.redHurtTime > 0)
+        {
+            if(this.redHurtTime === 1)
+            {
+                this.hp -= 3;
+
+                this.invincibleToLifeForm = true;
+                this.lifeFormHitTime = millis();
+
+                if(this.hp >= 0)
+                {
+                    sounds.playSound("Explosion5.wav");
+                }
+
+                this.redHurtTime = -1;
+            }
+
+            this.redHurtTime--;
+
+            if(this.controls.shake())
+            {
+                this.redHurtTime = 0;
+            }
+        }
 
         if(this.gooedTimer > 0)
         {
@@ -19306,6 +20183,8 @@ var BubbleShield = function(xPos, yPos, diameter, colorValue, hp)
         {
             return;
         }
+
+        noStroke();
 
         fill(this.color);
         circle(this.xPos, this.yPos, this.diameter);
@@ -21495,7 +22374,7 @@ var NinjaGuard = function(xPos, yPos, diameter)
             if(power.on)
             {
                 if(hitObject.arrayName === "ninjaStar" || hitObject.arrayName === "launchBall" || hitObject.arrayName === "wispIce")
-                {
+                {                    
                     return (diff > 16 && diff < 450);
                 }
                 else if(hitObject.arrayName === "voxelizer")
@@ -21997,6 +22876,11 @@ var HookShot = function(xPos, yPos, diameter)
                     return;
                 }
 
+                if(cell[i].arrayName === "captainFleep")
+                {
+                    setObject.hs = this;
+                }
+
                 if(cell[i].arrayName === "gem" &&
                     x > setObject.xPos && x < setObject.width + setObject.xPos && 
                     y > setObject.yPos && y < setObject.height + setObject.yPos)
@@ -22005,9 +22889,9 @@ var HookShot = function(xPos, yPos, diameter)
 
                     power.exit(object, power);
                 }
-                else if((cell[i].arrayName === "voxelizer" || cell[i].arrayName === "bat") &&
-                    x > setObject.xPos && x < setObject.width + setObject.xPos && 
-                    y > setObject.yPos && y < setObject.height + setObject.yPos)
+                else if((cell[i].arrayName === "voxelizer" || cell[i].arrayName === "bat" || cell[i].arrayName === "captainFleep") &&
+                    x > setObject.boundingBox.xPos && x < setObject.boundingBox.width + setObject.boundingBox.xPos && 
+                    y > setObject.boundingBox.yPos && y < setObject.boundingBox.height + setObject.boundingBox.yPos)
                 {
                     if(cell[i].arrayName === "bat")
                     {
@@ -22509,7 +23393,7 @@ var FlashLight = function(xPos, yPos, width, height)
     };
 
     this.actObject = {
-        description : "A flashlight to help you see your way through the darkness!",
+        description : "A flashlight to help you see your way through the darkness!\nYou can also hold space to do a screen flash. (WIP)",
         key : '',
         name : "flashlight"
     };
@@ -22683,6 +23567,10 @@ var Crystal = function(xPos, yPos, diameter, config)
 
         case "winter" :
             this.color = color(0, 146, 172, 80); 
+            break;
+
+        case "underground" :
+            this.color = color(1, 0, 0, 100);
             break;
 
         default :
@@ -24887,6 +25775,60 @@ var levelScripts = {
                 });
             }
         }
+    },
+    "DEEPBossRoom" : {
+        afterLoad : function()
+        {
+            if(levels[levelInfo.level].save.roomDefeated)
+            {
+                gameObjects.getObject("captainFleep")[0].remove();
+                levels[levelInfo.level].doors.a.locked = false;
+                levels[levelInfo.level].doors.b.hidden = false;
+                levels[levelInfo.level].doors.b.locked = false;
+                this.stop = true;
+                return;
+            }
+
+            levels[levelInfo.level].doors.a.locked = true;
+        },
+        apply : function()
+        {
+            var captainFleep = gameObjects.getObject("captainFleep")[0];
+
+            if(!captainFleep.fake)
+            {
+                captainFleep.update(true);
+            }else{
+                if(!this.doneThis)
+                {
+                    game.cutScening = true;
+
+                    levels[levelInfo.level].doors.b.hidden = false;
+
+                    var _this = this;
+                    cam.attach(function()
+                    {
+                        return gameObjects.getObject("door")[2];
+                    }, 
+                    false, 1000, function()
+                    {
+                        game.cutScening = false;
+                        _this.stop = true;
+                        levels[levelInfo.level].doors.a.locked = false;
+                        levels[levelInfo.level].doors.b.locked = false;
+                        levels[levelInfo.level].save.roomDefeated = true;
+                    });
+                    this.doneThis = true;
+                }
+               
+                return;
+            }
+
+            gameObjects.applyCollision(captainFleep);
+
+            cameraGrid.removeReference(captainFleep);
+            cameraGrid.addReference(captainFleep);
+        }
     }
 };
 
@@ -25173,7 +26115,7 @@ levelScripts.draw = function()
     }
 };
 
-//Make sure every level has a save place
+// Make sure every level has a save place
 for(var i in levels)
 {
     if(typeof levels[i].save === "undefined")
@@ -25200,7 +26142,7 @@ for(var i in levels)
     }
 }
 
-//Levels!
+// Levels!
 levels.getSymbol = function(col, row, levelPlan)
 {
     if(col >= 0 && col < levelPlan[0].length &&
@@ -25906,6 +26848,11 @@ levels.build = function(plan)
                                 gameObjects.getObject("iceDragon").add(xPos, yPos, 140, 74);
                                 screenUtils.infoBar.bossArrayName = "iceDragon";
                                 break;
+
+                            case "captainFleep" :
+                                gameObjects.getObject("captainFleep").add(xPos, yPos, levelInfo.unitWidth, levelInfo.unitHeight);
+                                screenUtils.infoBar.bossArrayName = "captainFleep";
+                                break;
                         }
                     }
                     break;
@@ -26557,8 +27504,21 @@ game.loadSaveAfterLoad = function()
         player.hp = this.data.player.hp || player.hp;
         player.maxHp = this.data.player.maxHp || player.maxHp;
         player.name = this.data.name || player.name;
-        player.inventory = this.data.player.inventory || player.inventory;
         player.crystals = this.data.player.crystals || player.crystals;
+
+        var inventory = this.data.player.inventory;
+
+        if(inventory && inventory.items && inventory.slots)
+        {
+            player.inventory.slots = 10;
+            player.inventory.items = Array(10).fill({});
+            for(var i = 0; i < inventory.items.length; i++)
+            {
+                player.inventory.items[i] = (inventory.items[i]);
+            }
+        }else{
+            console.warn("Could not restore item slots using last items instead...");
+        }
 
         if(typeof this.data.autoCheckPoints === "boolean")
         {
@@ -26659,8 +27619,6 @@ game.loadSaveAfterLoad = function()
 };
 game.save = function(checkPoint)
 {
-    // var player = gameObjects.getObject("player").getLast();
-
     this.customSaveData = {};
 
     var openedChests = {};
@@ -26811,6 +27769,16 @@ game.save = function(checkPoint)
     }
     : ((this.data || {}).settings || {});
 
+    var inventory = {};
+
+    inventory.slots = player.inventory.slots || 10;
+    inventory.items = Array(inventory.slots).fill({});
+
+    for(var i = 0; i < player.inventory.items.length; i++)
+    {
+        inventory.items[i] = player.inventory.items[i] || {};
+    }
+
     var success = saver.overWriteSaveData(saver.current.saveDataName, {
         name : saver.current.name,
         level : player.goto.checkPointLevel || levelInfo.level,
@@ -26827,7 +27795,7 @@ game.save = function(checkPoint)
             goto : player.goto,
             hp : player.hp,
             maxHp : player.maxHp,
-            inventory : player.inventory,
+            inventory : inventory,
             crystals : player.crystals,
             powers : player.getPowers(),
             discoveredPowers : player.discoveredPowers,

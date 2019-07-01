@@ -1566,12 +1566,19 @@ var levels = {
                 boss : true
             }
         },
+        itemChests : {
+            'a' : {
+                items : [{
+                    contains : "fairy"
+                }]
+            }
+        },
         rumble : 1,
         plan : [
             "                                                  ",
-            "                                                  ",
-            "                                                  ",
-            " '                                                ",
+            "      a                                           ",
+            "     p]                                           ",
+            " '   FFF                                          ",
             "                                               a  ",
             "                                               K  ",
             " A   A   A       A           A   A   A   A   A  UA",
@@ -1975,7 +1982,7 @@ var levels = {
             "iii                s                 s s                                                                    s   s                                                bbbbbbb11iibbbbbbi       bbbbbiii  iiiibbbiiiii    ii1111iii bbii                 A1i1                                        '  iii",
             "iii                C    s            C C    s  s                        33ggg        4bbbb44                C   C                      ccc                             b11ibbbbiii         bbi   V   i   bbdd        ibbi   V  bi                  1ii1                                           iii",
             "iii                     C                   C  C                       gggddb      FFib11bb4                              c       cc          cc      gg11bbbFFF      iiiiiibb             ii        V  bbdbdi        bbi     bbV                  1ii1                                        U  iii",
-            "iiia                                                                  gdddddb  cc    ib11bbgT                             S                       ggggdd1bb           i  iiibb  A           i           bddddi      bbbi     bb                   A1ii1                                        U  iii",
+            "iiia                                                                  gdddddb  cc    ib11bbgT                             S                       ggggdd1bb           i  iiibb  A           i           bddddi      bbbi     bb                   A1ii1 ccccc               cccc        cccc   U  iii",
             "iiiD                                                                 bdddibbb        ib111bdgg                          iiii      m   bFFFb    m  bdddd11b       M    V   iibbiii           V           bddddii    bbi       b                   A1ii1V                                        U  iii",
             "iii1111                                                             4bbbi  bb         ib11bbdd       ccc              iibbbb11m          m        iiii11b                 iibbbbbiiA                   bddddddi  bbiiV      bb                  A1ii1V   PPPPP              bbbb               U  iii",
             "iii                                                                44bbi    bggFF      ib11bbd                      iibbbbbbb11                   V ii111b                Viibbbbbbi                  bdddddddibbbi         bb      T  T  2    A1ii1V                                   PPPPP  U  iii",
@@ -6344,6 +6351,13 @@ var levels = {
                 message : '2'
             }
         },
+        itemChests : {
+            'a' : {
+                items : [{
+                    contains : "bubbleShield"
+                }]
+            }
+        },
         plan : [
             "0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
             "0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
@@ -6359,8 +6373,8 @@ var levels = {
             "00                                   %%     ii     000                     /   E  /    E /    E /    E /       D<00",
             "00                                   %%     ii     000                    5===============================5^^^5=<00",
             "00                                  U zU    ii     000               5=====ccccccccccccccccccccccccccccc        <00",
-            "00a                                 U00U  a ii   b <            5=====cccccccccccccccccccccccccccccccccccc     c<00",
-            "00D /      /   E  /    E /   f  /   U00U  S ii   S <       5=====     cccccccccccccccccccccccccccccccccccccc   D<00",
+            "00a                                 U00U  a ii   b <            5=====ccccc  a ccccccccccccccccccccccccccc     c<00",
+            "00D /      /   E  /    E /   f  /   U00U  S ii   S <       5=====     ccccc  ] ccccccccccccccccccccccccccccc   D<00",
             "005^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^00^^^^^00^^^^50005^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^500",
             "0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
             "0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
@@ -6513,12 +6527,24 @@ var levels = {
             'a' : {
                 level : "DEEPRoom6",
                 symbol : 'b'
+            },
+            'b' : {
+                level : "backToOverworld",
+                symbol : 'a',
+                hidden : true,
+                locked : true,
+                magic : true
             }
         },
         signs : {
             'a' : {
                 message : "Boss Not created Yet...",
                 adjustW : 140
+            },
+        },
+        bosses : {
+            'a' : {
+                name : "captainFleep"
             }
         },
         plan : [
@@ -6530,15 +6556,56 @@ var levels = {
             "00=                                                                             =00",
             "00=                                                                             =00",
             "00=                                                                             =00",
-            "00=                                                                             =00",
-            "00=                                                                             =00",
-            "00=aa       a                                                                   =00",
-            "00=DD       S                                                                   =00",
+            "00=        a                                                                    =00",
+            "00=        B                                                                    =00",
+            "00=aa                                       b                                   =00",
+            "00=DD    p                                  D                                   =00",
             "005=============================================================================500",
             "00000000000000000000000000000000000000000000000000000000000000000000000000000000000",
             "00000000000000000000000000000000000000000000000000000000000000000000000000000000000",
         ]
     },  
+    "backToOverworld" : {
+        theme : "overworld",
+        background : "spaceFromEarth",
+        doors : {
+            'a' : {
+                level : "DEEPBossRoom",
+                symbol : 'b',
+                magic : true
+            }
+        },
+        special : {
+            'a' : {
+                arrayName : "crystal",
+                shape : "circle",
+                diameter : 20,
+                arguments : {
+                    '4' : {
+                        kind : "underground"
+                    },
+                }
+            },
+        },
+        plan : [
+            "                                                                                                   ",
+            "                                                                                                   ",
+            "                                                                                                   ",
+            "                                                                                                   ",
+            "                                                                                                   ",
+            "                                                                                                   ",
+            "                                                                                                   ",
+            "                                                                                                   ",
+            "                                                                                                   ",
+            "    a   a                                                                                          ",
+            " T  D   $   T  f                                                                                   ",
+            "ggggggggggggggggggg         ggggggggggg                                                            ",
+            "dddddddddddddddddddgggggggggdddddddddddgggggggggggggggg                                            ",
+            "bbbddddddddddddddddddddddddddddddddddddddddddddddddddddgggggggggggggg                              ",
+            "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbddddddddddddddddddddddddggggggggg                     ",
+            "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb                     ",
+        ]
+    },
     "FlashLightRoom" : {
         theme : "underground",
         background : "deep",
