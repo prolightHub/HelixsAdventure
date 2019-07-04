@@ -11,7 +11,7 @@ var configs = {
         name : "Ninja Temple",
         area : "Area 2",
         level : {
-            song: "ninjatemple.mp3",
+            song: "ninja_temple.mp3",
             background : "dark",
             shade : {
                 r : 0,
@@ -30,7 +30,7 @@ var configs = {
         level : {
             cold : true,
             background : "winter",
-            song: "icy_slopes_ps2-short.mp3",
+            song: "icy_slopes.mp3",
             shade : {
                 r : 0,
                 g : 0,
@@ -58,7 +58,7 @@ var configs = {
         area : "Area 4",
         level : {
             background : "underground",
-            noSong : true,
+            song: "underground.mp3",
             specialOneWays : true,
             regenCoinCost : 4,
             table : {
@@ -71,6 +71,20 @@ var configs = {
             },
             laddersWhite : true,
             arraysToSave : ["crystal", "coin", "hpCoin", "ice", "voxelizer", "dirtyCat", "slimeBeaker", "bat", "poisonousSlimeBeaker", "stomper"],
+        }
+    },
+    "surface" : {
+        name : "Desert",
+        area : "Area 5",
+        usingHpRegenerators : true,
+        level : {
+            background : "sand",
+            noSong : true,
+            regenCoinCost : 3,
+            table : {
+                '~' : "swampTree"
+            },
+            arraysToSave : ["coin", "hpCoin", "fireBeaker"]
         }
     },
     "other" : {

@@ -85,9 +85,10 @@ var sketch = function(processing) /*Wrapper*/
 /**   Hybrid Game Engine (Planet Search 2)  **/
 /**
     @Author Prolight
-    @Version 0.9.6 beta (96% complete)
+    @Version 0.9.7 beta (97% complete)
 
-        80+ gameObjects!
+        90+ gameObjects!
+        100+ levels!
 
     @How :
         Use the arrow keys to move. Down to go through 
@@ -900,27 +901,47 @@ var sketch = function(processing) /*Wrapper*/
         Finished BossRoom
         Added warp ability.
 
-    * 0.9.6
+    * 0.9.6 # Desert and sound update.
+        Created the FlashLight upgraded power-up.
+        Added feature to release memory from the cameraGrid every 60 seconds.
+        Created desert.
+        Added swamp tree.
+        Created sand blocks.
+        Added levels:
+            --backToOverworld
+            --desert
+            --desert 2
+            --desert path 1
+            --desert path 2
+            --desert plain
+            --desert plains 2
+            --desert plains 3
+        Imported:
+            --icy_slopes.mp3
+            --underground.mp3
+            --space.mp3
+        Added quicksand.
+        Added levels:
+            --desert x
+            --desert y
+            --desert z
+        Checked gems and it looks like we have 20
+        Added level(s):
+            -desert oasis
+
+    * 0.9.7
 
     Next :   
         Will do:           
-
-            More NPCs!
-
-            Just realized things put into an offscreen cell will cause fps drops.
-
-            Make flashlight power-up be able the flash the screen and stun enemies if you charge it up.
-
-            // Ugh need to make it so you have to hold it and there is a bar! In the warping.
-            And make a message when you collect that final crystal saying you can warp!
-            Need to think about flashlight / power ups place-ment!
-
+            Spaceship area.
             Add a bunch of secrets and extra stuff you can go do, after collecting all the crystals.
+            Sound update.
 
     Maybe:
         More Weapons, shops.
         Add chest appearing sound effect.
         Speed up image rendering by doing it directly!
+        Update sound settings.
         
     In the future:
         --More overworld levels,
@@ -943,7 +964,7 @@ var sketch = function(processing) /*Wrapper*/
             Libraries: processing.js (http://processingjs.org)
 
             Music:
-                PS2.mp3 & PS2-8bit.mp3 & icy_slopes_ps2-short.mp3 by Einkurogane on Reddit.
+               See bottom of scripts/sounds.js 
 
         Code:
             CookieHandler object and isEmpty function in saver.js 
@@ -969,7 +990,7 @@ var game = {
     fps : 60, 
     loadFps : 160,
     gameState : "start", //Default = "start"
-    version : "v0.9.6 beta",
+    version : "v0.9.7 beta",
     fpsType : "auto", //Default = "manual"
     debugMode : true, //Turn this to true to see the fps
     showDebugPhysics : false,
@@ -978,7 +999,7 @@ var game = {
     
     overrideDebugSettings : false,
     sounds : {
-        titleScreen: "PS2.mp3"
+        titleScreen: "planet_search_2.mp3"
     },
 
     autoCheckPoints : true,
@@ -1514,7 +1535,6 @@ var saveDataHandler = {
         {
             saveName += this.getNumName();
         }
-        
         saver.newSaveData(saveName, name, replace, replaceName);
         saveDataHandler.createSaveBtn(saveName, saver.saveData);
         buttons.load(this.saveFiles);
@@ -4065,6 +4085,85 @@ var backgrounds = {
                 ctx.drawImage(layer.sourceImg, layer.width * x + xSpeed, layer.width * (y + 1) + ySpeed, width, height);
                 ctx.drawImage(layer.sourceImg, layer.width * (x + 1) + xSpeed, layer.width * (y + 1) + ySpeed, width, height);
             }
+        },
+        "sand" : {
+            load : function()
+            {
+                if(backgrounds.backgrounds.sand.img)
+                {   
+                    return;
+                }
+
+                pushMatrix();
+                function sand(x, y, xs, ys, c)
+                {
+                    pushMatrix();
+                        translate(x || 0, y || 0);
+                        scale(xs || 1, ys || 1);
+                        fill(c || color(237-12, 201, 175-19));
+                        triangle(0, 30, 40, 0, 80, 30);
+                        fill(0, 0, 0, 12);
+                        var amt = 5;
+                        triangle(0 + amt * Math.SQRT2, 30, 40, 0 + amt, 80 - amt * Math.SQRT2, 30);
+                    popMatrix();
+                }
+
+                background(117, 191, 220);
+
+                noStroke();
+                for(var y = 0; y < 400; y++)
+                {
+                    for(var x = 0; x < 400; x++)
+                    {
+                        var r = 24;
+                        var g = 340 - (250 - y * 0.3);
+                        var b = ((365 + 40 + y - ((x + y) % 14 <= 4 ? 110 : -20)) * 260 / 600) + 120 - y * 0.4;
+
+                        fill(r, g, b);
+                        rect(x, y, 2, 2);
+                    }
+                }
+
+                noStroke();
+                fill(255-30, 229, 40);
+                ellipse(90-12+234, 60, 38, 38);
+
+                pushMatrix();
+                    translate(0, -70);
+                   
+                    sand(90, 280, 2, 2.1);
+                    sand(-20, 300, 1.4, 1.4);
+                    sand(50, 310);
+
+                    sand(330, 320);
+
+                    fill(246-40+12, 194, 69+40);
+                    rect(0, 340, 400, 40);
+
+                    fill(246+12, 192, 69+40);
+                    rect(0, 380, 400, 300);
+                popMatrix();
+
+                popMatrix();
+
+                backgrounds.backgrounds.sand.img = get(0, 0, 400, 400);
+                accelerateImg(backgrounds.backgrounds.sand.img);
+            },
+            drawBackground : function()
+            {
+                if(!backgrounds.backgrounds.sand.img)
+                {   
+                    return;
+                }
+
+                ctx.drawImage(backgrounds.backgrounds.sand.img.sourceImg, 0, 0, width, height);
+
+                graphics.inClouds.draw();
+                if(!screenUtils.fade.fading)
+                {
+                    graphics.inClouds.update();
+                }
+            }
         }
     },
     load : function()
@@ -5178,7 +5277,7 @@ var inventoryMenu = {
             }
         }
 
-        // var player = gameObjects.getObject("player").input(0);
+        
         var scene = this.scenes[this.scene];
         var self = this;
 
@@ -5515,7 +5614,7 @@ var inventoryMenu = {
     },
     draw : function()
     {
-        // var player = gameObjects.getObject("player").input(0);
+        
         var returned = (this.oFuncs.close || function() {})(this.scenes[this.scene]);
 
         if(returned && returned.length)
@@ -5921,7 +6020,7 @@ var screenUtils = {
 
         if(this.timer >= time)
         {
-            //Shake it all!
+            // Shake
             translate(random(-intensity, intensity), random(-intensity, intensity));
             this.timer = 0;
         }
@@ -6045,6 +6144,7 @@ var screenUtils = {
         bossBar : new Bar(0, height - 6, width, 6, color(17, 183, 40, 200), 10),
         airMeter : new Bar(150, 80, 100, graphics.infoBarProps.height - 1, color(4, 84, 172, 200), 10),
         showBottomHud : true,
+        lastShowTime : 0,
         draw : function(noLives)
         {
             fill(0, 0, 0, 80);
@@ -6052,7 +6152,7 @@ var screenUtils = {
             fastRect(0, 0, width, screenUtils.infoBar.height);
             screenUtils.infoBar.healthMeter.draw();
             
-            // var player = gameObjects.getObject("player").input(0);
+            
             screenUtils.infoBar.healthMeter.set(player.hp, player.maxHp);
             screenUtils.infoBar.defenseMeter.set(player.defense, player.maxDefense);
             
@@ -6152,6 +6252,49 @@ var screenUtils = {
             textAlign(LEFT, CENTER);
             text("Level " + (lvl || 0), 286, screenUtils.infoBar.height - 8);
 
+            var flashLightUpgrade = player.discoveredPowers.flashLightUpgrade;
+
+            if(typeof flashLightUpgrade === "object" && flashLightUpgrade.timer !== 0)
+            {
+                noStroke();
+
+                if(flashLightUpgrade.dir === "up")
+                {
+                    fill(255, 255, 255, 230);
+                }
+                else if(flashLightUpgrade.dir === "down")
+                {
+                    fill(214, 34, 45, 230);
+                }else{
+                    fill(0, 0, 0, 50);
+                }
+
+                screenUtils.doFlash = flashLightUpgrade.flashing;
+                
+                if(flashLightUpgrade.timer === flashLightUpgrade.maxTime)
+                {
+                    if(millis() - this.lastShowTime > 250)
+                    {
+                        this.showThis = !this.showThis;
+
+                        this.lastShowTime = millis();
+                    }
+                }else{
+                    this.showThis = true;
+                }
+
+                if(this.showThis)
+                {
+                    rect(316, 340, flashLightUpgrade.timer * 70 / flashLightUpgrade.maxTime, 14);
+                }
+                noFill();
+                stroke(0, 0, 0, 150);
+                strokeWeight(2);
+                rect(316, 340, 70, 14);
+
+                noStroke();
+            }
+
             if(player.defense > 0)
             {
                 pushMatrix();
@@ -6239,7 +6382,7 @@ var screenUtils = {
                     for(var i = 0; i < powerKeys.length; i++)
                     {
                         c++;
-                        isKey = (powerKeys[i] === player.discoveredPowers[str].key);
+                        isKey = (powerKeys[i] === (player.discoveredPowers[str] || {}).key);
 
                         fill(isKey ? color(240, 240, 240, 180) : color(240, 240, 240, 145));
 
@@ -6428,7 +6571,7 @@ var screenUtils = {
         //Constant Image is for images that do not change, we store them
         if(constImage && storedImages[name || object.arrayName] !== undefined)
         {
-            screenUtils.letImage(object, name || object.arrayName);
+            screenUtils.speedLetImage(object, name || object.arrayName);
             return storedImages[name || object.arrayName];
         }
 
@@ -6497,7 +6640,7 @@ var screenUtils = {
         textSize(11);
         
         //Debug menu
-        // var player = gameObjects.getObject("player").input(0);
+        
         fill(!lighting.working ? color(0, 0, 0, 200) : color(255, 255, 255, 100));
         if(screenUtils.debugMenuWhite)
         {
@@ -6575,7 +6718,7 @@ var screenUtils = {
             return;
         }
 
-        // var player = gameObjects.getObject("player")[0];
+        
         noFill();
         stroke(0, 0, 0);
         strokeWeight(460);
@@ -6841,6 +6984,25 @@ var screenUtils = {
             
             this.lastRumbleTime = millis();
             this.intervalRumbleTime = 1200;
+        }
+
+        if(screenUtils.doFlash)
+        {
+            if(!this.thisFade)
+            {
+                this.thisFade = new graphics.Fade(color(255, 255, 255));
+            }
+
+            if(!this.thisFade.fading)
+            {
+                this.thisFade.start(14);
+            }
+
+            this.thisFade.draw();
+        }
+        else if(this.thisFade && this.thisFade.fading)
+        {
+            this.thisFade.draw();
         }
 
         if(game.noCursor)
@@ -8642,6 +8804,7 @@ gameObjects.draw = function(noDraw)
 };
 gameObjects.updateLoops = 0;
 gameObjects.counter = -100;
+var lastReleaseMemoryTime = 0;
 gameObjects.update = function()
 {
     if((screenUtils.fade.fading && game.gameState === "play" && game.tempState !== "load" && 
@@ -8690,6 +8853,21 @@ gameObjects.update = function()
     }
 
     gameObjects.updateLoops++;
+
+    // Release memory from the camera grid every 60 seconds
+    if(millis() - lastReleaseMemoryTime > 60000)
+    {
+        for(var i = 0; i < cameraGrid.length; i++)
+        {
+            for(var j = 0; j < cameraGrid[i].length; j++)
+            {
+                cameraGrid[i][j] = {};
+            }
+        }
+        gameObjects.addObjectsToCameraGrid();
+
+        lastReleaseMemoryTime = millis();
+    }
 };
 
 ////////////////////////////////////////////////////////////////////\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
@@ -9555,7 +9733,10 @@ var LifeForm = function(hp, notNormalDeath)
             this.yVel = max(this.yVel, -0.3);
         }
 
-        this.updateVel();
+        if(!this.stunned)
+        {
+            this.updateVel();
+        }
         this.updateBoundingBox();
     };
 
@@ -10426,7 +10607,7 @@ var MovingLava = function(xPos, yPos, width, height, colorValue, damage)
     this.onCollide = function(object)
     {
         this.lastOnCollide(object);
-        if(object.type === "lifeform")
+        if(object.type === "lifeform" && !object.lavaImmune)
         {
             object.takeDamage(this);
         }
@@ -10594,14 +10775,27 @@ var Ring = function(xPos, yPos, diameter, colorValue)
 };
 gameObjects.addObject("ring", createArray(Ring));
 
-var Ground = function(xPos, yPos, width, height, colorValue, name)
+var Ground = function(xPos, yPos, width, height, colorValue, name, dir)
 {
     Rect.call(this, xPos, yPos, width, height);
     this.color = colorValue;
-    this.grassColor = color(28, 156, 30);
+    this.grassColor = this.grassColor || color(28, 156, 30);
     this.type = "block";
 
     this.snowflakes = 0;
+
+    if(dir)
+    {
+        return;
+    }
+
+    if(levelInfo.theme === "surface" && this.arrayName !== "block")
+    {
+        this.color = color(237 - 30, 201 - 30, 175 - 30);
+        this.grassColor = color(219, 89, 37);
+
+        name += "surface" + this.grassColor;
+    }
 
     this.draw = function()
     {
@@ -10629,6 +10823,26 @@ var Dirt = function(xPos, yPos, width, height, colorValue)
     if(levelInfo.theme === "underground")
     {
         colorValue = color(67, 7, 20, 100);
+    }
+    else if(levelInfo.theme === "surface")
+    {
+        this.color = colorValue = color(237 - 30, 201 - 30, 175 - 30);
+        this.noGrass = true;
+        this.arrayName = "dirt";
+
+        Ground.call(this, xPos, yPos, width, height, colorValue, undefined, true);
+
+        this.draw = function()
+        {
+            noStroke();
+            fill(this.color);
+            fastRect(this.xPos, this.yPos, this.width, this.height);
+            fill(0, 0, 0, 50);
+            triangle(this.xPos + this.width, this.yPos + this.height, this.xPos + this.width, this.yPos, this.xPos, this.yPos + this.height);
+        };
+
+        screenUtils.loadImage(this, true, "dirtsurface");
+        return;
     }
 
     this.noGrass = true;
@@ -14130,7 +14344,6 @@ var Enemy = function(xPos, yPos, width, height, colorValue, props, complexDraw, 
     {
         if(!this.noHeightChanges)
         {
-            var lastHeight = this.height;
             this.height = max((this.origHeight - this.trigHeight) + (this.hp * this.trigHeight / this.maxHp), 0);
             this.boundingBox.height = this.height;
             this.halfHeight = this.height / 2;
@@ -14207,6 +14420,13 @@ var Enemy = function(xPos, yPos, width, height, colorValue, props, complexDraw, 
         {
             case (object.arrayName === "player") :
                 this.handlePlayer(object, info);
+
+                if(player.slowMe && !this.noHeightChanges)
+                {
+                    this.height = max((this.origHeight - this.trigHeight) + (this.hp * this.trigHeight / this.maxHp), 0);
+                    this.boundingBox.height = this.height;
+                    this.halfHeight = this.height / 2;
+                }
                 break;
                 
             case (object.type === "block" && object.arrayName !== "snowLayer") :
@@ -14220,6 +14440,7 @@ var Enemy = function(xPos, yPos, width, height, colorValue, props, complexDraw, 
                 this.handleEnemy(object, info);
                 break;
         }
+
     };
 };
 gameObjects.addObject("enemy", createArray(Enemy));
@@ -14233,6 +14454,12 @@ var FireBeaker = function(xPos, yPos, width, height, colorValue)
     this.scoreValue = 250;
 
     this.damage = 1;
+
+    if(levelInfo.theme === "surface")
+    {
+        this.scoreValue = 2000;
+        this.damage = 4;
+    }
 
     this.particles = [];
     this.particleColor = this.color;
@@ -15039,7 +15266,7 @@ var CatDogStatue = function(xPos, yPos, width, height)
 
         if(this.useLaser)
         {
-            // var player = gameObjects.getObject("player").input(0);
+            
 
             if(Math.pow(Math.abs(physics.getMiddleXPos(player) - physics.getMiddleXPos(this)), 2) + 
                Math.pow(Math.abs(physics.getMiddleYPos(player) - physics.getMiddleYPos(this)), 2) < 150 * 150)
@@ -16515,7 +16742,7 @@ var SpaceBreaker = function(xPos, yPos, diameter, colorValue, amt)
                         var a = 0;
                         if(this.delag)
                         {
-                            // var player = gameObjects.getObject("player").input(0);
+                            
                             a = atan2(player.yPos - this.yPos, player.xPos - this.xPos) + round(random(-0.12, 0.12));
                         }else{
                             var a = atan2(this.hits[0].yVel, this.hits[0].xVel);
@@ -19234,17 +19461,17 @@ var Player = function(xPos, yPos, width, height, colorValue)
             if(!pastActive && power.active)
             {
                 power.startTime = millis();
-                (power.start || noop) (self, power);
+                (power.start || noop).call(power, self, power);
             }
 
             if(power.active)
             {
-                (power.activate || noop) (self, power);
+                (power.activate || noop).call(power, self, power);
             }
             else if(pastActive)
             {
                 power.endTime = millis();
-                (power.end || noop) (self, power);
+                (power.end || noop).call(power, self, power);
             }
         },
         avoidDamage : function(object, amt)
@@ -19259,7 +19486,7 @@ var Player = function(xPos, yPos, width, height, colorValue)
             return (power.avoidDamage || function() 
             { 
                 return false;
-            }) (object, amt, self, power);
+            }).call(power, object, amt, self, power);
         },
         update : function()
         {
@@ -19269,7 +19496,7 @@ var Player = function(xPos, yPos, width, height, colorValue)
             }
 
             var power = self.discoveredPowers[this.currentPower];
-            (power.update || noop) (self, power, self.controls.activate() || false);
+            (power.update || noop).call(power, self, power, self.controls.activate() || false);
         },
         draw : function()
         {
@@ -19279,7 +19506,7 @@ var Player = function(xPos, yPos, width, height, colorValue)
             }
 
             var power = self.discoveredPowers[this.currentPower];
-            (power.draw || noop) (self, power, self.controls.activate() || false);
+            (power.draw || noop).call(power, self, power, self.controls.activate() || false);
         },
         onCollide : function(object, info)
         {
@@ -19289,7 +19516,7 @@ var Player = function(xPos, yPos, width, height, colorValue)
             }
 
             var power = self.discoveredPowers[this.currentPower];
-            (power.onCollide || noop) (self, power, self.controls.activate() || false, object, info);
+            (power.onCollide || noop).call(power, self, power, self.controls.activate() || false, object, info);
         },
         mousePressed : function()
         {
@@ -19299,7 +19526,17 @@ var Player = function(xPos, yPos, width, height, colorValue)
             }
 
             var power = self.discoveredPowers[this.currentPower];
-            (power.mousePressed || noop) (self, power, self.controls.activate() || false); 
+            (power.mousePressed || noop).call(power, self, power, self.controls.activate() || false); 
+        },
+        keyReleased : function()
+        {
+            if(this.currentPower === "")
+            {
+                return;
+            }
+
+            var power = self.discoveredPowers[this.currentPower];
+            (power.keyReleased || noop).call(power, self, power, self.controls.activate() || false); 
         }
     };
 
@@ -19365,15 +19602,6 @@ var Player = function(xPos, yPos, width, height, colorValue)
             lighting.fixtures.player.range = 146;
             lighting.fixtures.player.centeredLighting = 80;
         }
-
-        // try{
-        //     var place = cameraGrid.getPlace(this.xPos, this.yPos);
-        //     cameraGrid[place.col][place.row]._lights["player"] = "player";
-        // }
-        // catch(e)
-        // {
-
-        // }
     };
 
     this.setFixture();
@@ -19415,7 +19643,7 @@ var Player = function(xPos, yPos, width, height, colorValue)
         },
         up : function()
         {
-            return (keys[UP] || keys[87]);
+            return (keys[UP] || keys[87]) && !self.slowMe;
         },
         down : function()
         {
@@ -19736,25 +19964,6 @@ var Player = function(xPos, yPos, width, height, colorValue)
                 this.setFixture();
             }
 
-            // if(this.discoveredPowersHandler.currentPower === "flashLight")
-            // {
-            //     lighting.fixtures.player.range = 140;
-            //     lighting.fixtures.player.centeredLighting = 80;
-            // }else{
-            //     lighting.fixtures.player.range = 120;
-            //     lighting.fixtures.player.centeredLighting = 100;
-            // }
-
-            // if(this.lastPower !== this.discoveredPowersHandler.currentPower && 
-            //     (this.lastPower === "flashLight" || this.discoveredPowersHandler.currentPower === "flashLight"))
-            // {
-            //     lighting.fixtures.player.state = "dynamic";
-            //     // lighting.setAllFixtures();
-            //     // lighting.end();
-            // }
-
-            // this.lastPower = this.discoveredPowersHandler.currentPower;
-
             lighting.fixtures.player.xPos = this.xPos + ((this.xVel >= 0) ? this.halfWidth : this.width);
             lighting.fixtures.player.yPos = this.yPos + this.halfHeight;
         }
@@ -19790,8 +19999,6 @@ var Player = function(xPos, yPos, width, height, colorValue)
 
         if(!this.exploding && (!this.invincibleToLifeForm || millis() % 600 >= 300))
         {
-            // image(storedImages[this.imageName], this.xPos, this.yPos, this.width, this.height);
-
             ctx.drawImage(storedImages[this.imageName].sourceImg, 0, 0, width, height, round(this.xPos), round(this.yPos), this.width, this.height);
         }
 
@@ -19995,7 +20202,28 @@ var Player = function(xPos, yPos, width, height, colorValue)
         this.discoveredPowersHandler.activate();
         this.discoveredPowersHandler.update();
 
-        this.maxXVel = (this.controls.zoom() ? this.runSpeed : this.walkSpeed);
+        if(this.discoveredPowers["flashLightUpgrade"])
+        {
+            var power = this.discoveredPowers["flashLightUpgrade"];
+
+            if(power.dir === "down")
+            {
+                power.timer -= power.reSpeed;
+
+                if(power.timer < 0)
+                {
+                    power.dir = "up";
+                    power.timer = 0;
+                }
+            }
+
+            if(!power.active)
+            {
+                delete this.slowMe;
+            }
+        }
+
+        this.maxXVel = ((this.autoRun || this.controls.zoom()) ? this.runSpeed : this.walkSpeed);
 
         if(this.inLiquid)
         {
@@ -20009,6 +20237,11 @@ var Player = function(xPos, yPos, width, height, colorValue)
         else if(this.origMaxYVel !== undefined)
         {
             this.maxYVel = this.origMaxYVel;
+        }
+
+        if(this.slowMe)
+        {
+            this.maxXVel = 1.5;
         }
         
         //May not need:
@@ -21079,6 +21312,44 @@ var Water = function(xPos, yPos, width, height, colorValue)
     };
 };
 gameObjects.addObject("water", createArray(Water));
+
+var QuickSand = function(xPos, yPos, width, height, colorValue)
+{
+    Rect.call(this, xPos, yPos, width, height);
+    this.color = colorValue || color(215, 125, 50, 160);
+    this.physics.solidObject = false;
+
+    this.type = "liquid";
+    this.thickness = 2.075;
+
+    this.onCollide = function(object)
+    {
+        if(object.air !== undefined && !object.breathing)
+        {
+            if(!object.bubbleShield)
+            {
+                if(this.width > levelInfo.unitWidth && this.height > levelInfo.unitHeight)
+                {
+                    object.air -= (object.downBreathSpeed || 0.25) * 5;
+                    object.air = max(object.air, 0);
+                }else{
+                    object.air -= object.downBreathSpeed || 0.25;
+                    object.air = max(object.air, 0);
+                }
+            }
+        }
+        if(object.physics.movement === "dynamic")
+        {
+            object.inAir = false;
+            object.inLiquid = true;
+            object.yVel = object.yVel / this.thickness;
+            object.xVel = object.xVel / this.thickness;
+            object.yVel += 0.01;
+            object.yPos += 0.02;
+        }
+    };
+};
+gameObjects.addObject("quickSand", createArray(QuickSand));
 
 var DirtyBlock = function(xPos, yPos, width, height, colorValue)
 {
@@ -23393,7 +23664,7 @@ var FlashLight = function(xPos, yPos, width, height)
     };
 
     this.actObject = {
-        description : "A flashlight to help you see your way through the darkness!\nYou can also hold space to do a screen flash. (WIP)",
+        description : "A flashlight to help you see your way through the darkness!",
         key : '',
         name : "flashlight"
     };
@@ -23425,6 +23696,213 @@ var FlashLight = function(xPos, yPos, width, height)
     };
 };
 gameObjects.addObject("flashLight", createArray(FlashLight));
+
+var FlashLightUpgrade = function(xPos, yPos, width, height)
+{
+    Rect.call(this, xPos, yPos, width, height);
+
+    this.draw = function()
+    {
+        fastImage(loadedImages["flashLight"], this.xPos, this.yPos, this.width, this.height);
+    };
+
+    this.messages = {
+        up : true,
+        "start" : {
+            messages : [{
+                message : "You got the upgraded",
+                color : color(255, 255, 255, 160),
+            }, {
+                message : "Flashlight!",
+                color : color(0, 70, 200, 190),
+            }],
+            choices : {
+                "next" : "..."
+            }
+        },
+        "next" : {
+            message : "Not only does this allow you to see in the\ndark, but now it allows you do a\nscreen flash!",
+            choices : {
+                "next2" : "..."
+            }
+        },
+        "next2" : {
+            message : "But what is a screen flash? A screen flash is\nwhen you hold down 'x/k'\nlong enough, then...",
+            choices : {
+                "next3" : "..."
+            }
+        },
+        "next3" : {
+            message : "the screen will flash and all enemies on\nscreen will be stunned for a time!",
+            choices : {
+                "last" : "..."
+            }
+        },
+        "last" : {
+            message : "This can be really useful in areas\nwhere there is lots of enemies.",
+            choices : {
+                "exit" : "..."
+            }
+        }
+    };
+
+    this.actObject = {
+        description : "A flashlight to help you see your way through the darkness!\nYou can also hold 'x/k' to do a screen flash.",
+        key : '5',
+        name : "upgraded flashlight",
+        maxTime : 300,
+        timer : 0,
+        flashInterval : 1000,
+        flashing : false,
+        dir : "up",
+        stun : function(object)
+        {
+            var _lastUpdate = object.update;
+            object.stunTime = millis();
+            object.stunAmt = 5500;
+            object.stunned = true;   
+            object.update = function()
+            {
+                if(this.stunned)
+                {
+                    if(millis() - this.stunTime > this.stunAmt)
+                    {
+                        delete this.stunned;
+                        delete this.stunTime;
+                        delete this.stunAmt;
+                    }
+                }else{
+                    object.update = _lastUpdate;
+                }
+
+                _lastUpdate.apply(this, arguments);
+            };
+        },
+        flash : function(object, power, arguments)
+        {
+            if(!power.stunnedEnemies && millis() - power.flashTime < power.flashInterval * 0.5)
+            {
+                var enemies = [];
+                var used = {};
+
+                var col, row, cell, i, array, object;
+
+                for(col = cam.upperLeft.col; col <= cam.lowerRight.col; col++)
+                {
+                    for(row = cam.upperLeft.row; row <= cam.lowerRight.row; row++)
+                    {           
+                        cell = cameraGrid[col][row];
+
+                        for(i in cell)
+                        {
+                            if(used[i])
+                            {
+                                continue;
+                            }
+
+                            object = gameObjects.getObject(cell[i].arrayName)[cell[i].index];
+
+                            if(object.hp && object.arrayName !== "player" && !object.isBoss)
+                            {
+                                enemies.push(object);
+                            }
+
+                            used[i] = true;
+                        }
+                    }
+                }
+
+                for(var i = 0; i < enemies.length; i++)
+                {
+                    this.stun(enemies[i]);
+                }
+
+                power.stunnedEnemies = true;
+            }
+        },
+        executeFlash : function(object, power, arguments)
+        {
+            power.flashTime = millis();
+        },
+        update : function(object, power, activateKey)
+        {
+            power.activateKey = activateKey;
+
+            power.flashing = false;
+            object.slowMe = false;
+
+            if(millis() - power.flashTime < power.flashInterval)
+            {
+                power.flash.apply(power, arguments);
+                power.flashing = true;
+                return;
+            }else{
+                power.stunnedEnemies = false;
+            }
+
+            if(power.dir === "up")
+            {
+                if(activateKey)
+                {
+                    object.slowMe = true;
+                    power.timer += 1.4;
+                }
+                else if(power.timer > 0)
+                {
+                    power.timer = 0;
+                }
+            }
+            else if(power.dir === "down")
+            {
+                power.timer -= this.reSpeed;
+
+                if(power.timer < 0)
+                {
+                    power.dir = "up";
+                    power.timer = 0;
+                }
+            }
+
+            power.timer = min(power.timer, power.maxTime);
+        },
+        reSpeed : 0.12,
+        keyReleased : function(object, power, activateKey)
+        {
+            if(!activateKey && power.dir === "up" && power.timer >= power.maxTime)
+            {
+                power.executeFlash.apply(power, arguments);
+                power.dir = "down";
+            }
+        }
+    };
+
+    this.onCollide = function(object)
+    {
+        if(object.arrayName === "player")
+        {
+            object.xVel = 0;
+            object.yVel = 0;
+
+            if(typeof object.discoveredPowers["flashLightUpgrade"] === "undefined")
+            {
+                talkHandler.start(this.messages, "start", "");
+
+                var self = this;
+                talkHandler.onEnd = function()
+                {
+                    self.remove();
+                    self.draw = function() {};
+                };
+            }else{
+                this.remove();
+                this.draw = function() {};
+            }
+
+            object.discoveredPowersHandler.addPower("flashLightUpgrade", this.actObject);
+        }
+    };
+};
+gameObjects.addObject("flashLightUpgrade", createArray(FlashLightUpgrade));
 
 var Heart = function(xPos, yPos, diameter, amt)
 {
@@ -23557,10 +24035,6 @@ var Crystal = function(xPos, yPos, diameter, config)
 
     switch(this.kind)
     {
-        case "overworld" :
-            this.color = color(30, 160, 120, 80);
-            break;
-
         case "ninja" :
             this.color = color(105, 0, 200, 80);
             break;
@@ -23599,7 +24073,7 @@ var Crystal = function(xPos, yPos, diameter, config)
 
     this.generateTriangles();
 
-    // var player = gameObjects.getObject("player")[0];
+    
     if(player && player.crystals)
     {
         if(player.crystals[this.kind])
@@ -23631,24 +24105,54 @@ var Crystal = function(xPos, yPos, diameter, config)
     };
 
     var inter = (this.kind.startsWithVowel() ? "an " : "a ") + this.kind.upper();
-    this.messages = {
-        "start" : {
-            messages : [{
-                message : "You got " + inter, 
-                color : color(255, 255, 255, 150)
-            }, {
-                message : "Crystal",
-                color : color(0, 160, 200, 170)
-            }, {
-                message : "!",
-                color : color(255, 255, 255, 150)
-            }],
+   
+
+    if(this.kind === "underground")
+    {
+        this.messages = {
             up : true,
-            choices : {
-                "exit" : "Okay"
+            "start" : {
+                messages : [{
+                    message : "You got " + inter, 
+                    color : color(255, 255, 255, 150)
+                }, {
+                    message : "Crystal",
+                    color : color(0, 160, 200, 170)
+                }, {
+                    message : "!",
+                    color : color(255, 255, 255, 150)
+                }],
+                choices : {
+                    "next" : "Okay"
+                }
+            },
+            "next" : {
+                message : "Now that you've collected all 3 crystals!\nAll you have to do now is find your\nship!",
+                choices : {
+                    "exit" : "..."
+                }
             }
-        },
-    };
+        };
+    }else{
+        this.messages = {
+            up : true,
+            "start" : {
+                messages : [{
+                    message : "You got " + inter, 
+                    color : color(255, 255, 255, 150)
+                }, {
+                    message : "Crystal",
+                    color : color(0, 160, 200, 170)
+                }, {
+                    message : "!",
+                    color : color(255, 255, 255, 150)
+                }],
+                choices : {
+                    "exit" : "Okay"
+                }
+            },
+        };
+    }
 
     this.onCollide = function(object)
     {
@@ -24281,7 +24785,7 @@ var levelScripts = {
 
             if(!checkPoint.checked)
             {
-                // var player = gameObjects.getObject("player").input(0);
+                
 
                 if(player.username !== undefined)
                 {
@@ -24548,7 +25052,7 @@ var levelScripts = {
         {
             var bossDefeated = gameObjects.getObject("ninjaBoss").input(0).fake;
             var lever = gameObjects.getObject("lever").input(0);
-            // var player = gameObjects.getObject("player").input(0);
+            
             var spikes = gameObjects.getObject("spike");
 
             if(bossDefeated && !player.dead && !this.doneThis)
@@ -25159,7 +25663,7 @@ var levelScripts = {
                 iceDragon.update(true);
             }
 
-            // var player = gameObjects.getObject("player")[0];
+            
             iceDragon.applyCollision(player);
 
             if(observer.collisionTypes.rectrect.colliding(player.boundingBox, iceDragon.boundingBox))
@@ -25785,6 +26289,7 @@ var levelScripts = {
                 levels[levelInfo.level].doors.a.locked = false;
                 levels[levelInfo.level].doors.b.hidden = false;
                 levels[levelInfo.level].doors.b.locked = false;
+                delete screenUtils.infoBar.bossArrayName;
                 this.stop = true;
                 return;
             }
@@ -26497,6 +27002,10 @@ levels.build = function(plan)
                     }
                     break;
 
+                case 'q' :
+                    gameObjects.getObject("quickSand").add(xPos, yPos, levelInfo.unitWidth, levelInfo.unitHeight);
+                    break;
+
                 case 'i' :
                     gameObjects.getObject("ice").add(xPos, yPos, levelInfo.unitWidth, levelInfo.unitHeight);
                     break;
@@ -26550,7 +27059,12 @@ levels.build = function(plan)
                     break;
 
                 case '~' :
-                    gameObjects.getObject("imageBlock").add(xPos, yPos, levelInfo.unitWidth, levelInfo.unitHeight, "cathodes2"); 
+                    if(table['~'])
+                    {
+                        gameObjects.getObject("imageBlock").add(xPos - levelInfo.unitWidth * 0.5, yPos - levelInfo.unitHeight * 0.5, levelInfo.unitWidth * 1.5, levelInfo.unitHeight * 1.5, table['~']).physics.solidObject = false; 
+                    }else{
+                        gameObjects.getObject("imageBlock").add(xPos, yPos, levelInfo.unitWidth, levelInfo.unitHeight, "cathodes2"); 
+                    }
                     break;
 
                 case '*' :
@@ -28740,7 +29254,6 @@ game.play.keyPressed = function()
         return;
     }
 
-    // var player = gameObjects.getObject("player").getLast();
     player.keyPressed();
 
     talkHandler.keyPressed();
@@ -28784,11 +29297,10 @@ game.play.keyPressed = function()
 game.play.keyReleased = function()
 {
     talkHandler.keyReleased();
+    player.discoveredPowersHandler.keyReleased();
 };
 game.play.mousePressed = function()
 {
-    // var player = gameObjects.getObject("player").input(0);
-
     try{
         player.discoveredPowersHandler.mousePressed();
     }
@@ -28980,6 +29492,7 @@ if(game.globalize)
     window.levelInfo = levelInfo;
     window.lighting = lighting;
     window.backgrounds = backgrounds;
+    window.f_getArrayNamesToSave = f_getArrayNamesToSave;
 }
 
 //Done!

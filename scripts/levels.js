@@ -965,14 +965,14 @@ var levels = {
             },
         },
         plan : [
-            "                                                                                                                        iii",
-            "                                                                                                                        iii",
-            "                                                                                                                        iii",
-            "                                                                                                                        iii",
+            "                                                                                                                          i",
+            "                                                                                                                         'i",
+            "                                                                                                                          i",
+            "                                                                                                                    .   iii",
             "                                                                                                                       biii",
             "                                                                                                                       biii",
             "                                                                                    AA                                bbiii",
-            "                                                                                    bb                               bbbiii",
+            "                                                                                    bb                           .   bbbiii",
             "                                                                                    PP                             bbbbbiii",
             "                                                                                    PP                             bbbbbiii",
             "                                                                                 A PPPP A                           iiiiiii",
@@ -3151,7 +3151,7 @@ var levels = {
             "                                                                                                                                   ",
             "                                                                                                                                   ",
             "a      ccc         ccc     hh      a                                                                                               ",
-            "D f                                S                                                                                               ",
+            "D f                             p  S                                                                                               ",
             "bbbbbbbbbbbbbbbwwwwbbbbbbbbbbbbbbbbbbbbbb                                                                                          ",
             "~~~~__~~~~~~~_~~__~~~~~~__~___~___~___~bb                                                                                          ",
             "~~~~~~__~~~__~~~___~~_~~~~~~~~~~~___~bb                                                                                            ",
@@ -6565,47 +6565,6 @@ var levels = {
             "00000000000000000000000000000000000000000000000000000000000000000000000000000000000",
         ]
     },  
-    "backToOverworld" : {
-        theme : "overworld",
-        background : "spaceFromEarth",
-        doors : {
-            'a' : {
-                level : "DEEPBossRoom",
-                symbol : 'b',
-                magic : true
-            }
-        },
-        special : {
-            'a' : {
-                arrayName : "crystal",
-                shape : "circle",
-                diameter : 20,
-                arguments : {
-                    '4' : {
-                        kind : "underground"
-                    },
-                }
-            },
-        },
-        plan : [
-            "                                                                                                   ",
-            "                                                                                                   ",
-            "                                                                                                   ",
-            "                                                                                                   ",
-            "                                                                                                   ",
-            "                                                                                                   ",
-            "                                                                                                   ",
-            "                                                                                                   ",
-            "                                                                                                   ",
-            "    a   a                                                                                          ",
-            " T  D   $   T  f                                                                                   ",
-            "ggggggggggggggggggg         ggggggggggg                                                            ",
-            "dddddddddddddddddddgggggggggdddddddddddgggggggggggggggg                                            ",
-            "bbbddddddddddddddddddddddddddddddddddddddddddddddddddddgggggggggggggg                              ",
-            "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbddddddddddddddddddddddddggggggggg                     ",
-            "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb                     ",
-        ]
-    },
     "FlashLightRoom" : {
         theme : "underground",
         background : "deep",
@@ -6646,6 +6605,442 @@ var levels = {
             "=a         a                          =",
             "=D p       [         g  g  g          =",
             "5=====================================5",
+        ]
+    },
+    "backToOverworld" : {
+        theme : "surface",
+        addArraysToSave : ["crystal"],
+        doors : {
+            'a' : {
+                level : "DEEPBossRoom",
+                symbol : 'b',
+                magic : true
+            },
+            'b' : {
+                level : "desert",
+                symbol : 'a'
+            }
+        },
+        special : {
+            'a' : {
+                arrayName : "crystal",
+                shape : "circle",
+                diameter : 20,
+                arguments : {
+                    '4' : {
+                        kind : "underground"
+                    },
+                }
+            },
+        },
+        chests : {
+            'a' : {
+                drops : [],
+                save : true
+            },
+            'b' : {
+                drops : [{
+                    contains : "flashLightUpgrade",
+                    total : true,
+                    offX : 40,
+                    offY : -40,
+                    width : 24,
+                    height : 54 
+                }],
+                save : true
+            }
+        },
+        plan : [
+            "                                                                                                   ",
+            "                                                                                                   ",
+            "                                                                                                   ",
+            "                                                                                                   ",
+            "                                                                                                   ",
+            "                                                                                                   ",
+            "                                                                                                   ",
+            "                                                                                                   ",
+            "                            ccc             cccc                                                   ",
+            "   a  a  b                                                                                        b",
+            " T D  $  [ QQ  f T     e      T    e                                                              D",
+            "ggggggggggggggggggg         ggggggggggge  e    e    T                  ccccc           A gggggggggg",
+            "dddddddddddddddddddgggggggggdddddddddddgggggggggggggggg   e                         gggggdddddddddd",
+            "bbbddddddddddddbbddddddddddddddddddddddddddddddddddddddgggggggggggggg          A  ggddddddddddddddd",
+            "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbddddddddddddddddddddddddgggggggggggggdddbbbbbbbbbbbbbb",
+            "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbddddbbbbbbbbbbbbbbbbb",
+            "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb                     ",
+            "bbbbabbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb                     ",
+            "bbbb[bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb                     ",
+            "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb                     ",
+            "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb                     ",
+        ]
+    },
+    "desert" : {
+        theme : "surface",
+        doors : {
+            'a' : {
+                level : "backToOverworld",
+                symbol : 'b'
+            },
+            'b' : {
+                level : "desert 2",
+                symbol : 'a'
+            }
+        },
+        plan : [
+            "                                                                                                   ",
+            "                                                                                                   ",
+            "                                                                                                   ",
+            "                                                                                                   ",
+            "                                                                                  ccccc            ",
+            "                                                                                                  b",
+            "                              cccc                                                       e        D",
+            "a              cccc                                               e       A      gggggggggggggggggg",
+            "D        A                                     A        A    ggggggggggggggggggggdddddddddddddddddd",
+            "ggggggggggggg                    A   gggAggggggggggggggggggggdddddddddddddddddddddddddddddddddddddd",
+            "dddddddddddddgggggggqqqqqqqqgggggggggdddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "ddddddddddddddddddddddqqqqddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "ddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "ddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "ddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "ddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+        ]
+    },
+    "desert 2" : {
+        theme : "surface",
+        doors : {
+            'a' : {
+                level : "desert",
+                symbol : 'b'
+            },
+            'b' : {
+                level : "desert path 1",
+                symbol : 'a'
+            },
+            'c' : {
+                level : "desert path 2",
+                symbol : 'a',
+                locked : true
+            }
+        },
+        plan : [
+            "                                                                                                           ",
+            "                                                                                                           ",
+            "                                                                                                           ",
+            "                                                                                                           ",
+            "                                                                                                           ",
+            "                                                                                                           ",
+            "                                                                                                           ",
+            "    cccc              ccccc                                                               cccccc           ",
+            "                                                ccccc                                                      ",
+            "a                         A                                                                             b c",
+            "D      T       e   T ggggggggggg    A                                               T       A      A    D D",
+            "gggggggggggggggggggggdddddddddddggggggggg           A           e             A  ggggggddddddgggggggggggggg",
+            "dddddddddddddddddddddddddddddddddddddddddgg    gggggggqqqqqqqqqqqqqqqqqqqdddddddddddddddddddddddbbbbbbbbbbb",
+            "dddddddbbbbddddbbbdddddddddbbddddddddddddddggggdddddddqqqqqqqqqqqqqqqqddddddddddddddddbbbbbbbbbbbbbbbbbbbbb",
+            "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbdddddddddddddddddddbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbddddddbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        ]
+    },
+    "desert path 1" : {
+        theme : "surface",
+        doors : {
+            'a' : {
+                level : "desert 2",
+                symbol : 'b'
+            }
+        },
+        keys : {
+            'a' : {
+                level : "desert 2",
+                symbol : 'c'
+            }
+        },
+        plan : [
+            "                                                                                                                   ",
+            "                                                                                                                   ",
+            "                                                                                                                   ",
+            "                                                                                                                   ",
+            "                                                                                                                   ",
+            "                                                                                                                   ",
+            "                                                                                      ccccc                        ",
+            "                                                                                                                   ",
+            "   cccccc                                   ccccc                                                                  ",
+            "                                                                   T             A   ggggggg  A                  A ",
+            "a                A               T  e   A T                 e      ggggg  a  ggggggggdddddddggg           ggggggggg",
+            "D     e   A  ggggg             ggggggggggggggggggqqqqqqqgggggggggggddddd  K  ddddddddddddddddddgggggggggggddddddddd",
+            "gggggggggggggdddddde           ddddddddddddddddddqqqqqqqddddddddddddddddd   ddddddddddddddddddddddddddddddddddddddd",
+            "ddddddddddddddddddddqqqqqqqqqddddddddddddddddddddddddddddbbbbbddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "ddddddddddddddddddddddddddddddddddddddddbbbbbbdddddddbbbbbbbbbbbddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        ]
+    },
+    "desert path 2" : {
+        theme : "surface",
+        doors : {
+            'a' : {
+                level : "desert 2",
+                symbol : 'c'
+            },
+            'b' : {
+                level : "desert plain",
+                symbol : 'a'
+            }  
+        },
+        plan : [
+            "                                                                                      ",
+            "                                                                                      ",
+            "                                                                                      ",
+            "                                                                                      ",
+            "                                                                                      ",
+            "                                                                                      ",
+            "                                                                                      ",
+            "                                                                                      ",
+            "                                                                 cccccc               ",
+            "                                                                                     b",
+            "                                                                                     D",
+            "                           cccccc                       A   e   ggggggggggqqqqqqgggggg",
+            "a    cccccc                                             ggggggggddddddddddggggggdddddd",
+            "D           e     A                       A      e gggggdddddddddddddddddddddddddddddd",
+            "ggggggggggggggggggggg A  e       A e  e gggggddddddddddddddddddddddddddddddddddddddddd",
+            "ddddddddddddddddddddddddqqqqgggggggqqqqqddddddddddddddddddddbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "ddddddddddddddddddddddddddddddddddddddddddddddddddddddddbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        ]
+    },
+    "desert plain" : {
+        theme : "surface",
+        doors : {
+            'a' : {
+                level : "desert path 2",
+                symbol : 'b'
+            },
+            'b' : {
+                level : "desert plains 2",
+                symbol : 'a'
+            },
+            'c' : {
+                level : "desert plains 3",
+                symbol : 'a'
+            },
+        },
+        plan : [
+            "                                                                                   ",
+            "                                                                                   ",
+            "                                                                                   ",
+            "                                                                                   ",
+            "                                                                                   ",
+            "                                                                            &      ",
+            "                                                                                   ",
+            "                                                                            b  c   ",
+            "                                                                        e T D  D T ",
+            "a                A     e                                      T    e  ggggggggggggg",
+            "D   e    A    gggggqqqgggg e            A             e   A   ggggggggddddddddddddd",
+            "ggggggggggggggddddddddddddgggge   n   ggggggggg  n gggggggggggddddddddddddddddddddd",
+            "ddddddddddddddddddddddddddddddd######dddddddddddddddddddddddddddddddddddddddddddddd",
+            "ddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "ddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        ]
+    },
+    "desert plains 2" : {
+        theme : "surface",
+        doors : {
+            'a' : {
+                level : "desert plain",
+                symbol : 'b'
+            },
+            'b' : {
+                level : "desert x",
+                symbol : 'a'
+            }
+        },
+        plan : [
+            "                                                                                               ",
+            "                                                                                               ",
+            "                                                                                               ",
+            "                                                                   ccccc                       ",
+            "                      cccc                                                                     ",
+            "      ccc                                                                                      ",
+            "                                               A     A                                         ",
+            "a                          A    A   A         ggggggggg      AAA                              b",
+            "D   A     AA      A      gggggggggggggggggggggdddddddddggggggggggg            gggg            D",
+            "gggggggggggggggggggggggggdddddddddddddddddddddddddddddddddddddddddggggggggggggddddggggggggggggg",
+            "ddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "ddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        ]
+    },  
+    "desert plains 3" : {
+        theme : "surface",
+        doors : {
+            'a' : {
+                level : "desert plain",
+                symbol : 'c'
+            },
+            'b' : {
+                level : "desert z",
+                symbol : 'b'
+            }
+        },
+        plan : [
+            "                                                                                               ",
+            "                                                                                               ",
+            "                                                                                               ",
+            "                                        &                                                      ",
+            "                                                                                               ",
+            "a                                                      ccccc                  &                ",
+            "D         cccc                   ccccc                                                         ",
+            "gggggg                   A                                                                  '  ",
+            "ddddddggg          A    ggggg           A          A  gggggg       A                          b",
+            "dddddddddggggggggggggggddddddgggggggggggggggggggggggggddddddgggggggggggg   A       A          D",
+            "ddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddggggggggggggggggggggggg",
+            "ddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        ]
+    },  
+    "desert x" : {
+        theme : "surface",
+        doors : {
+            'a' : {
+                level : "desert plains 2",
+                symbol : 'b'
+            },
+            'b' : {
+                level : "desert y",
+                symbol : 'a'
+            },
+            'c' : {
+                level : "desert z",
+                symbol : 'a'
+            }
+        },
+        plan : [
+            "                                                                                                       ",
+            "                                                                                                       ",
+            "                                                                                                       ",
+            "                                                                                                       ",
+            "                                                                                                       ",
+            "                                                                                                       ",
+            "                                           A                                                           ",
+            "a          A      T             T   A   ggggggg    A      c         bb   bb   bb                      b",
+            "D   T  A  ggggggggggg       A  gggggggggdddddddggggg  T   D                             A     A       D",
+            "ggggggggggdddddddddddggggggggggdddddddddddddddddddddggggggggg  e     e            e    gggggggggggggggg",
+            "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddggggg################gggggdddddddddddddddd",
+            "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddbbbbbbbb",
+            "bbbdddddddddddddddddddbbbbbddddddddddbbbbbbbdddddddddddddddddddddddbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        ]
+    },
+    "desert z" : {
+        theme : "surface",
+        doors : {
+            'a' : {
+                level : "desert x",
+                symbol : 'c'
+            },
+            'b' : {
+                level : "desert plains 3",
+                symbol : 'b'
+            }
+        },
+        plan : [
+            "                                                                                   ",
+            "                               '                                                   ",
+            "                                         &                                         ",
+            "                              bbbb UU                                              ",
+            "                                    U                                              ",
+            "                                    U                                              ",
+            "                                    U                                              ",
+            "                                    U                                              ",
+            "                                    U                                              ",
+            "                                                                         cccc  cc  ",
+            "                                                                       cc    cc  cc",
+            "                                            ccc                        cccccccccccc",
+            "                                           c       e                   cc   ccccccc",
+            "a                                      e        ssPPP c                cc   ccccc b",
+            "D      T                            PPPPPss               c          T       cccc D",
+            "ggggggggggggg   e  T                                  PPP  c       gggg   T ggssggg",
+            "dddddddddddddgggggggg  T   e                                  gggggddddgssggddddddd",
+            "dddddddddddddddddddddgggggggggggqqqqqqqqqqqqqqqqqqqqqqqqqgggggddddddddddddddddddddd",
+            "ddddddddddddddddddddddddddddddddgg###################dddddddddddddddddddddddddddddd",
+            "bbbbbddddddbbbddddddddbbbbdddddddd##############ddddddddddbbbddddbbbbddddddddddbbbb",
+            "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        ]
+    },
+    "desert y" : {
+        theme : "surface",
+        doors : {
+            'a' : {
+                level : "desert x",
+                symbol : 'b'
+            },
+            'b' : {
+                level : "desert oasis",
+                symbol : 'a'
+            }
+        },
+        plan : [
+            "                                                                                                         ",
+            "                                                                                                         ",
+            "                                                                                                         ",
+            "                                                                                                         ",
+            "                                                                                                         ",
+            "                                                                                                         ",
+            "                                                                                                         ",
+            "                          ccccc           &                                                              ",
+            "                                                   cccccc   &                                            ",
+            "            ccccc                  A   e                                                                 ",
+            "a                          A      gggggggg    T                  cccccc                                 b",
+            "D      T             T   gggggggggddddddddgggggg    e                        e    e                     D",
+            "ggggggggg    A   e ggggggdddddddddddddddddddddddggggggggg                  gggggggggggcccccccc   ~  ggggg",
+            "dddddddddggggggggggddddddddddddddddddddddddddddddddddddddgggg AAA gggggggggdddddddddddqqqqqqqqggggggddddd",
+            "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddgggggddddddddddddddddddddqqqqqdddddddddddddd",
+            "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbddddddddddddddddddbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        ]
+    },
+    "desert oasis" : {
+        theme : "surface",
+        doors : {
+            'a' : {
+                level : "desert y",
+                symbol : 'b'
+            }
+        },
+        plan : [
+            "                                                                       ",
+            "                                                                       ",
+            "                                                                       ",
+            "                                                                       ",
+            "                                                                       ",
+            "                                                                       ",
+            "                                                                       ",
+            "                                                                       ",
+            "                                                                       ",
+            "                                                                       ",
+            "a               ~                                                      ",
+            "D  T  QQ     dddddd ~  f      T                   ~    ~ ~       T     ",
+            "ggggggggggggdddddddddddddwwwwwddddddwwwwwwwwwwwwwdddddddddddddddddddddd",
+            "ddddddddddddddddddddddwwwwwwwwwwwwwwwwwwwwwwwwwwddddddddddddddddddddddd",
+            "ddddddddddddddddddddddwwwwwwwwwwwwwwwwwwwwwwwwwdddddddbbbddddddddbbbddd",
+            "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
         ]
     },
     "test" : {
@@ -6733,8 +7128,8 @@ var levels = {
             "                                               ",
             "                                               ",
             "                                               ",
-            "                               '               ",
-            "          '                           '        ",
+            "                                               ",
+            "                                               ",
             "                       =              bbbbbb   ",
             "    a                       a                  ",
             " f  D         T     bbbbb p [                  ",

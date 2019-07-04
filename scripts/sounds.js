@@ -8,16 +8,23 @@ var sounds = {
     },
     addSound : function(str, type, volume, returnIt)
     {
+        var source = "sounds/" + str;
+
+        if(type === "song")
+        {
+            source = "sounds/songs/" + str;
+        }
+
         if(!returnIt)
         {
-            this.sounds[str] = new Audio("sounds/" + str);
+            this.sounds[str] = new Audio(source);
             this.repetent[str] = [];
             this.sounds[str].type = type || "sound";
             volume = volume || 1;
             this.sounds[str].setVolume = volume;
             this.sounds[str].volume = this.settings.mainVolume * volume;
         }else{
-            var snd = new Audio("sounds/" + str);
+            var snd = new Audio(source);
             snd.type = type || "sound";
             snd.isSong = isSong;
             volume = volume || 1;
@@ -46,6 +53,10 @@ var sounds = {
         var snd1 = new Audio();
         var src1 = document.createElement("source");
         src1.src = "sounds/" + str;
+        if(this.sounds[str].type === "song")
+        {
+            src1.src = "sounds/songs/" + str;
+        }
         snd1.type = this.sounds[str].type;
         snd1.volume = this.settings.mainVolume * (vol || this.sounds[str].volume);
         snd1.appendChild(src1);
@@ -138,15 +149,15 @@ sounds.addSound("hit2.mp3");
 sounds.addSound("Explosion5.wav");
 // sounds.addSound("smchoof.wav");
 
-//Made with beepbox
-// sounds.addSound("StepUp.wav", "song");
-// sounds.addSound("StepUpv2.wav", "song");
+
+////////////////////////////////////////////////////////
+
 
 // This stuff einkurogane
-sounds.addSound("PS2.mp3", "song");
-// sounds.addSound("PS2-8bit.mp3", "song");
-sounds.addSound("icy_slopes_ps2-short.mp3", "song");
-// sounds.addSound("icy_slopes_8bit-ps2-short.mp3", "song");
 
+sounds.addSound("planet_search_2.mp3", "song");
 sounds.addSound("overworld.mp3", "song");
-sounds.addSound("ninjatemple.mp3", "song");
+sounds.addSound("ninja_temple.mp3", "song");
+sounds.addSound("icy_slopes.mp3", "song");
+sounds.addSound("underground.mp3", "song");
+sounds.addSound("space.mp3", "song");
