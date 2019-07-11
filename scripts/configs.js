@@ -82,9 +82,24 @@ var configs = {
             noSong : true,
             regenCoinCost : 3,
             table : {
-                '~' : "swampTree"
+                '~' : "palmTree"
             },
-            arraysToSave : ["coin", "hpCoin", "fireBeaker"]
+            arraysToSave : ["coin", "hpCoin", "fireBeaker", "skyViper"]
+        }
+    },
+    "ship" : {
+        name : "Ship",
+        hidden : true,
+        usingHpRegenerators : true,
+        level : {
+            background : "ship",
+            noSong : true,
+            regenCoinCost : 6,
+            table : {
+                'g' : "blockSketchy",
+                'b' : "steelBlock",
+                'M' : "windowSky"
+            }
         }
     },
     "other" : {

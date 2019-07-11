@@ -14,7 +14,7 @@ var levels = {
             'c' : {
                 level : "intro",
                 symbol : 'd',
-                locked : true,
+                // locked : true,
             },
             'd' : {
                 level : "intro",
@@ -36,7 +36,9 @@ var levels = {
                 adjustW : 150
             },
             'c' : {
-                message : "Or to go through\n a door.",
+                message : "You can also press down or\n's' to go through\n a door, or activate things.",
+                adjustH : 50,
+                adjustW : 150
             },
             'd' : {
                 message : "Doors can take you\n to other levels too.",
@@ -63,13 +65,17 @@ var levels = {
                 message : "Press 't' if you\n can't read a sign.",
             },
             'k' : {
-                message : "You can also press the\nspacebar to do extra stuff!",
-                adjustW : 130
+                message : "You can also press the\nspacebar to do extra stuff!\n(like shaking off effects)",
+                adjustW : 130,
+                adjustH : 50
             },
             'x' : {
                 message : "You can even press 'e'\nto open your inventory!",
                 adjustW : 120
             },
+            'y' : {
+                message : "If a sign is too hard\nto read press 't'."
+            }
         },
         keys : {
             'a' : {
@@ -83,15 +89,15 @@ var levels = {
             "                                                 ",
             "                                                 ",
             "                                                 ",
-            "                    b   d   e   a   h   i   x   c",
-            "                    D   S   S   K   S   S   S   D",
+            "                    b   y   h   i   x   k   f   e",
+            "                    D   S   S   S   S   S   S   D",
             "                   gggggggggggggggggggggggggggggg", 
             "                   dddddddddddddddddddddddddddddd",
-            "                   dddddddddddd                  ",
-            "p                  dddddddddddd   k   f   g     e",
-            "a   b       c   a  dddddddddddD   S   S   S     D",
-            "S   S   f   S   D  ddddddddddddddddddddddddd##ddd",
-            "gggggggggggggggggggddddddddddd##ddddddddddddd##dd",
+            "                   dddddddddddddddddddddddddddddd",
+            "p                  dddddddddddddddddddddddddddddd",
+            "a   b       c   a  dddddddddddddddddddddddddddddd",
+            "S   S   f   S   D  dddddddddddddddddddddddddddddd",
+            "gggggggggggggggggggdddddddddddddddddddddddddddddd",
         ],
     },
     "start" : {
@@ -865,10 +871,10 @@ var levels = {
             "                  b             cc        UU b   AAb     UU ",
             "a d               b             hh        UU bsssbbb   i UU ",
             "K S              Ib     ch      cc        UU b     b   i UU ",
-            "^^^^^^^^^^^^^^^^^^b     hc   PPPPPbbbPPPP UU b     b   i UU ",
+            "^^^^^^^^^^^^^^^^^^b     hc   bbPPPbbbPPPP UU b     b   i UU ",
             "vvvvvvvvvvvvvvvvvvb          bb           UU   hh  b   i UU ",
             "                             bb           UU       bsssi UU ",
-            "                     PP      bb       e   UU E     b     UU ",
+            "                     PPF F F bb       e   UU E     b     UU ",
             "                     bb      bbUUbbbbbbbbbbbbbbbbbbb 0   UU ",
             "         f           bb      bbUU                  b  0  UU ",
             "    I    D    I      bb      bbUU         E        b0    UU ",
@@ -1581,7 +1587,7 @@ var levels = {
             " '   FFF                                          ",
             "                                               a  ",
             "                                               K  ",
-            " A   A   A       A           A   A   A   A   A  UA",
+            " A   A   A       A           A   A   A   A   A  Ub",
             " b b b b b b b b b b b b b b b b b b b b b b b bUb",
             "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbUb",
             "bFFFF  FFFFF  FFFFFFF  FFF FFFFFFF   FFFF  FFFF Ub",
@@ -7006,7 +7012,7 @@ var levels = {
             "                          ccccc           &                                                              ",
             "                                                   cccccc   &                                            ",
             "            ccccc                  A   e                                                                 ",
-            "a                          A      gggggggg    T                  cccccc                                 b",
+            "a                          A      gggggggg    T                  cccccc                  FFF            b",
             "D      T             T   gggggggggddddddddgggggg    e                        e    e                     D",
             "ggggggggg    A   e ggggggdddddddddddddddddddddddggggggggg                  gggggggggggcccccccc   ~  ggggg",
             "dddddddddggggggggggddddddddddddddddddddddddddddddddddddddgggg AAA gggggggggdddddddddddqqqqqqqqggggggddddd",
@@ -7035,12 +7041,75 @@ var levels = {
             "                                                                       ",
             "                                                                       ",
             "a               ~                                                      ",
-            "D  T  QQ     dddddd ~  f      T                   ~    ~ ~       T     ",
-            "ggggggggggggdddddddddddddwwwwwddddddwwwwwwwwwwwwwdddddddddddddddddddddd",
+            "D     QQ     gggggg  / f      /                   ~    ~ /             ",
+            "gggggggggggggddddddddddddwwwwwddwwddwwwwwwwwwwddwdddddddggggggggggggggg",
             "ddddddddddddddddddddddwwwwwwwwwwwwwwwwwwwwwwwwwwddddddddddddddddddddddd",
             "ddddddddddddddddddddddwwwwwwwwwwwwwwwwwwwwwwwwwdddddddbbbddddddddbbbddd",
             "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
             "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        ]
+    },
+    "helixShip" : {
+        theme : "ship",
+        doors : {
+            'a' : {
+                level : "desert oasis",
+                symbol : 'a'
+            },
+            'b' : {
+                level : "helixShip2",
+                symbol : 'a'
+            }
+        },
+        plan : [
+            "                   ",
+            "                   ",
+            "bbbbbbbbbb         ",
+            "b      + b         ",
+            "b        b         ",
+            "b        b         ",
+            "b        b         ",
+            "bb    a  b         ",
+            "bD f  D gb         ",
+            "bbbbbbbbbb         ",
+            "                   ",
+        ]
+    },
+    "helixShip2" : {
+        theme : "ship",
+        doors : {
+            'a' : {
+                level : "helixShip",
+                symbol : 'b'
+            }
+        },
+        itemChests : {
+            'x' : {
+                items : [{
+
+                }, {
+                    contains : "meal"
+                }]
+            },
+            'y' : {
+                items : [{
+                    contains : "stick"
+                }]
+            }
+        },
+        plan : [
+            "               ",
+            "               ",
+            "    bbbbbbbbbbb",
+            "    b         b",
+            "    b         b",
+            "    b         b",
+            "    b         b",
+            "    b         b",
+            "    bx  y    ab",
+            "    b]  ]    Db",
+            "    bbbbbbbbbbb",
+            "               ",
         ]
     },
     "test" : {
@@ -7068,6 +7137,16 @@ var levels = {
                 drops : [{
                     contains : "ninjaGuard",
                     total : true,
+                }],
+            },
+            'b' : {
+                regen : true,
+                drops : [{
+                    contains : "bubbleShield",
+                    total : true,
+                    xPos : 80,
+                    yPos : -50,
+                    diameter : 40,
                 }],
             },
         },
@@ -7127,12 +7206,12 @@ var levels = {
             "                                               ",
             "                                               ",
             "                                               ",
-            "                                               ",
+            "                              %                ",
             "                                               ",
             "                                               ",
             "                       =              bbbbbb   ",
-            "    a                       a                  ",
-            " f  D         T     bbbbb p [                  ",
+            "    a                       a     b            ",
+            " f  D         T     bbbbb p [     [            ",
             "gggggggggggggggg   gdddddgggggggggggggggggggggg",
             "bbbbbbbbbbbbbbbb   bbbbbbbbbbbbbbbbbbbbbbbbbbbb",
         ],

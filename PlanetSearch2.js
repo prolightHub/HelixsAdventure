@@ -142,7 +142,7 @@ var sketch = function(processing) /*Wrapper*/
         +Made moving platforms realistic in terms of physics
         +Made starting checkpoints invisible     
     * v0.3.9
-       + Made moving platforms on the x level have a 
+       + Made moving platforms on the x axis have a 
         custom bounding box, so they are more likely to come back.
         +Allowed enemies to push crates, made crate physics more realistic
         -Fixed bug where a circle on left wall disappears.
@@ -930,23 +930,32 @@ var sketch = function(processing) /*Wrapper*/
             -desert oasis
 
     * 0.9.7
+        Added HelixShip,
+        Imported graphics for HelixShip
+        Removed air background.
+        Created palm trees
+        Imported palm trees
+        Made palm trees randomized
+        Made interior of HelixShip
+        Made first prototype of HelixShip blasting off.
+        The bubble shield now doesn't go into the negatives.
+        Added falling blocks in the "night" level.
+        Remade storyHandler, now has less code and you can read at your own pace.
+        Remade tutorial level (It had too many descriptions).
 
     Next :   
         Will do:           
-            Spaceship area.
             Add a bunch of secrets and extra stuff you can go do, after collecting all the crystals.
             Sound update.
 
     Maybe:
         More Weapons, shops.
-        Add chest appearing sound effect.
+        Add chest appearing sound effect. Enemy damage sound effect?
         Speed up image rendering by doing it directly!
         Update sound settings.
         
     In the future:
-        --More overworld levels,
         --More music/sound effects utilized.
-        --Player's space ship in island in desert.
         --Space
         --Talon's SpaceShip
         --Final boss fight: Talon +Cutscene
@@ -975,6 +984,8 @@ var sketch = function(processing) /*Wrapper*/
 
         All other code is by (Me) ProlightHub on Github & Phantom Falcon on Khan Academy!
 
+        Some images made by Shotty
+
     Future Updates :
         To be added :
             More levels
@@ -989,10 +1000,10 @@ var sketch = function(processing) /*Wrapper*/
 var game = {
     fps : 60, 
     loadFps : 160,
-    gameState : "start", //Default = "start"
+    gameState : "start", // Default = "start"
     version : "v0.9.7 beta",
-    fpsType : "auto", //Default = "manual"
-    debugMode : true, //Turn this to true to see the fps
+    fpsType : "auto", // Default = "manual"
+    debugMode : true, // Turn this to true to see the fps
     showDebugPhysics : false,
     boundingBoxes : false,
     debugMenuWhite : true,
@@ -1006,7 +1017,7 @@ var game = {
     globalize : true
 };
 var levelInfo = {
-    level : "intro", //Default = "intro"
+    level : "intro", // Default = "intro"
     xPos : 0,
     yPos : 0,
     width : width,
@@ -1072,7 +1083,7 @@ var MODE = "pjs";//Ka or pjs
 angleMode = "degrees";
 
 //Predefine (Globals)
-var cam, cameraGrid, GameObject, observer, gameObjects;
+var cam, cameraGrid, GameObject, observer, gameObjects, loader;
 
 //Constants
 const WIDTH = width;
@@ -1086,6 +1097,18 @@ const BTN_COLOR = color(11, 68, 153, 200);
 
 // No smoothing for performance
 noSmooth();
+
+var shipGoto = {};
+
+shipGoto.launch = function()
+{
+    shipGoto.launched = true;
+
+    loader.startLoadLevel("desert oasis", "door", 0, function()
+    {
+        cameraGrid.removeReference(player);
+    });
+};
 
 var keyIsPressed = false;
 
@@ -1331,77 +1354,75 @@ var storyHandler = {
     scroll : 0,
     message : "",
     storyIndex : 0,
-    timer : 0,
     color : color(31, 173, 88),
-    scrollVel : 20,
-    set : function()
+    index : 0,
+    set : function(i)
     {
-        this.message = this.story[this.storyIndex].message;
-        this.timer = (this.story[this.storyIndex].time || 200) * 1.6;
-        this.color = this.story[this.storyIndex].color;
-        this.scrollVel = this.story[this.storyIndex].scrollVel || 0;
+        if(i >= this.story.length)
+        {
+            return;
+        }
+
+        this.message = this.story[i].message;
+        this.color = this.story[i].color;
         this.scroll = 0;
     },
     show : function()
     {
-        this.timer--;
-        if((this.timer < 0 && !screenUtils.fade.fading) || ENTER_KEY)
+        if(this.storyIndex >= this.story.length)
         {
-            if(this.storyIndex > 0 || this.firstSet)
-            {
-                screenUtils.fade.start(20, 0);  
-            }else{
-                this.set();
-                this.storyIndex++;
-                this.firstSet = true;
-            }
+            this.set(this.story.length - 1);
+            return;
         }
-        if(screenUtils.fade.full())
-        {
-            if(this.storyIndex <= this.story.length - 1)
-            {
-                this.set();
-            }else{
-                this.storyIndex = 0;
-            }
-            this.storyIndex++;
-        }
-        this.done = (this.timer < 0 && this.storyIndex === this.story.length);
 
-        this.scroll += (this.scrollVel || 0);
+        if(!this.init)
+        {
+            this.storyIndex = 0;
+            this.set(0);
+            this.init = true;
+        }
+
+        if((ENTER_KEY || mouseIsPressed) && !screenUtils.fade.fading)
+        {
+            screenUtils.fade.start(20, 0);  
+            this.startingFromHere = true;
+        }
+
+        if(this.startingFromHere && screenUtils.fade.full())
+        {
+            this.storyIndex++;
+            this.set(this.storyIndex);
+            delete this.startingFromHere;
+        }
     },
     story : [{
+        message : "Enter/Click to start intro!"
+    }, {
         message : "2,000 years ago, a hypercrystal\nwas born inside of Titan."
     }, {
         message : "Titan is a noble planet found\nwith-in the center of this galaxy.",
-        time : 230
-    },{
+    }, {
         message : "This hypercrystal contains an\nultimate binding of power!"
     }, {
         message : "Aliens constructed by the evil\nforces of Talon have obstructed this crystal!",
-        time : 250
     }, {
         message : "A battle between aliens lasted for \n1,000 years!"
     }, {
         message : "Finally it was divided into multiple\ncrystals and its power was sealed away.",
-        time : 250
     }, {
         message : "These crystals have been scattered\nacross this galaxy."
     }, {
         message : "Talon has re-discovered a green crystal!\nThis crystal has the power to\nsend a virus to a planet!",
-        time : 300
     }, {
         message : "Fortunately you escaped Planet Search\nbefore it was infected."
     }, {
         message : "You were sent to Amber by a spacecraft\non a mission to find 3 of the crystals.",
-        time : 270
     }, {
         message : "Unfortunately you had to eject in an\nescape pod on entry."
     }, {
         message : "You are now seperated by thousands\nof miles from your ship."
     }, {
         message : "Your new mission is to find 3 crystals, and harness\ntheir power to find your ship.",
-        time : 270
     }, {
         message : "Now go hero! Choose your path wisely!\nGood luck!"
     }],
@@ -3032,31 +3053,6 @@ var shapes = {
 var backgrounds = {
     background : "spaceFromEarth",
     backgrounds : {
-        "air" : {
-            load : function()
-            {
-                background(170, 217 - 20, 250);
-                var circles = storage.graphics.circles;
-                for(var i = 0; i < circles.length; i++)
-                {
-                    noStroke();
-                    fill(circles[i].color);
-                    circle(circles[i].xPos, circles[i].yPos, circles[i].diameter);
-                }
-                fill(0, 0, 0, 30);
-                fastRect(0, 0, width, height);
-                var img = backgrounds.backgrounds.air.img = get(0, 0, width, height);
-
-                screenUtils.speedUpImage(backgrounds.backgrounds.air.img);
-            },
-            drawBackground : function()
-            {
-                if(backgrounds.backgrounds.air.img)
-                {
-                    fastImage(backgrounds.backgrounds.air.img, 0, 0);
-                }
-            },
-        },
         "dark" : {
             primeLoad : function()
             {
@@ -4123,6 +4119,9 @@ var backgrounds = {
                         rect(x, y, 2, 2);
                     }
                 }
+                
+                this.behindSky = get(0, 0, 400, 400);
+                accelerateImg(this.behindSky);
 
                 noStroke();
                 fill(255-30, 229, 40);
@@ -4156,13 +4155,73 @@ var backgrounds = {
                     return;
                 }
 
-                ctx.drawImage(backgrounds.backgrounds.sand.img.sourceImg, 0, 0, width, height);
-
-                graphics.inClouds.draw();
-                if(!screenUtils.fade.fading)
+                if(game.dropRate)
                 {
-                    graphics.inClouds.update();
+                    pushMatrix();
+                    function sand(x, y, xs, ys, c)
+                    {
+                        pushMatrix();
+                            translate(x || 0, y || 0);
+                            scale(xs || 1, ys || 1);
+                            fill(c || color(237-12, 201, 175-19));
+                            triangle(0, 30, 40, 0, 80, 30);
+                            fill(0, 0, 0, 12);
+                            var amt = 5;
+                            triangle(0 + amt * Math.SQRT2, 30, 40, 0 + amt, 80 - amt * Math.SQRT2, 30);
+                        popMatrix();
+                    }
+
+                    ctx.drawImage(this.behindSky.sourceImg, 0, 0, width, height);
+
+                    noStroke();
+                    fill(255-30, 229, 40);
+                    circle(312, 60 + (game.dropRate || 0) * 0.5, 38);
+
+                    pushMatrix();
+                        translate(0, -70 + game.dropRate);
+                       
+                        sand(90, 280, 2, 2.1);
+                        sand(-20, 300, 1.4, 1.4);
+                        sand(50, 310);
+
+                        sand(330, 320);
+
+                        fill(218, 194, 109);
+                        rect(0, 340, 400, 40);
+
+                        fill(258, 192, 109);
+                        rect(0, 380, 400, 300);
+                    popMatrix();
+
+                    popMatrix();
+                }else{
+
+                    ctx.drawImage(backgrounds.backgrounds.sand.img.sourceImg, 0, 0, width, height);
                 }
+
+                pushMatrix();
+                    translate(0, game.dropRate || 0);
+
+                    graphics.inClouds.draw();
+                    if(!screenUtils.fade.fading)
+                    {
+                        graphics.inClouds.update();
+                    }
+                popMatrix();
+            }
+        },
+        "ship" : {
+            primeLoad : function()
+            {
+                background(0, 0, 0);
+                noStroke();
+
+                backgrounds.backgrounds.ship.img = get(0, 0, width, height);
+            },
+            drawBackground : function()
+            {
+                let img = backgrounds.backgrounds.ship.img;
+                ctx.drawImage(img.sourceImg, 0, 0, width, height);
             }
         }
     },
@@ -5916,6 +5975,101 @@ var inventoryMenu = {
     },
 };
 
+// The ship's control panel
+var controlPanel = {
+    state : "closed",
+    open : function()
+    {
+        this.state = "opened";
+    },
+    close : function()
+    {
+        this.state = "closed";
+    },
+    update : function()
+    {
+
+    },
+    font : createFont("arial"),
+    slideX : 0,
+    slideY : 60,
+    buttons : {
+        launch : new Button(80, 120, 240, 26, color(12, 60, 160, 130), "Launch"),
+    },
+    draw : function()
+    {
+        pushMatrix();
+            translate(this.slideX, this.slideY);
+            fill(0, 0, 60, 120);
+            rect(0, 0, width, height - 120, 10);
+
+            fill(0, 0, 0, 120);
+            rect(20, 20, width - 40, height - 160, 10);
+
+            textFont(this.font);
+            textSize(14);
+            textAlign(LEFT, TOP);
+            fill(240, 240, 240, 200);
+            text("Ship Control Panel", 12, 10);
+        popMatrix(); 
+
+        if(!this.drawInit)
+        {
+            this.buttons.launch.textColor = color(255, 255, 255, 200);
+
+            this.drawInit = true;
+        }
+
+        this.buttons.launch.disabled = (player.gems < 10);
+
+        for(var i in this.buttons)
+        {
+            if(typeof this.buttons[i] === "object")
+            {
+                this.buttons[i].draw();
+
+                if(this.buttons[i].disabled)
+                {
+                    fill(0, 0, 0, 100);
+                    rect(this.buttons[i].xPos, this.buttons[i].yPos, this.buttons[i].width, this.buttons[i].height, this.buttons[i].round);
+                }
+            }
+        }
+
+        this.buttons.launch.message = "Launch Gems " + (player.gems || 0) + " of 10 required of 20 total";
+    },
+    mousePressed : function()
+    {
+        for(var i in this.buttons)
+        {
+            if(typeof this.buttons[i] === "object" && this.buttons[i].clicked())
+            {
+                if(this.buttons[i].disabled)
+                {
+                    continue;
+                }
+
+                switch(i)
+                {
+                    case "launch" :
+                        if(!shipGoto.launched)
+                        {
+                            this.close();
+
+                            game.switchGameState(true, "play", true);
+
+                            setTimeout(function()
+                            {
+                                shipGoto.launch();
+                            }, 1000);
+                        }
+                        break;
+                }
+            }
+        }
+    }
+};
+
 var _this = this;
 
 var debugTool = {
@@ -6056,6 +6210,8 @@ var screenUtils = {
         {
             this.shakeOffX = random(-this.intensityX, this.intensityX);
             this.shakeOffY = random(-this.intensityY, this.intensityY);
+
+            sounds.playSound("rumble.mp3");
 
             this.lastShakeChangeTime = millis();
         }
@@ -6216,6 +6372,9 @@ var screenUtils = {
             
             fill(0, 12, 12, 50);
             rect(1, 0, 70, screenUtils.infoBar.height, 10);
+
+            /* Inject font */
+            textFont(inventoryMenu.font);
             
             fill(230, 230, 230, 100);
             text("Hp " + (floor(max((player.hp || 0), 0))) + "/" + player.maxHp, 34, screenUtils.infoBar.height - 8);
@@ -6336,6 +6495,8 @@ var screenUtils = {
                     rect(0, 385, 5 + textWidth(txt) + 12, 400, 7);
                     fill(255, 255, 255, 200);
                     textAlign(LEFT, DOWN);
+                    /* Inject font */
+                    textFont(inventoryMenu.font);
                     text(txt, 5, 397);
                 }
             }
@@ -6346,11 +6507,17 @@ var screenUtils = {
                 if(configs[levelInfo.theme] && configs[levelInfo.theme].name !== undefined)
                 {
                     textAlign(LEFT, DOWN);
+                    /* Inject font */
+                    textFont(inventoryMenu.font);
+
                     fill(0, 0, 0, 130);
                     rect(-6, height - 15, 25 + textWidth(configs[levelInfo.theme].name), 30, 5);
                     fill(240, 240, 240, 145);
                     text(configs[levelInfo.theme].name, 8, height - 3);
                 }
+
+                 /* Inject font */
+                textFont(inventoryMenu.font);
 
                 pushMatrix();
                     translate(20, 0);
@@ -6640,6 +6807,9 @@ var screenUtils = {
         textSize(11);
         
         //Debug menu
+
+        /* Inject font */
+        textFont(inventoryMenu.font);
         
         fill(!lighting.working ? color(0, 0, 0, 200) : color(255, 255, 255, 100));
         if(screenUtils.debugMenuWhite)
@@ -8077,14 +8247,16 @@ var Camera = function(xPos, yPos, width, height)
     this.maxScale = 0.26;
     this.scaleVel = 0.03;
 
-    this.scaleZoom = function()
+    this.scaleZoom = function(override)
     {
-        if(this.scale > 0)
+        if(this.scale > 0 || override)
         {
             translate(-width * this.scale / 2, -height * this.scale / 2);
             scale(1 + this.scale, 1 + this.scale);
         }
     };
+
+    this.keepInGrid = true;
 
     this.view = function(object)
     {
@@ -8123,7 +8295,12 @@ var Camera = function(xPos, yPos, width, height)
         this.scale += this.scaleVel;
         this.scale = constrain(this.scale, 0, this.maxScale);
 
-        this.scaleZoom();
+        if(!this.keepInGrid)
+        {
+            this.scale = -0.6;
+        }
+
+        this.scaleZoom(!this.keepInGrid);
 
         this.cScale = (1 - this.scale * 0.75);
 
@@ -8137,11 +8314,14 @@ var Camera = function(xPos, yPos, width, height)
         this.focusXPos += this.distance * cos(this.angle);
         this.focusYPos += this.distance * sin(this.angle);
 
-        //Keep it in the grid
-        this.focusXPos = constrain(this.focusXPos, levelInfo.xPos + this.halfWidth * this.cScale, 
-                                    levelInfo.xPos + levelInfo.width - this.halfWidth * this.cScale);
-        this.focusYPos = constrain(this.focusYPos, levelInfo.yPos + this.halfHeight * this.cScale, 
-                                    levelInfo.yPos + levelInfo.height - this.halfHeight * this.cScale + (this.yMost || 0));
+        if(this.keepInGrid)
+        {
+            //Keep it in the grid
+            this.focusXPos = constrain(this.focusXPos, levelInfo.xPos + this.halfWidth * this.cScale, 
+                                        levelInfo.xPos + levelInfo.width - this.halfWidth * this.cScale);
+            this.focusYPos = constrain(this.focusYPos, levelInfo.yPos + this.halfHeight * this.cScale, 
+                                        levelInfo.yPos + levelInfo.height - this.halfHeight * this.cScale + (this.yMost || 0));
+        }
 
         //Get the corners position on the grid
         this.upperLeft = cameraGrid.getPlace(this.focusXPos + EPSILON - this.halfWidth, this.focusYPos + EPSILON - this.halfHeight);
@@ -9368,6 +9548,9 @@ var Rect = function(xPos, yPos, width, height)
     this.boundingBox.height = height;
     this.physics.shape = "rect";
     this.type = "block";
+
+    physics.getMiddleXPos(this);
+    physics.getMiddleYPos(this);
 
     this.draw = function()
     {
@@ -10775,6 +10958,196 @@ var Ring = function(xPos, yPos, diameter, colorValue)
 };
 gameObjects.addObject("ring", createArray(Ring));
 
+// Helix's Space Ship
+var HelixShip = function(xPos, yPos, width, height)
+{
+    DynamicRect.call(this, xPos, yPos, width, height);
+
+    this.physics.solidObject = false;
+
+    this.angle = 30;
+
+    this.goto = shipGoto;
+
+    this.messages = {
+        up : true,
+        "start" : {
+            message : "Ship: Down to open hatch, q to enter.",
+            choices : {
+                "exit" : "..."
+            }
+        }
+    };
+
+    this.flames = [];
+    this.flames.add = function(x, y)
+    {
+        this.push({
+            x : x, 
+            y : y,
+            angle : 90 + random(-40, 40),
+            speed : random(1, 2),
+            diameter : ((random() < 0.5) ? 6 : 7),
+            color : color(9, 100, 170, 210),
+            life : random(5, 20)
+        });
+    };
+    this.flames.draw = function()
+    {
+        noStroke();
+        strokeWeight(1);
+        for(var i = 0; i < this.length; i++)
+        {
+            fill(this[i].color);
+            fastRect(this[i].x, this[i].y, round(random(2, 4)), round(this[i].speed * 8));
+        }
+    };
+    this.flames.update = function()
+    {
+        var a;
+        for(var i = this.length - 1; i >= 0; i--)
+        {
+            if(this[i].life < 0)
+            {
+                this.splice(i, 1);
+                continue;
+            }
+
+            this[i].life--;
+
+            a = this[i].angle * DEG_TO_RAD;
+            this[i].x += cos(a) * this[i].speed;
+            this[i].y += sin(a) * this[i].speed;
+        }
+    };
+
+    this.lastAddTime = 0;
+    this.nextTime = random(20, 50);
+
+    this.draw = function()
+    {
+        this.flames.draw();
+        this.flames.update();
+
+        if(this.flames.length < 100 && millis() - this.lastAddTime > this.nextTime)
+        {
+            for(var i = 0; i < random(3, 5); i++)
+            {
+                this.flames.add(this.middleXPos + random(-20, 20), this.yPos + this.height - 20);
+            }
+
+            this.lastAddTime = millis();
+            this.nextTime = random(20, 50);
+        }
+
+        pushMatrix();
+            translate(this.middleXPos, this.middleYPos);
+            rotate(this.angle);
+
+            
+            fill(this.color);
+
+            this.imageName = "helixShip";
+
+            if(this.hatchOpen)
+            {
+                this.imageName += "Open";
+            }
+
+            // rect(-this.halfWidth, -this.halfHeight, this.width, this.height);
+            fastImage(loadedImages[this.imageName], -this.halfWidth, -this.halfHeight, this.width, this.height);
+
+           
+        popMatrix();
+    };
+
+    this.lastChangeTime = 0;
+
+    var loops = 0;
+
+    var self = this;
+
+    var _lastUpdate = this.update;
+    this.update = function()
+    {
+        // _lastUpdate.apply(this, arguments);
+
+        if(!levels[levelInfo.level].save.messaged && loops > 200)
+        {
+            talkHandler.start(this.messages, "start", "", true);
+            levels[levelInfo.level].save.messaged = true;
+        }
+
+        loops++;
+
+        if(this.goto.launched)
+        {
+            if(!this.vInit)
+            {
+                console.log("launching!");
+
+                cam.attach(function()
+                {
+                    cam.keepInGrid = false;
+
+                    return self;
+                },
+                false, 99999999, function()
+                {   
+                    cam.keepInGrid = true;
+                });
+
+                this.vInit = true;
+            }
+            this.angle = 0;
+
+            // var angle = (this.angle - 90) % 360 + 180;
+            this.xVel = 0;//sin(this.angle * DEG_TO_RAD) * 7;
+            this.yVel = -4;//cos(this.angle * DEG_TO_RAD) * 7;
+
+            this.xPos += this.xVel;
+            this.yPos += this.yVel;
+
+            physics.getMiddleXPos(this);
+            physics.getMiddleYPos(this);
+
+            this.updateBoundingBox();
+
+            // if(player.controls.left())
+            // {
+            //     this.angle -= 1;
+            // }
+            // if(player.controls.right())
+            // {
+            //     this.angle += 1;                
+            // }
+        }
+    };
+
+    this.onCollide = function(object)
+    {
+        if(object.arrayName === "player")
+        {
+            if(object.yPos < this.yPos + 180 && this.angle === 30)
+            {
+                if(object.activate() && millis() - this.lastChangeTime > 500)
+                {
+                    this.hatchOpen = !this.hatchOpen;
+                    this.lastChangeTime = millis();
+                }
+                if(this.hatchOpen && object.controls.enter())
+                {
+                    game.gameState = "play";
+                    player.goto.doorSymbol = 'a';
+                    player.goto.travelType = "door";
+                    loader.startLoadLevel("helixShip", "door");
+                }
+            }
+        }   
+    };
+};
+gameObjects.addObject("helixShip", createArray(HelixShip));
+
 var Ground = function(xPos, yPos, width, height, colorValue, name, dir)
 {
     Rect.call(this, xPos, yPos, width, height);
@@ -12068,7 +12441,7 @@ var Door = function(xPos, yPos, width, height, colorValue)
     this.goto = {};
     this.type = "use";
     
-    if(backgrounds.background === "deep")
+    if(backgrounds.background === "deep" || levelInfo.theme === "ship")
     {
         this.color = color(74, 74, 74);
     }
@@ -19669,6 +20042,10 @@ var Player = function(xPos, yPos, width, height, colorValue)
         {
             return keys[' '];
         },
+        enter : function()
+        {
+            return keys.q;
+        }
     };
 
     this.keyPressed = function()
@@ -20436,7 +20813,7 @@ var BubbleShield = function(xPos, yPos, diameter, colorValue, hp)
 
         textAlign(CENTER, CENTER);
         textSize(16);
-        text(floor(this.hp), this.xPos, this.yPos - this.radius);
+        text(max(0, floor(this.hp)), this.xPos, this.yPos - this.radius);
     };
 
     this.gravity = 0;
@@ -24169,6 +24546,28 @@ var Crystal = function(xPos, yPos, diameter, config)
 };
 gameObjects.addObject("crystal", createArray(Crystal));
 
+var PalmTree = function(xPos, yPos, width, height, imageName, flipped)
+{
+    Rect.call(this, xPos, yPos, width, height);
+
+    this.physics.solidObject = false;
+
+    var variants = ["palmTree", "shortPalmTree", "tallPalmTree"];
+
+    this.imageName = variants[floor(random(0, variants.length))];
+   
+    if(this.imageName === "tallPalmTree")
+    {
+        this.xPos += this.width * (2/3);
+    }
+
+    this.draw = function()
+    {
+        fastImage(loadedImages[this.imageName], this.xPos, this.yPos, this.width, this.height);
+    };
+}; 
+gameObjects.addObject("palmTree", createArray(PalmTree));
+
 var Lamp = function(xPos, yPos, width, height, useAlt)
 {
     Rect.call(this, xPos, yPos, width, height);
@@ -25685,54 +26084,6 @@ var levelScripts = {
             }
 
             iceDragon.draw(true);
-
-            // this should probably be in update.
-
-            // if(mouseIsPressed && mouseButton === RIGHT && (!this.lastAddTime || millis() - this.lastAddTime > 300))
-            // {
-            //     iceDragon.track.add(cam.focusXPos - cam.halfWidth + mouseX, cam.focusYPos - cam.halfHeight + mouseY);
-            //     iceDragon.track.getPerimeter();
-            //     this.lastAddTime = millis();
-            // }
-
-            // if(keys["/"])
-            // {
-            //     var track = [];
-            //     for(var i = 0; i < iceDragon.track.length; i++)
-            //     {
-            //         track.push({
-            //             x: iceDragon.track[i].xPos,
-            //             y: iceDragon.track[i].yPos
-            //         });
-            //     }
-
-            //     iceDragon.track2.length = 0;        
-
-            //     var track2 = getParallelLines(track, iceDragon.apart);
-
-            //     for(var i = 0; i < track2.length; i++)
-            //     {
-            //         iceDragon.track2.push({
-            //             xPos: track2[i].x,
-            //             yPos: track2[i].y
-            //         });
-            //     }
-
-            //     iceDragon.track.getPerimeter();
-            // }
-
-            // if(keys[">"] && (!this.lastAddPointTime || millis() - this.lastAddPointTime > 600))
-            // {
-            //     iceDragon.addPoint();
-            //     this.lastAddPointTime = millis();
-            // }
-
-            // if(keys["z"] && (!this.lastRemovePointTime || millis() - this.lastRemovePointTime > 600))
-            // {
-            //     iceDragon.track.pop();
-            //     iceDragon.track2.pop();
-            //     this.lastRemovePointTime = millis()
-            // }
         },
     },
     "intersection" : {
@@ -26112,29 +26463,6 @@ var levelScripts = {
                     _this.counter++;
                 };
             });
-
-            // var _this = this;
-            // gameObjects.getObject("exclamationBlock")[0].event = function()
-            // {
-            //     game.cutScening = true;
-            //     var startTime = millis();
-            //     cam.attach(function()
-            //     {   
-            //         var itemChest = gameObjects.getObject("itemChest")[0];
-
-            //         if(millis() - startTime > 1000)
-            //         {
-            //             itemChest.goto.hidden = false;
-            //         }
-
-            //         return itemChest;
-            //     }, 
-            //     false, 2000, function()
-            //     {
-            //         game.cutScening = false;
-            //         levels[levelInfo.level].save.finished = true;
-            //     });
-            // };
         },
         apply : function()
         {
@@ -26333,6 +26661,155 @@ var levelScripts = {
 
             cameraGrid.removeReference(captainFleep);
             cameraGrid.addReference(captainFleep);
+        }
+    },
+    "desert y" : {
+        afterLoad : function()
+        {
+            sounds.playSound("zooba.wav");
+        }
+    },
+    "desert oasis" : {
+        afterLoad : function()
+        {
+            var helixShip = gameObjects.getObject("helixShip").add(970, 154, 200, 432);
+
+            sounds.playSound("zooba.wav");
+
+            helixShip.update();
+
+            cameraGrid.addReference(helixShip);
+        },
+        apply : function()
+        {
+            var helixShip = gameObjects.getObject("helixShip")[0];
+
+            if(helixShip.yPos < 0)
+            {
+                helixShip.update();
+
+                if(helixShip.yPos < -10000)
+                {
+                    levelInfo.levelShade = color(0, 0, 0, 40);
+                }
+
+                if(helixShip.yPos < -5000)
+                {
+                    if(!game.dropRate)
+                    {
+                        game.dropRate = 0.01;
+                    }
+
+                    game.dropRate += 0.15;
+                }
+
+                for(var i = 0; i < graphics.inClouds.length; i++)
+                {
+                    graphics.inClouds[i].yPos += 0.1;
+                }
+            }
+        }
+    },
+    "helixShip" : {
+        afterLoad : function()
+        {
+            var helixShip = gameObjects.getObject("helixShip").add(9999999, 9999999, 2, 2);
+            helixShip.draw = function() {};
+
+            var door = gameObjects.getObject("door")[1];
+
+            var img = loadedImages["windowSky"];
+
+            var back = gameObjects.getObject("imageBlock").add(levelInfo.unitWidth, levelInfo.unitHeight * 3, img.width * 1.023, img.height * 1.023, "windowSky");
+            back.physics.solidObject = false;
+            cameraGrid.addReference(back);
+
+            var exitBlock = gameObjects.getObject("imageBlock").filter(object => object.imageName === "exit")[0];
+           
+            exitBlock.physics.solidObject = false;
+            exitBlock.onCollide = function(object, info)
+            {
+                if(object.arrayName === "player" && object.yVel < 0)
+                {
+                    loader.startLoadLevel("desert oasis", "player", 0, function()
+                    {
+                        var helixShip = gameObjects.getObject("helixShip")[0];
+
+                        player.xPos = helixShip.xPos + helixShip.halfWidth;
+                        player.yPos = helixShip.yPos + 180 - player.height;
+
+                        cameraGrid.removeReference(player);
+                        cameraGrid.addReference(player);
+
+                        setTimeout(function()
+                        {
+                            cameraGrid.removeReference(player);
+                            cameraGrid.addReference(player);
+                        }, 3000);
+                    });
+                }
+            };
+
+            var blockSketchy = gameObjects.getObject("imageBlock").filter(object => object.imageName === "blockSketchy")[0];
+
+            blockSketchy.onCollide = function(object, info)
+            {
+                if(object.arrayName === "player" && object.activate && object.activate())
+                {
+                    controlPanel.open();
+                    game.switchGameState(true, "controlPanel", true); 
+                }
+            };
+
+            door.onCollide = function() {};
+            door.draw = function() {};
+            door.update = function() {};
+        },
+        apply : function()
+        {
+            if(!levels[levelInfo.level].save.shown)
+            {
+                talkHandler.start({
+                    up : true,
+                    "start" : {
+                        message : "Welcome to your ship /username !",
+                        choices : {
+                            "next" : "..."
+                        }
+                    },
+                    "next" : {
+                        message : "To access the control panel press down on\nthis box right here.",
+                        choices : {
+                            "next2" : "..."
+                        }
+                    },
+                    "next2" : {
+                        message : "To exit, just jump into this '+' shaped box.",
+                        choices : {
+                            "exit" : "..."
+                        }
+                    }
+                }, 
+                "start", "");
+
+                levels[levelInfo.level].save.shown = true;
+            }
+        }
+    },
+    "helixShip2" : {
+        afterLoad : function()
+        {
+            var helixShip = gameObjects.getObject("helixShip").add(9999999, 9999999, 2, 2);
+            helixShip.draw = function() {};
+
+            var img = loadedImages["windowSky"];
+
+            var newHeight = 7 * levelInfo.unitHeight;
+            var ratio = (newHeight / img.height);
+
+            var back = gameObjects.getObject("imageBlock").add(levelInfo.unitWidth * 5, levelInfo.unitHeight * 3, img.width * ratio, newHeight, "windowSky");
+            back.physics.solidObject = false;
+            cameraGrid.addReference(back);
         }
     }
 };
@@ -26829,7 +27306,11 @@ levels.build = function(plan)
             switch(level.plan[row][col])
             {
                 case 'g' :
-                    if(levelInfo.theme === "underground")
+                    if(table['g'] === "blockSketchy")
+                    {
+                        gameObjects.getObject("imageBlock").add(xPos, yPos, levelInfo.unitWidth, levelInfo.unitHeight, table['g']).physics.solidObject = false;
+                    }
+                    else if(levelInfo.theme === "underground")
                     {
                         gameObjects.getObject("stomper").add(xPos, yPos, levelInfo.unitWidth, levelInfo.unitHeight);
                     }else{
@@ -26838,14 +27319,18 @@ levels.build = function(plan)
                     break;
 
                 case 'd' :
-                    if(levelInfo.isLightTower)
+                    if(levelInfo.theme === "ship")
+                    {
+                        gameObjects.getObject("rect").add(xPos, yPos, levelInfo.unitWidth, levelInfo.unitHeight).color = color(0, 0, 0);
+                    }
+                    else if(levelInfo.isLightTower)
                     {
                         gameObjects.getObject("laserBlock").add(xPos, yPos, levelInfo.unitWidth, levelInfo.unitHeight, 'd');
                     }else{
                         gameObjects.getObject("dirt").add(xPos, yPos, levelInfo.unitWidth, levelInfo.unitHeight, color(107, 83, 60));
                     }
                     break;
-                
+
                 case ':' :
                     gameObjects.getObject("stalactite").add(xPos, yPos, levelInfo.unitWidth, levelInfo.unitHeight, "BlueStalactite").physics.solidObject = false;
                     break;
@@ -26863,18 +27348,22 @@ levels.build = function(plan)
                     break;
 
                 case 'b' : 
-                    if(levelInfo.theme === "underground")
+                    if(table['b'] === "steelBlock")
+                    {
+                        gameObjects.getObject("imageBlock").add(xPos, yPos, levelInfo.unitWidth, levelInfo.unitHeight, "steelBlock");
+                    }
+                    else if(levelInfo.theme === "underground")
                     {
                         gameObjects.getObject("imageBlock").add(xPos, yPos, levelInfo.unitWidth, levelInfo.unitHeight, "triangleBlockBlue");
                     }else{
                         gameObjects.getObject("block").add(xPos, yPos, levelInfo.unitWidth, levelInfo.unitHeight, blockColor);
                     }
                     break;
-                
+
                 case 'w' : 
                     gameObjects.getObject("water").add(xPos, yPos, levelInfo.unitWidth, levelInfo.unitHeight);
                     break;
-               
+
                 case 'z' :
                     gameObjects.getObject("lever").add(xPos, yPos, levelInfo.unitWidth, levelInfo.unitHeight);
                     break;
@@ -27061,7 +27550,13 @@ levels.build = function(plan)
                 case '~' :
                     if(table['~'])
                     {
-                        gameObjects.getObject("imageBlock").add(xPos - levelInfo.unitWidth * 0.5, yPos - levelInfo.unitHeight * 0.5, levelInfo.unitWidth * 1.5, levelInfo.unitHeight * 1.5, table['~']).physics.solidObject = false; 
+                        if(table['~'] === "palmTree")
+                        {
+                            gameObjects.getObject("palmTree").add(xPos - levelInfo.unitWidth * 2.0, yPos - levelInfo.unitHeight * 5.0, 
+                                                                         levelInfo.unitWidth * 3.0, levelInfo.unitHeight * 6);
+                        }else{
+                            gameObjects.getObject("imageBlock").add(xPos - levelInfo.unitWidth * 0.5, yPos - levelInfo.unitHeight * 0.5, levelInfo.unitWidth * 1.5, levelInfo.unitHeight * 1.5, table['~']).physics.solidObject = false; 
+                        }
                     }else{
                         gameObjects.getObject("imageBlock").add(xPos, yPos, levelInfo.unitWidth, levelInfo.unitHeight, "cathodes2"); 
                     }
@@ -27128,7 +27623,11 @@ levels.build = function(plan)
                     break;
                     
                 case '+' :
-                    if(levelInfo.theme === "underground")
+                    if(levelInfo.theme === "ship")
+                    {
+                        gameObjects.getObject("imageBlock").add(xPos, yPos, levelInfo.unitWidth, levelInfo.unitHeight, "exit");
+                    }
+                    else if(levelInfo.theme === "underground")
                     {
                         gameObjects.getObject("slasher").add(xPos, yPos, levelInfo.unitWidth, levelInfo.unitHeight);
                     }else{
@@ -27157,7 +27656,7 @@ levels.build = function(plan)
                 case 'P' : 
                     gameObjects.getObject("movingPlatform").add(xPos, yPos, levelInfo.unitWidth, levelInfo.unitHeight, color(20, 20, 220), "up", true);
                     break;
-                
+
                 case 'x' :
                     gameObjects.getObject("crate").add(xPos, yPos, levelInfo.unitWidth, levelInfo.unitHeight);
                     break;
@@ -27167,7 +27666,12 @@ levels.build = function(plan)
                     break;
 
                 case '/' :
-                    if(levelInfo.theme === "underground")
+                    if(levelInfo.theme === "surface")
+                    {
+                        gameObjects.getObject("palmTree").add(xPos - levelInfo.unitWidth * 2.0, yPos - levelInfo.unitHeight * 5.0, 
+                                                              levelInfo.unitWidth * 3.0, levelInfo.unitHeight * 6);
+                    }
+                    else if(levelInfo.theme === "underground")
                     {
                         gameObjects.getObject("lamp").add(xPos + levelInfo.unitWidth * 0.25, yPos - levelInfo.unitHeight - 16, levelInfo.unitWidth / 2, levelInfo.unitHeight * 2 + 16);
                     }else{
@@ -27192,7 +27696,11 @@ levels.build = function(plan)
                     break;
 
                 case 'M' :
-                    if(levelInfo.theme !== "winter")
+                    if(table['M'] === "windowSky")
+                    {
+                        gameObjects.getObject("imageBlock").add(xPos, yPos, 236/2, 180/2, "windowSky").physics.solidObject = false;
+                    }
+                    else if(levelInfo.theme !== "winter")
                     {
                         gameObjects.getObject("movingPlatform").add(xPos, yPos, levelInfo.unitWidth, levelInfo.unitHeight, color(200, 200, 20), "up");
                         gameObjects.getObject("movingPlatform").getLast().ySpeed = 1.5;
@@ -27619,8 +28127,8 @@ loader.loadLevel = function(level, step, levelStep)
             levelScripts.beforeLoad();
             lighting.end();
             delete screenUtils.infoBar.bossArrayName;
-
             delete cam.yMost;
+            delete game.dropRate;
             break;
         
         case 1 :
@@ -27857,7 +28365,14 @@ game.loadSave = function(saveDataName)
         (configs[i] || {}).shownName = discoveredAreas[i].shownName;
     }
 
-    // var player = gameObjects.getObject("player").getLast();
+    // if(this.data.ship && this.data.ship.goto)
+    // {
+    //     for(var i in this.data.ship.goto)
+    //     {
+    //         shipGoto[i] = this.data.ship.goto[i];
+    //     }
+    // }
+
     if(player.dead)
     {
         gameObjects.getObject("chest").forEach(function(element, index, array)
@@ -28314,6 +28829,9 @@ game.save = function(checkPoint)
             powers : player.getPowers(),
             discoveredPowers : player.discoveredPowers,
             currentPower : player.discoveredPowersHandler.currentPower,
+        },
+        ship : {
+            goto : shipGoto
         },
         autoCheckPoints: game.autoCheckPoints,
         hideKeys: game.hideKeys,
@@ -28977,13 +29495,13 @@ game.story = function()
     if(this.story.timer > 20 && this.story.timer < 255)
     {
         fill(30, 170, 100, 255 - this.story.timer);
-        text("Press any key to skip.", width * 0.5, 385);
+        text("Press Enter/click for next page.", width * 0.5, 385);
         this.endMillis = millis();
     }
     if(this.endMillis !== undefined && millis() - this.endMillis > 400)
     {
         fill(30, 170, 100, 255 - ((millis() - this.endMillis - 400) * 255 / 2500));
-        text("Press Enter to contnue.", width * 0.5, 385);
+        text("Press any other key to skip.", width * 0.5, 385);
         if(millis() - this.endMillis > 2900)
         {
             this.endMillis = undefined;
@@ -28992,10 +29510,7 @@ game.story = function()
 
     if(this.story.needsInit)
     {
-        storyHandler.scroll = 0;
-        storyHandler.scrollVel = 0;
         storyHandler.message = "";
-        storyHandler.timer = 0;
         storyHandler.storyIndex = 0;
         storyHandler.done = false;
         this.story.needsInit = false;
@@ -29007,17 +29522,17 @@ game.story = function()
     textAlign(CENTER, CENTER);
     translate(0, storyHandler.scroll);
     fill(storyHandler.color || color(31, 173, 88));
-    text(storyHandler.message, (width * 0.5), HALF_HEIGHT);
+    text(storyHandler.message || (screenUtils.fade.fading ? "" : "Press any key to exit"), width * 0.5, HALF_HEIGHT);
     popMatrix();
 
     game.hideLoadView = true;
-   
+    
     if(!this.exited)
     {
         sounds.getSound(game.sounds.titleScreen).muted = true;
     }
 
-    if((keyIsPressed || storyHandler.done) && !ENTER_KEY && this.story.timer > 20)
+    if(this.story.timer > 20 && (storyHandler.storyIndex >= storyHandler.story.length || keyIsPressed && !ENTER_KEY))
     {   
         game.story.needsInit = true;
         this.story.timer = 0;
@@ -29170,6 +29685,47 @@ game.inventoryMenu.keyPressed = function()
     if(!inventoryMenu.oFuncs || !inventoryMenu.oFuncs.close)
     {
         inventoryMenu.tryToClose();
+    }
+};
+
+game.controlPanel = function()
+{
+    textFont(fonts.menu);
+
+    image(screenUtils.screenShot, 0, 0, width, height);
+
+    keys[27] = false;
+    ESC_KEY = false;
+
+    controlPanel.update();
+    controlPanel.draw();
+
+    game.switchGameState(controlPanel.state === "closed", "play"); 
+};
+game.controlPanel.mousePressed = function()
+{    
+    controlPanel.mousePressed();
+    
+    if(controlPanel.state === "closed" || mouseButton === RIGHT)
+    {
+        return;
+    }
+
+    if(mouseY < 60 || mouseY > 340)
+    {
+        controlPanel.close();
+    }
+};
+game.controlPanel.keyPressed = function()
+{
+    if(controlPanel.state === "closed")
+    {
+        return;
+    }
+
+    if(keys.e || keys.s || keys[DOWN])
+    {
+        controlPanel.close();
     }
 };
 

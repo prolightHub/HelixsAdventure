@@ -137,27 +137,28 @@ sounds.addSound("explosion.mp3");
 sounds.addSound("whistle1.mp3");
 sounds.addSound("laser3.mp3", undefined, 0.15);
 sounds.addSound("rumble.mp3");
-sounds.addSound("swoosh.mp3", undefined, 0.15);
+sounds.addSound("swoosh.mp3", undefined, 0.20);
 sounds.addSound("coin.mp3");
 sounds.addSound("dooropen.mp3");
 sounds.addSound("quickBoom.wav");
 sounds.addSound("zoom1.wav");
 // sounds.addSound("soup4.wav");
-// sounds.addSound("zooba.wav");
+sounds.addSound("zooba.wav");
 sounds.addSound("whoo.wav");
-sounds.addSound("hit2.mp3");
+// sounds.addSound("hit2.mp3");
 sounds.addSound("Explosion5.wav");
 // sounds.addSound("smchoof.wav");
 
-
+// Unused :
+// soup4, smchoof, hit2
 ////////////////////////////////////////////////////////
 
 
 // This stuff einkurogane
-
 sounds.addSound("planet_search_2.mp3", "song");
 sounds.addSound("overworld.mp3", "song");
 sounds.addSound("ninja_temple.mp3", "song");
 sounds.addSound("icy_slopes.mp3", "song");
 sounds.addSound("underground.mp3", "song");
 sounds.addSound("space.mp3", "song");
+
