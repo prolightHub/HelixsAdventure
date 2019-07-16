@@ -930,7 +930,7 @@ var sketch = function(processing) /*Wrapper*/
             -desert oasis
 
     * 0.9.7
-        Added HelixShip,
+        Added HelixShip.
         Imported graphics for HelixShip
         Removed air background.
         Created palm trees
@@ -942,6 +942,15 @@ var sketch = function(processing) /*Wrapper*/
         Added falling blocks in the "night" level.
         Remade storyHandler, now has less code and you can read at your own pace.
         Remade tutorial level (It had too many descriptions).
+        Got rid of some obscure things in desert oasis.
+        Got rid of some (other) obscure with the ship.
+        Made desert quick sand want to drag you down more.
+        Game will now not go into 30 fps mode when in the start/story/selectSaveFile game states.
+        Made helixShip be able to go to space.     
+        Added extra launching details.
+        Created space.
+        Made helixShip flame trail more realistic.
+        Made text/messages places update.
 
     Next :   
         Will do:           
@@ -953,6 +962,8 @@ var sketch = function(processing) /*Wrapper*/
         Add chest appearing sound effect. Enemy damage sound effect?
         Speed up image rendering by doing it directly!
         Update sound settings.
+        Make bubbleShield block all preojectils.
+        Make trees not regenerate after reloading the level.
         
     In the future:
         --More music/sound effects utilized.
@@ -2509,7 +2520,7 @@ var talkHandler = {
     },
     onEnd : function()
     {
-        //Set onEnd and do stuff here
+        // Set onEnd and do stuff here
     },
     end : function()
     {
@@ -4137,7 +4148,7 @@ var backgrounds = {
                     sand(330, 320);
 
                     fill(246-40+12, 194, 69+40);
-                    rect(0, 340, 400, 40);
+                    rect(0, 340, 400, 45);
 
                     fill(246+12, 192, 69+40);
                     rect(0, 380, 400, 300);
@@ -4187,7 +4198,7 @@ var backgrounds = {
                         sand(330, 320);
 
                         fill(218, 194, 109);
-                        rect(0, 340, 400, 40);
+                        rect(0, 340, 400, 45);
 
                         fill(258, 192, 109);
                         rect(0, 380, 400, 300);
@@ -4195,7 +4206,6 @@ var backgrounds = {
 
                     popMatrix();
                 }else{
-
                     ctx.drawImage(backgrounds.backgrounds.sand.img.sourceImg, 0, 0, width, height);
                 }
 
@@ -4222,6 +4232,99 @@ var backgrounds = {
             {
                 let img = backgrounds.backgrounds.ship.img;
                 ctx.drawImage(img.sourceImg, 0, 0, width, height);
+            }
+        },
+        "atmosphere" : {
+            factor : 1,
+            stars : [],
+            starLate : 0, // star translate.
+            primeLoad : function()
+            {
+                for(var i = 0; i < 135; i++)
+                {
+                    this.stars.push([random(0, 400), random(0, 400), random(0, 1.5)]);
+                }
+            },
+            reset : function()
+            {
+                this.starLate = 0;
+                this.factor = 1.0;
+            },
+            load : function()
+            {
+                this.reset();
+            },
+            drawBackground : function()
+            {
+                var x, y, r, g, b;
+
+                var f = this.factor;
+
+                for(y = 0; y < 400; y += 2)
+                {
+                    r = 24;
+                    g = 340 - (250 - y * 0.3);
+                    b = (405 + y - -20 * 260 / 600) + 120 - y * 0.4;
+
+                    ctx.fillStyle = "rgba(" + r * f + ',' + g * f + ',' + b * f + ",100)";
+                    ctx.fillRect(0, y, width, 2);
+                }
+
+                if(f < 1.0)
+                {
+                    var t = 400 * (1.0 - f);
+                    stroke(255, 255, 255);
+
+                    var stars = this.stars;
+
+                    for(var i = 0; i < stars.length; i++)
+                    {
+                        if(stars[i][1] > t)
+                        {
+                            continue;
+                        }
+
+                        strokeWeight(stars[i][2]);
+                        point(stars[i][0], (stars[i][1] + this.starLate) % 400);
+                    }
+                }
+
+                noStroke();
+                fill(225, 229, 40);
+                circle(312, 60 + (game.dropRate || 0) * 0.55, 38);
+
+                pushMatrix();
+                    translate(0, game.dropRate || 0);
+
+                    graphics.inClouds.draw();
+                    if(!screenUtils.fade.fading)
+                    {
+                        graphics.inClouds.update();
+                    }
+                popMatrix();
+            }
+        },
+        "space" : {
+            stars : [],
+            load : function()
+            {
+                this.stars.length = 0;
+                this.stars = backgrounds.backgrounds.atmosphere.stars.concat(this.stars);
+            },
+            drawBackground : function()
+            {
+                ctx.fillStyle = "rgba(0, 0, 0, 100)";
+                ctx.fillRect(0, 0, 600, 600);
+
+                // var stars = this.stars;
+
+                // stroke(255, 255, 255);
+
+                // for(var i = 0; i < stars.length; i++)
+                // {
+                //     strokeWeight(stars[i][2]);
+                //     point(stars[i][0], stars[i][1]);
+                // }
             }
         }
     },
@@ -5293,12 +5396,13 @@ var inventoryMenu = {
             }
         }
     },
+    "warpToShip" : new Button(188, 104, 142, 18, color(28, 180, 48, 100), "Warp To Ship Instead", undefined, 12),
     menuButtons : {
         home : new Button(334, 100, 64, 26, color(12, 60, 160, 130), "Home"),
         items : new Button(334, 126, 64, 26, color(12, 60, 160, 130), "Items"),
         crystals : new Button(334, 152, 64, 26, color(12, 60, 160, 130), "Crystals"),
     },
-
+    lastTryTime : 0,
     update : function()
     {
         if(this.state === "opening")
@@ -5356,6 +5460,11 @@ var inventoryMenu = {
                     scene.buttons.coins.hover = "The amount of coins you've collected so far.";
                     scene.buttons.score.hover = "Your total score.";
                     scene.buttons.gems.hover = "???";
+
+                    if(levels["helixShip"].save.shown)
+                    {
+                        scene.buttons.gems.hover = "Gems Increase max coin amount and can be used as a\nprolonged fuel for Space Ships.";
+                    }
 
                     var j = 0;
                     for(var i in player.discoveredPowers)
@@ -5600,6 +5709,23 @@ var inventoryMenu = {
 
                         this.counting = false;
                     }
+                }
+
+                if(this.scenes["crystals"].buttons.warpToShip && this.scenes["crystals"].buttons.warpToShip.clicked(mouseX, mouseY) && 
+                    (millis() - this.lastTryTime > 1000))
+                {
+                    game.gameState = "play";
+                    player.goto.doorSymbol = 'a';
+                    player.goto.travelType = "door";
+                    loader.startLoadLevel("helixShip", "door");
+                    this.lastTryTime = millis();
+                }
+
+                // Only have this button appear when the player has discovered their ship.
+                if(typeof levels["desert oasis"].save === "object" && levels["desert oasis"].save.discoveredShip && 
+                    typeof this.scenes["crystals"].buttons.warpToShip === "undefined")
+                {
+                    this.scenes["crystals"].buttons.warpToShip = this.warpToShip;
                 }
 
                 break;
@@ -5995,6 +6121,7 @@ var controlPanel = {
     slideY : 60,
     buttons : {
         launch : new Button(80, 120, 240, 26, color(12, 60, 160, 130), "Launch"),
+        pilot : new Button(160, 170, 80, 26, color(12, 60, 160, 130), "Pilot"),  
     },
     draw : function()
     {
@@ -6016,16 +6143,22 @@ var controlPanel = {
         if(!this.drawInit)
         {
             this.buttons.launch.textColor = color(255, 255, 255, 200);
+            this.buttons.pilot.textColor = color(255, 255, 255, 200);
 
             this.drawInit = true;
         }
 
-        this.buttons.launch.disabled = (player.gems < 10);
+        this.buttons.launch.disabled = (player.gems < 10 || shipGoto.inSpace);
 
         for(var i in this.buttons)
         {
             if(typeof this.buttons[i] === "object")
             {
+                if(!shipGoto.inSpace && i === "pilot")
+                {
+                    continue;
+                }
+
                 this.buttons[i].draw();
 
                 if(this.buttons[i].disabled)
@@ -6044,23 +6177,50 @@ var controlPanel = {
         {
             if(typeof this.buttons[i] === "object" && this.buttons[i].clicked())
             {
-                if(this.buttons[i].disabled)
+                if(this.buttons[i].disabled || !shipGoto.inSpace && i === "pilot")
                 {
                     continue;
                 }
 
                 switch(i)
                 {
+                    case "pilot" :
+                        this.close();
+
+                        game.switchGameState(true, "play", true);
+
+                        game.disablePause = true;
+                        setTimeout(function()
+                        {
+                            loader.startLoadLevel("space", "ship", 0, function()
+                            {
+                                cameraGrid.removeReference(player);
+
+                                var helixShip = gameObjects.getObject("helixShip")[0];
+
+                                cam.attach(function()
+                                {
+                                    return helixShip;             
+                                }, true);
+
+                                game.disablePause = false;
+                            });
+                        }, 1000);
+                        break;
+
                     case "launch" :
                         if(!shipGoto.launched)
                         {
                             this.close();
 
+                            game.disablePause = true;
                             game.switchGameState(true, "play", true);
 
                             setTimeout(function()
                             {
                                 shipGoto.launch();
+
+                                game.disablePause = false;
                             }, 1000);
                         }
                         break;
@@ -8257,6 +8417,7 @@ var Camera = function(xPos, yPos, width, height)
     };
 
     this.keepInGrid = true;
+    this.scaleOut = -0.6;
 
     this.view = function(object)
     {
@@ -8295,16 +8456,19 @@ var Camera = function(xPos, yPos, width, height)
         this.scale += this.scaleVel;
         this.scale = constrain(this.scale, 0, this.maxScale);
 
-        if(!this.keepInGrid)
+        if(!this.keepInGrid || this.scaled)
         {
-            this.scale = -0.6;
+            this.scale = this.scaleOut || 0;
         }
 
-        this.scaleZoom(!this.keepInGrid);
+        this.scaleZoom(!this.keepInGrid || this.scaled);
 
-        this.cScale = (1 - this.scale * 0.75);
+        if(!this.keepInGrid || !this.scaled)
+        {
+            this.cScale = (1 - this.scale * 0.75);
+        }
 
-        //Get the camera position
+        // Get the camera position
         var xPos = object.boundingBox.xPos + (object.boundingBox.width / 2);
         var yPos = object.boundingBox.yPos + (object.boundingBox.height / 2);
 
@@ -8316,18 +8480,21 @@ var Camera = function(xPos, yPos, width, height)
 
         if(this.keepInGrid)
         {
-            //Keep it in the grid
-            this.focusXPos = constrain(this.focusXPos, levelInfo.xPos + this.halfWidth * this.cScale, 
-                                        levelInfo.xPos + levelInfo.width - this.halfWidth * this.cScale);
-            this.focusYPos = constrain(this.focusYPos, levelInfo.yPos + this.halfHeight * this.cScale, 
-                                        levelInfo.yPos + levelInfo.height - this.halfHeight * this.cScale + (this.yMost || 0));
+            // Keep it in the grid
+            this.focusXPos = constrain(this.focusXPos, levelInfo.xPos + (-this.headingX || this.halfWidth * this.cScale), 
+                                        levelInfo.xPos + levelInfo.width - (-this.headingX || this.halfWidth * this.cScale));
+            this.focusYPos = constrain(this.focusYPos, levelInfo.yPos + (-this.headingY || this.halfHeight * this.cScale), 
+                                        levelInfo.yPos + levelInfo.height - (-this.headingY || this.halfHeight * this.cScale + (this.yMost || 0)));
         }
 
-        //Get the corners position on the grid
-        this.upperLeft = cameraGrid.getPlace(this.focusXPos + EPSILON - this.halfWidth, this.focusYPos + EPSILON - this.halfHeight);
-        this.lowerRight = cameraGrid.getPlace(this.focusXPos + this.halfWidth - EPSILON, this.focusYPos + this.halfHeight - EPSILON);
+        var cs = (1 - this.scale);
+
+        // Get the corners position on the grid
+        this.upperLeft = cameraGrid.getPlace(this.focusXPos + EPSILON - (this.headingX || this.halfWidth * cs), this.focusYPos + EPSILON - (this.headingY || this.halfHeight * cs));
+        this.lowerRight = cameraGrid.getPlace(this.focusXPos + (this.headingX || this.halfWidth * cs) - EPSILON, this.focusYPos + (this.headingY || this.halfHeight * cs) - EPSILON);
 
         translate(this.xPos, this.yPos);
+
         if(levelInfo.width >= this.width)
         {
             translate(this.halfWidth - this.focusXPos, 0);
@@ -8351,7 +8518,7 @@ var Camera = function(xPos, yPos, width, height)
 
     this.draw = function()
     {
-        fill(0, 0, 0, 50);
+        fill(255, 255, 255, 50);
         fastRect(cameraGrid.xPos + this.upperLeft.col * cameraGrid.cellWidth, cameraGrid.yPos + this.upperLeft.row * cameraGrid.cellHeight, ((this.lowerRight.col + 1) - this.upperLeft.col) * cameraGrid.cellWidth, ((this.lowerRight.row + 1) - this.upperLeft.row) * cameraGrid.cellHeight);
     };
 
@@ -8360,6 +8527,7 @@ var Camera = function(xPos, yPos, width, height)
         noFill();
         stroke(0, 0, 0);
         fastRect(this.xPos, this.yPos, this.width, this.height);
+        noStroke();
     };
 };
 var cam = new Camera(0, 0, width, height); //Use this as the default
@@ -8516,6 +8684,28 @@ cameraGrid.setup = function(xPos, yPos, cols, rows, cellWidth, cellHeight)
 {
     this.xPos = xPos;
     this.yPos = yPos;
+
+    if(levels[levelInfo.level].createStars)
+    {
+        if(levelInfo.cellWidth !== 800)
+        {
+            levelInfo.lastCellWidth = levelInfo.cellWidth;
+        }
+        if(levelInfo.cellHeight !== 800)
+        {
+            levelInfo.lastCellHeight = levelInfo.cellHeight;
+        }
+
+        levelInfo.cellWidth = cellWidth = 800;
+        levelInfo.cellHeight = cellHeight = 800;
+
+        cols = 30;
+        rows = 30;
+
+        levelInfo.width = 800 * cols;
+        levelInfo.height = 800 * rows;
+    }
+
     this.cellWidth = cellWidth;
     this.cellHeight = cellHeight;
     this.halfCellWidth = this.cellWidth / 2;
@@ -8538,11 +8728,39 @@ cameraGrid.create = function(cols, rows)
                 enumerable: false,
                 writable: true,
                 configurable: true,
-            });
+            });   
         }
     }
     this.cols = cols;
     this.rows = rows;
+
+    if(levels[levelInfo.level].createStars)
+    {
+        var _stars = [];
+        
+        var col, row, i;
+
+        for(col = 0; col < cols; col++)
+        {
+            for(row = 0; row < rows; row++)
+            {
+                _stars = [];
+
+                for(i = 0; i < random(40, 80); i++)
+                {
+                    _stars.push([col * this.cellWidth + random() * this.cellWidth, row * this.cellHeight + random() * this.cellHeight, random(0, 2)]);
+                }
+
+                Object.defineProperty(this[col][row]._lights, "_stars",
+                {
+                    value : _stars,
+                    enumerable: false,
+                    writable: true,
+                    configurable: true,
+                });  
+            }
+        }
+    }
 
     this._length = this.length - 1;
     this[0]._length = this[0].length - 1;
@@ -8641,6 +8859,12 @@ gameObjects.drawBoundingBoxes = function()
 
     noFill();
     stroke(0, 0, 0);
+
+    if(levels[levelInfo.level].createStars)
+    {
+        stroke(255, 255, 255);
+    }
+
     strokeWeight(0.5);
 
     var boundingBox, array, object, i, j, shape;
@@ -8939,6 +9163,35 @@ gameObjects.draw = function(noDraw)
 
     var array, i, j;
 
+
+    if(levels[levelInfo.level].createStars)
+    {
+        stroke(255, 255, 255);
+
+        var col, row, _stars, i;
+
+        for(col = cam.upperLeft.col; col <= cam.lowerRight.col; col++)
+        {
+            for(row = cam.upperLeft.row; row <= cam.lowerRight.row; row++)
+            {           
+                if(!cameraGrid[col][row]._lights)
+                {
+                    continue;
+                }
+
+                _stars = cameraGrid[col][row]._lights._stars;
+
+                for(i = 0; i < _stars.length; i++)
+                {
+                    strokeWeight(_stars[i][2]);
+                    point(_stars[i][0], _stars[i][1]);
+                }
+            }
+        }
+
+        noStroke();
+    }
+
     var order = [];
     for(i in this.indexes)
     {
@@ -9035,7 +9288,7 @@ gameObjects.update = function()
     gameObjects.updateLoops++;
 
     // Release memory from the camera grid every 60 seconds
-    if(millis() - lastReleaseMemoryTime > 60000)
+    if(millis() - lastReleaseMemoryTime > 60000 && cameraGrid.cols < 400 && cameraGrid.rows < 400 && levelInfo.theme !== "space")
     {
         for(var i = 0; i < cameraGrid.length; i++)
         {
@@ -10965,7 +11218,12 @@ var HelixShip = function(xPos, yPos, width, height)
 
     this.physics.solidObject = false;
 
-    this.angle = 30;
+    if(levelInfo.level !== "desert oasis")
+    {
+        this.angle = 0;
+    }else{
+        this.angle = 30;
+    }
 
     this.goto = shipGoto;
 
@@ -10976,8 +11234,12 @@ var HelixShip = function(xPos, yPos, width, height)
             choices : {
                 "exit" : "..."
             }
-        }
+        }               
     };
+
+    var _this = this;
+
+    this.maxSpeed = 12;
 
     this.flames = [];
     this.flames.add = function(x, y)
@@ -10985,11 +11247,12 @@ var HelixShip = function(xPos, yPos, width, height)
         this.push({
             x : x, 
             y : y,
-            angle : 90 + random(-40, 40),
-            speed : random(1, 2),
+            angle : 90 + random(-10, 10),
+            speed : random(1, 2) * 8,
             diameter : ((random() < 0.5) ? 6 : 7),
             color : color(9, 100, 170, 210),
-            life : random(5, 20)
+            life : random(5, 20) * (_this.speed / _this.maxSpeed),
+            length : round(random(1, 3)) * 8
         });
     };
     this.flames.draw = function()
@@ -10999,7 +11262,7 @@ var HelixShip = function(xPos, yPos, width, height)
         for(var i = 0; i < this.length; i++)
         {
             fill(this[i].color);
-            fastRect(this[i].x, this[i].y, round(random(2, 4)), round(this[i].speed * 8));
+            fastRect(this[i].x, this[i].y, round(random(2, 4)), this[i].length);
         }
     };
     this.flames.update = function()
@@ -11024,16 +11287,37 @@ var HelixShip = function(xPos, yPos, width, height)
     this.lastAddTime = 0;
     this.nextTime = random(20, 50);
 
+    this.updateBoundingBox = function()
+    {
+        this.boundingBox.xPos = this.middleXPos - this.width;
+        this.boundingBox.width = this.width * 2;
+
+        this.boundingBox.yPos = this.yPos;
+        this.boundingBox.height = this.height;
+    };
+
+    this.AABB = {
+        left : 0,
+        right : 0,
+        up : 0,
+        down : 0
+    };
+
+    this.updateAABB = function()
+    {
+        this.AABB.left = this.xPos;
+        this.AABB.right = this.xPos + this.width;
+        this.AABB.up = this.middleXPos - this.halfWidth;
+        this.AABB.down = this.middleXPos + this.halfHeight;
+    };
+
     this.draw = function()
     {
-        this.flames.draw();
-        this.flames.update();
-
         if(this.flames.length < 100 && millis() - this.lastAddTime > this.nextTime)
         {
             for(var i = 0; i < random(3, 5); i++)
             {
-                this.flames.add(this.middleXPos + random(-20, 20), this.yPos + this.height - 20);
+                this.flames.add(random(-18, 18), this.halfHeight - 20);
             }
 
             this.lastAddTime = millis();
@@ -11044,6 +11328,8 @@ var HelixShip = function(xPos, yPos, width, height)
             translate(this.middleXPos, this.middleYPos);
             rotate(this.angle);
 
+            this.flames.draw();
+            this.flames.update();
             
             fill(this.color);
 
@@ -11054,28 +11340,34 @@ var HelixShip = function(xPos, yPos, width, height)
                 this.imageName += "Open";
             }
 
-            // rect(-this.halfWidth, -this.halfHeight, this.width, this.height);
             fastImage(loadedImages[this.imageName], -this.halfWidth, -this.halfHeight, this.width, this.height);
-
-           
+ 
         popMatrix();
     };
 
     this.lastChangeTime = 0;
 
     var loops = 0;
-
     var self = this;
+
+    this.speed = 0;
+
+    this.controls = {
+        loadInterior : function()
+        {
+            return keys.q;
+        }
+    };
 
     var _lastUpdate = this.update;
     this.update = function()
     {
         // _lastUpdate.apply(this, arguments);
 
-        if(!levels[levelInfo.level].save.messaged && loops > 200)
+        if(!levels["desert oasis"].save.messaged && loops > 200)
         {
             talkHandler.start(this.messages, "start", "", true);
-            levels[levelInfo.level].save.messaged = true;
+            levels["desert oasis"].save.messaged = true;
         }
 
         loops++;
@@ -11085,25 +11377,82 @@ var HelixShip = function(xPos, yPos, width, height)
             if(!this.vInit)
             {
                 console.log("launching!");
+                cam.scaleOut = 0;
 
                 cam.attach(function()
                 {
-                    cam.keepInGrid = false;
-
                     return self;
-                },
-                false, 99999999, function()
-                {   
-                    cam.keepInGrid = true;
-                });
+                }, 
+                true, 1500, function()
+                {
+                    cam.attach(function()
+                    {
+                        cam.keepInGrid = false;
 
+                        return self;
+                    },
+                    true, 9999999999, function()
+                    {   
+                        cam.keepInGrid = true;
+                    });
+                });
+               
                 this.vInit = true;
             }
-            this.angle = 0;
 
-            // var angle = (this.angle - 90) % 360 + 180;
-            this.xVel = 0;//sin(this.angle * DEG_TO_RAD) * 7;
-            this.yVel = -4;//cos(this.angle * DEG_TO_RAD) * 7;
+            cam.scaleOut = max(cam.scaleOut -= 0.003, -0.6);
+
+            if(levels[levelInfo.level].createStars)
+            {
+                var angle = (this.angle - 90) % 360 + 180;
+
+                this.speed = constrain(this.speed, 0, this.maxSpeed);
+
+                this.xVel = sin(this.angle * DEG_TO_RAD) * this.speed;
+                this.yVel = cos(this.angle * DEG_TO_RAD) * -this.speed;
+
+                if(player.controls.up())
+                {
+                    this.speed += 0.1;
+                }
+                else if(player.controls.down())
+                {
+                    this.speed -= 0.1;
+                }else{
+                    this.speed -= 0.05;
+                }
+
+                if(player.controls.left())
+                {
+                    this.angle -= 1;
+                }
+                if(player.controls.right())
+                {
+                    this.angle += 1;                
+                }
+
+                cam.headingX = 600;
+                cam.headingY = 600;
+
+                if(this.controls.loadInterior())
+                {
+                    this.loadInterior();
+                }
+
+                shipGoto.inSpace = true;
+
+                shipGoto.xPos = this.xPos;
+                shipGoto.yPos = this.yPos;
+                shipGoto.angle = this.angle;
+            }else{
+                shipGoto.inSpace = false;
+
+                this.angle = 0;
+
+                this.xVel = 0;
+                this.yVel = -this.maxSpeed;
+                this.speed = 7;
+            }
 
             this.xPos += this.xVel;
             this.yPos += this.yVel;
@@ -11111,17 +11460,26 @@ var HelixShip = function(xPos, yPos, width, height)
             physics.getMiddleXPos(this);
             physics.getMiddleYPos(this);
 
-            this.updateBoundingBox();
+            if(levels[levelInfo.level].createStars)
+            {
+                this.xPos = constrain(this.xPos, this.width, levelInfo.width - this.width);
+                this.yPos = constrain(this.yPos, this.height, levelInfo.height - this.height);
+            }
 
-            // if(player.controls.left())
-            // {
-            //     this.angle -= 1;
-            // }
-            // if(player.controls.right())
-            // {
-            //     this.angle += 1;                
-            // }
+            this.updateBoundingBox();
         }
+    };
+
+    this.loadInterior = function()
+    {
+        game.gameState = "play";
+        player.goto.doorSymbol = 'a';
+        player.goto.travelType = "door";
+        loader.startLoadLevel("helixShip", "door");
+
+        cam.scaled = false;
+        cam.keepInGrid = true;
+        cam.scale = 0.3;
     };
 
     this.onCollide = function(object)
@@ -11137,16 +11495,25 @@ var HelixShip = function(xPos, yPos, width, height)
                 }
                 if(this.hatchOpen && object.controls.enter())
                 {
-                    game.gameState = "play";
-                    player.goto.doorSymbol = 'a';
-                    player.goto.travelType = "door";
-                    loader.startLoadLevel("helixShip", "door");
+                    this.loadInterior();
                 }
             }
         }   
     };
 };
 gameObjects.addObject("helixShip", createArray(HelixShip));
+
+var TalonShip = function(xPos, yPos, width, height)
+{
+    DynamicRect.call(this, xPos, yPos, width, height);
+    this.physics.solidObject = false;
+
+    this.draw = function()
+    {
+
+    };
+};
+gameObjects.addObject("talonShip", createArray(TalonShip));
 
 var Ground = function(xPos, yPos, width, height, colorValue, name, dir)
 {
@@ -19558,6 +19925,7 @@ var Npc = function(xPos, yPos, width, height, colorValue)
         {
             object.xVel = 0;
             object.yVel = 0;
+            this.usedIntro = true;
             talkHandler.start(this.messagePattern, this.message, this.name);
         }
     }
@@ -21721,8 +22089,9 @@ var QuickSand = function(xPos, yPos, width, height, colorValue)
             object.inLiquid = true;
             object.yVel = object.yVel / this.thickness;
             object.xVel = object.xVel / this.thickness;
-            object.yVel += 0.01;
-            object.yPos += 0.02;
+            object.yVel += 0.02;
+            object.yPos += 0.1;
+            object.yVel += abs(object.xVel) * 0.02;
         }
     };
 };
@@ -24559,6 +24928,7 @@ var PalmTree = function(xPos, yPos, width, height, imageName, flipped)
     if(this.imageName === "tallPalmTree")
     {
         this.xPos += this.width * (2/3);
+        this.boundingBox.xPos = this.xPos;
     }
 
     this.draw = function()
@@ -25184,8 +25554,6 @@ var levelScripts = {
 
             if(!checkPoint.checked)
             {
-                
-
                 if(player.username !== undefined)
                 {
                     //Prevent the game from not being saved at the start to refrain from dying and going to the wrong check point
@@ -25200,13 +25568,35 @@ var levelScripts = {
         }
     },
     "villageHouse" : {
+        afterLoad : function()
+        {
+            if(levels[levelInfo.level].save.npcUsedIntros)
+            {
+                gameObjects.getObject("npc")[0].usedIntro = levels[levelInfo.level].save.npcUsedIntros[0];
+                gameObjects.getObject("npc")[1].usedIntro = levels[levelInfo.level].save.npcUsedIntros[1];
+            }
+        },
         apply : function()
         {
+            var npcs = gameObjects.getObject("npc");
+
             if(!levels[levelInfo.level].doors.b.locked)
             {
-                gameObjects.getObject("npc")[1].message = "thank";
+                npcs[1].message = "thank";
                 self.stop = true;
             }
+
+            if(npcs[0].usedIntro)
+            {
+                npcs[0].message = "enjoy";
+            }
+
+            if(npcs[1].usedIntro)
+            {
+                npcs[1].message = "hero";
+            }
+
+            levels[levelInfo.level].save.npcUsedIntros = [gameObjects.getObject("npc")[0].usedIntro, gameObjects.getObject("npc")[1].usedIntro];
         }
     },
     "coreGround" : {
@@ -26674,7 +27064,10 @@ var levelScripts = {
         {
             var helixShip = gameObjects.getObject("helixShip").add(970, 154, 200, 432);
 
-            sounds.playSound("zooba.wav");
+            if(!shipGoto.launched)
+            {
+                sounds.playSound("zooba.wav");
+            }
 
             helixShip.update();
 
@@ -26683,24 +27076,49 @@ var levelScripts = {
         apply : function()
         {
             var helixShip = gameObjects.getObject("helixShip")[0];
+            levels["desert oasis"].save.discoveredShip = true;
+
+            if(game.fps === 30)
+            {
+                helixShip.update();
+            }
 
             if(helixShip.yPos < 0)
             {
                 helixShip.update();
 
-                if(helixShip.yPos < -10000)
-                {
-                    levelInfo.levelShade = color(0, 0, 0, 40);
-                }
-
+                // Above prymids
                 if(helixShip.yPos < -5000)
                 {
-                    if(!game.dropRate)
-                    {
-                        game.dropRate = 0.01;
-                    }
+                    game.dropRate = (abs(helixShip.yPos) - 5000) / abs(helixShip.yVel) * 0.15;
+                }
 
-                    game.dropRate += 0.15;
+                // In atmosphere
+                if(helixShip.yPos < -20000)
+                {
+                    backgrounds.background = "atmosphere";
+
+                    var usingBackground = backgrounds.backgrounds["atmosphere"];
+
+                    usingBackground.factor -= 0.0007;
+                    usingBackground.factor = max(0, usingBackground.factor);
+                }
+
+                // In Space
+                if(helixShip.yPos < -50000 && backgrounds.background !== "space")
+                {
+                    backgrounds.backgrounds.space.load();
+                }
+
+                if(helixShip.yPos < -55000)
+                {
+                    backgrounds.backgrounds.atmosphere.starLate = ((abs(helixShip.yPos) - 55000) * 400 / 5000) * 0.4;
+                }
+
+                if(helixShip.yPos < -60000)
+                {
+                    shipGoto.haveNotSavedSince = true;
+                    loader.startLoadLevel("space", "player", 0);
                 }
 
                 for(var i = 0; i < graphics.inClouds.length; i++)
@@ -26710,47 +27128,127 @@ var levelScripts = {
             }
         }
     },
+    "space" : {
+        afterLoad : function()
+        {
+            var helixShip = gameObjects.getObject("helixShip").add(levelInfo.width / 2, levelInfo.height - 500, 200, 432);
+
+            helixShip.xPos = shipGoto.xPos || helixShip.xPos;
+            helixShip.yPos = shipGoto.yPos || helixShip.yPos;
+            if(typeof shipGoto.angle !== "undefined")
+            {
+                helixShip.angle = shipGoto.angle;
+            }
+            helixShip.updateBoundingBox();
+
+            helixShip.update();
+            cameraGrid.addReference(helixShip);
+
+            var helixShip = gameObjects.getObject("helixShip")[0];
+
+            cam.attach(function()
+            {
+                return helixShip;
+            }, true);
+
+            cam.keepInGrid = true;
+            cam.scaled = true;
+            cam.scaleOut = -0.6;
+        },
+        apply : function()
+        {
+            var helixShip = gameObjects.getObject("helixShip")[0];
+
+            cameraGrid.removeReference(helixShip);
+            cameraGrid.addReference(helixShip);
+
+            if(!levels[levelInfo.level].save.showedControls)
+            {
+                talkHandler.start({
+                    up : true,
+                    "start" : {
+                        message : "Welcome to space... directional keys to\nmove ship, press Q to load interior.",
+                        choices : {
+                            "exit" : "..."
+                        }
+                    }
+                }, 
+                "start", "");
+
+                levels[levelInfo.level].save.showedControls = true;
+            }
+        }
+    },
     "helixShip" : {
         afterLoad : function()
         {
             var helixShip = gameObjects.getObject("helixShip").add(9999999, 9999999, 2, 2);
             helixShip.draw = function() {};
+            helixShip.update = function() {};
 
             var door = gameObjects.getObject("door")[1];
-
             var img = loadedImages["windowSky"];
 
             var back = gameObjects.getObject("imageBlock").add(levelInfo.unitWidth, levelInfo.unitHeight * 3, img.width * 1.023, img.height * 1.023, "windowSky");
             back.physics.solidObject = false;
             cameraGrid.addReference(back);
 
+            var blockSketchy = gameObjects.getObject("imageBlock").filter(object => object.imageName === "blockSketchy")[0];
+
+            if(shipGoto.inSpace)
+            {
+                back.draw = function()
+                {
+                    ctx.drawImage(loadedImages["windowSky"].sourceImg, 0, 0, img.sourceImg.width, img.sourceImg.height, round(this.xPos), round(this.yPos), this.width, this.height);
+                    ctx.drawImage(loadedImages["windowSpace"].sourceImg, 0, 0, loadedImages["windowSpace"].sourceImg.width, img.sourceImg.height, round(this.xPos), round(this.yPos), this.width, this.height);
+                    blockSketchy.draw();
+                };
+            }
+
             var exitBlock = gameObjects.getObject("imageBlock").filter(object => object.imageName === "exit")[0];
            
-            exitBlock.physics.solidObject = false;
-            exitBlock.onCollide = function(object, info)
+            if(shipGoto.inSpace)
             {
-                if(object.arrayName === "player" && object.yVel < 0)
+                cameraGrid.removeReference(exitBlock);
+            }else{
+                exitBlock.physics.solidObject = false;
+                exitBlock.onCollide = function(object, info)
                 {
-                    loader.startLoadLevel("desert oasis", "player", 0, function()
+                    if(object.arrayName === "player" && object.yVel < 0)
                     {
-                        var helixShip = gameObjects.getObject("helixShip")[0];
-
-                        player.xPos = helixShip.xPos + helixShip.halfWidth;
-                        player.yPos = helixShip.yPos + 180 - player.height;
-
-                        cameraGrid.removeReference(player);
-                        cameraGrid.addReference(player);
-
-                        setTimeout(function()
+                        loader.startLoadLevel("desert oasis", "player", 0, function()
                         {
+                            var helixShip = gameObjects.getObject("helixShip")[0];
+
+                            player.xPos = helixShip.xPos + helixShip.halfWidth;
+                            player.yPos = helixShip.yPos + 180 - player.height;
+                            player.updateBoundingBox();
+
                             cameraGrid.removeReference(player);
                             cameraGrid.addReference(player);
-                        }, 3000);
-                    });
-                }
-            };
 
-            var blockSketchy = gameObjects.getObject("imageBlock").filter(object => object.imageName === "blockSketchy")[0];
+                            player.yVel = 0;
+
+                            cam.attach(function()
+                            {
+                                return player;
+                            },
+                            true);
+
+                            setTimeout(function()
+                            {
+                                cameraGrid.removeReference(player);
+                                cameraGrid.addReference(player);
+                            }, 3000);
+                        });
+                    }
+                };
+            }
+
+            blockSketchy.draw = function()
+            {
+                ctx.drawImage(loadedImages["blockSketchy"].sourceImg, round(this.xPos), round(this.yPos), levelInfo.unitWidth, levelInfo.unitHeight);
+            };
 
             blockSketchy.onCollide = function(object, info)
             {
@@ -26801,7 +27299,7 @@ var levelScripts = {
         {
             var helixShip = gameObjects.getObject("helixShip").add(9999999, 9999999, 2, 2);
             helixShip.draw = function() {};
-
+            helixShip.update = function() {};
             var img = loadedImages["windowSky"];
 
             var newHeight = 7 * levelInfo.unitHeight;
@@ -26810,6 +27308,19 @@ var levelScripts = {
             var back = gameObjects.getObject("imageBlock").add(levelInfo.unitWidth * 5, levelInfo.unitHeight * 3, img.width * ratio, newHeight, "windowSky");
             back.physics.solidObject = false;
             cameraGrid.addReference(back);
+
+            levels[levelInfo.level].save.shown = true;
+
+            if(shipGoto.inSpace)
+            {
+                back.draw = function()
+                {
+                    ctx.drawImage(loadedImages["windowSky"].sourceImg, 0, 0, loadedImages["windowSky"].sourceImg.width, loadedImages["windowSky"].sourceImg.height, 
+                                round(this.xPos), round(this.yPos), this.width, this.height);
+                    ctx.drawImage(loadedImages["windowSpace"].sourceImg, 0, 0, loadedImages["windowSpace"].sourceImg.width, loadedImages["windowSpace"].sourceImg.height, 
+                                round(this.xPos), round(this.yPos), this.width, this.height);
+                };
+            }
         }
     }
 };
@@ -28128,7 +28639,10 @@ loader.loadLevel = function(level, step, levelStep)
             lighting.end();
             delete screenUtils.infoBar.bossArrayName;
             delete cam.yMost;
+            cam.keepInGrid = true;
             delete game.dropRate;
+            delete cam.headingX;
+            delete cam.headingY;  
             break;
         
         case 1 :
@@ -28210,13 +28724,22 @@ loader.loadLevel = function(level, step, levelStep)
 
             // Set player reference and attach it to the camera directly
             player = gameObjects.getObject("player").input(0);
+
+            if(levels[levelInfo.level].createStars)
+            {
+                if(player._places)
+                {
+                    cameraGrid.removeReference(player);
+                }
+            }
+
             cam.attach(function()
             {
                 return player;
             }, true);
 
             game.loadSaveAfterLoad();
-            player.safeRevive(); //Revive the player when dead
+            player.safeRevive(); // Revive the player when dead
             levelScripts.afterLoad();
 
             configAreaSaver.setFromLevelCache(loader.level, f_getArrayNamesToSave(loader.level, levelInfo.theme), levelInfo.theme);
@@ -28364,6 +28887,16 @@ game.loadSave = function(saveDataName)
     {
         (configs[i] || {}).shownName = discoveredAreas[i].shownName;
     }
+
+    var _shipGoto = this.data.ship.goto || shipGoto;
+
+    // if(_shipGoto.inSpace)
+    // {
+        for(var i in _shipGoto)
+        {
+            shipGoto[i] = _shipGoto[i];
+        }
+    // }
 
     // if(this.data.ship && this.data.ship.goto)
     // {
@@ -28518,7 +29051,7 @@ game.loadSaveAfterLoad = function()
     }
 
     //Find Player
-    // var player = gameObjects.getObject("player").getLast();
+    // player = gameObjects.getObject("player").getLast();
     player.alias = saver.current.name;
     player.username = removeEndIfNum(saver.current.name);
 
@@ -28808,6 +29341,20 @@ game.save = function(checkPoint)
         inventory.items[i] = player.inventory.items[i] || {};
     }
 
+    var _shipGoto = {};
+    for(var i in shipGoto)
+    {
+        if(typeof shipGoto[i] !== "function")
+        {
+            _shipGoto[i] = shipGoto[i];
+        }
+    }
+
+    if(shipGoto.inSpace && shipGoto.haveNotSavedSince)
+    {
+        shipGoto.haveNotSavedSince = false;
+    }
+
     var success = saver.overWriteSaveData(saver.current.saveDataName, {
         name : saver.current.name,
         level : player.goto.checkPointLevel || levelInfo.level,
@@ -28829,9 +29376,10 @@ game.save = function(checkPoint)
             powers : player.getPowers(),
             discoveredPowers : player.discoveredPowers,
             currentPower : player.discoveredPowersHandler.currentPower,
+            shipGoto : _shipGoto
         },
         ship : {
-            goto : shipGoto
+            goto : _shipGoto
         },
         autoCheckPoints: game.autoCheckPoints,
         hideKeys: game.hideKeys,
@@ -28849,7 +29397,7 @@ game.save = function(checkPoint)
         console.log("Planet Search 2: Game successfully saved!");
     }
 
-    //Set checkpoint...
+    // Set checkpoint...
     if(checkPoint !== undefined)
     {
         player.goto.checkPointLevel = (checkPoint.goto !== undefined) ? checkPoint.goto.level || levelInfo.level : levelInfo.level;
@@ -28865,7 +29413,7 @@ game.load = function()
 {
     loader.update();
 };
-game.switchGameState = function(condition, state, needsScreenShot)
+game.switchGameState = function(condition, state, needsScreenShot, func)
 {
     if(condition)
     {
@@ -28888,6 +29436,11 @@ game.switchGameState = function(condition, state, needsScreenShot)
             this[this.switchState].done = true; 
             this.lastState = this.gameState;
             (this[this.switchState].onEnter || function(){})();
+
+            if(typeof func === "function")
+            {
+                func.apply(this, []);
+            }
         }
     }
 };
@@ -29207,6 +29760,8 @@ game.start = function()
         sounds.playSound(game.sounds.titleScreen, true);
         this.startedPlaying = true;
     }
+
+    game.fps = 60;
 };
 game.selectSaveFile = function()
 {
@@ -29306,6 +29861,8 @@ game.selectSaveFile = function()
     game.selectSaveFile.stopErase--;
 
     this.exited = false;
+
+    game.fps = 60;
 };
 game.selectSaveFile.keyPressed = function()
 {
@@ -29525,8 +30082,6 @@ game.story = function()
     text(storyHandler.message || (screenUtils.fade.fading ? "" : "Press any key to exit"), width * 0.5, HALF_HEIGHT);
     popMatrix();
 
-    game.hideLoadView = true;
-    
     if(!this.exited)
     {
         sounds.getSound(game.sounds.titleScreen).muted = true;
@@ -29541,6 +30096,8 @@ game.story = function()
 
         this.switchGameState(true, "selectSaveFile");
     }
+
+    game.fps = 60;
 };
 game.story.needsInit = true;
 game.story.timer = 0;
@@ -29596,12 +30153,22 @@ game.pauseMenu = function()
     buttons.back.draw();
     this.switchGameState((buttons.back.clicked() || keys[80]) && !ENTER_KEY, "play");
     
+    var restartButtonDisabled = (shipGoto.launched && (!shipGoto.inSpace || shipGoto.haveNotSavedSince) || levelInfo.theme === "space");
+
     buttons.restart.draw();
-    if(buttons.restart.clicked())
+
+    if(restartButtonDisabled)
+    {
+        buttons.restart.highlightColor = color(0, 0, 0, 100);
+    }else{
+        delete buttons.restart.highlightColor;
+    }
+    if(!restartButtonDisabled && buttons.restart.clicked())
     {
         this.gameState = "play";
-        talkHandler.end(); //Make sure we're not talking to the npc anymore
+        talkHandler.end(); // Make sure we're not talking to the npc anymore
         player.handleDeath();
+        shipGoto.launched = false;
     }
     
     buttons.menu.draw();
@@ -29763,7 +30330,7 @@ game.play = function(noDraw)
         gameObjects.draw(noDraw);
         gameObjects.drawBoundingBoxes();
         //cameraGrid.draw();
-        //cam.draw();
+        // cam.draw();
         screenUtils.withCamera();
         
         levelScripts.draw();
@@ -29771,7 +30338,7 @@ game.play = function(noDraw)
 
     daylightCycle.update();
     levelScripts.apply();
-    //cam.drawOutline();
+    // cam.drawOutline();
 
     pushMatrix();
         cam.scaleZoom();
@@ -29780,7 +30347,7 @@ game.play = function(noDraw)
 
     debugTool.apply();
 
-    if(!messageHandler.active && !debugTool.active)
+    if(!messageHandler.active && !debugTool.active && !game.disablePause)
     {
         //Menu
         this.switchGameState(keys[77], "menu"); //On key 'm' switch to menu
@@ -29848,7 +30415,7 @@ game.play.keyPressed = function()
         game.hideKeys = !game.hideKeys;
     }
 
-    game.switchGameState(inventoryMenu.tryToOpen(), "inventoryMenu", true); 
+    game.switchGameState(inventoryMenu.tryToOpen() && (!shipGoto.launched || (levelInfo.theme !== "space")), "inventoryMenu", true); 
 };
 game.play.keyReleased = function()
 {
@@ -29881,7 +30448,7 @@ game.doCursor = function()
             // Make sure we're done checking if the player exists or not!
             game.doCursor = function()
             {
-                 game.cursor = false;
+                game.cursor = false;
                 game.noCursor = false;
             };
         }
@@ -30025,7 +30592,7 @@ function initErrorHandler()
     };
 };
 
-//Try out the error handler
+// Try out the error handler
 initErrorHandler();
 
 processing.scaledCondition = function()
@@ -30033,32 +30600,34 @@ processing.scaledCondition = function()
     return (game.gameState !== "load");
 };
 
-//Other browsers have slowdowns
+// Other browsers have slowdowns
 if(browserDetection.isFireFox)
 {
     game.fpsType = "auto";
 }
 
-/*Globalize things for debugging*/
+/* Globalize things for debugging */
 if(game.globalize)
 {
     window.gameObjects = gameObjects;
     window.cam = cam;
     window.storedImages = storedImages;
+    window.cameraGrid = cameraGrid;
     window.levelInfo = levelInfo;
     window.lighting = lighting;
     window.backgrounds = backgrounds;
+    window.screenUtils = screenUtils;
     window.f_getArrayNamesToSave = f_getArrayNamesToSave;
 }
 
-//Done!
+// Done!
 
-//Close the wrapper
+// Close the wrapper
     }
     if(typeof draw !== 'undefined') processing.draw = draw;
 };
 
-//Apply to the sketch to the canvas
+// Apply to the sketch to the canvas
 window.canvas = document.getElementById("canvas");
 window.processing = new Processing(canvas, sketch);
 window.processing.chrome = browserDetection.isChrome; 

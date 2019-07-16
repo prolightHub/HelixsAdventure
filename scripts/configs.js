@@ -94,12 +94,21 @@ var configs = {
         level : {
             background : "ship",
             noSong : true,
-            regenCoinCost : 6,
+            regenCoinCost : 2,
             table : {
                 'g' : "blockSketchy",
                 'b' : "steelBlock",
                 'M' : "windowSky"
             }
+        }
+    },
+    "space" : {
+        name : "Space",
+        area : "Area 6",
+        level : {
+            background : "space",
+            regenCoinCost : 7,
+            song : "space.mp3"
         }
     },
     "other" : {

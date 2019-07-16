@@ -38,6 +38,12 @@ var npcData = {
             "next" : {
                 message : "Well whatever, at least try to make yourself\nat home.",
             },
+            "enjoy" : {
+                message : "I hope you're enjoying it :)",
+                choices : {
+                    "exit" : "..."
+                }
+            }
         },
     },
     "Oscar" : {

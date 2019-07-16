@@ -7112,6 +7112,30 @@ var levels = {
             "               ",
         ]
     },
+    "space" : {
+        theme : "space",
+        createStars : true,
+        plan : [                                                            
+            "p                                                                       ",
+            "                                                                        ",
+            "                                                                        ",
+            "                                                                        ",
+            "                                                                        ",
+            "                                                                        ",
+            "                                                                        ",
+            "                                                                        ",
+            "                                                                        ",
+            "                                                                        ",
+            "                                                                        ",
+            "                                                                        ",
+            "                                                                        ",
+            "                                                                        ",
+            "                                                                        ",
+            "                                                                        ",
+            "                                                                        ",
+            "                                                                        ",
+        ]
+    },  
     "test" : {
         theme : "winter",
         background : "deep",
