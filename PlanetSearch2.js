@@ -85,9 +85,9 @@ var sketch = function(processing) /*Wrapper*/
 /**   Hybrid Game Engine (Planet Search 2)  **/
 /**
     @Author Prolight
-    @Version 0.9.7 beta (97% complete)
+    @Version 0.9.8 beta (98% complete)
 
-        90+ gameObjects!
+        100+ gameObjects!
         100+ levels!
 
     @How :
@@ -1012,7 +1012,7 @@ var game = {
     fps : 60, 
     loadFps : 160,
     gameState : "start", // Default = "start"
-    version : "v0.9.7 beta",
+    version : "v0.9.8 beta",
     fpsType : "auto", // Default = "manual"
     debugMode : true, // Turn this to true to see the fps
     showDebugPhysics : false,
