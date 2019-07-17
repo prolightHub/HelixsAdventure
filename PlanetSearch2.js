@@ -79,6 +79,8 @@ var sketch = function(processing) /*Wrapper*/
         console.log("using webgl for images");
     }
 
+    var $pjs = processing;
+
     with(processing)
     {
 
@@ -951,6 +953,12 @@ var sketch = function(processing) /*Wrapper*/
         Created space.
         Made helixShip flame trail more realistic.
         Made text/messages places update.
+        Figured out the variables for the launch to space to work.
+        Finalized space and ship.
+        Fixed bug where the cameraGrid's cellSize is left too big after exiting space.
+        Fixed exit block from appearing.
+
+    * 0.9.8
 
     Next :   
         Will do:           
@@ -958,6 +966,7 @@ var sketch = function(processing) /*Wrapper*/
             Sound update.
 
     Maybe:
+        Get rid of with statement --Would give about 25% speed increase.
         More Weapons, shops.
         Add chest appearing sound effect. Enemy damage sound effect?
         Speed up image rendering by doing it directly!
@@ -1277,7 +1286,7 @@ var Button = function(xPos, yPos, width, height, colorVal, message, _round, _tex
     {
         noStroke();
         fill(this.color);
-        rect(this.xPos, this.yPos, this.width, this.height, this.round);
+        $pjs.rect(this.xPos, this.yPos, this.width, this.height, this.round);
         fill(0, 0, 0);
         textAlign(CENTER, CENTER);
         textSize(this.textSize);
@@ -1291,7 +1300,7 @@ var Button = function(xPos, yPos, width, height, colorVal, message, _round, _tex
         if(this.highlightColor !== undefined)
         {
             fill(this.highlightColor);
-            rect(this.xPos, this.yPos, this.width, this.height, this.round);
+            $pjs.rect(this.xPos, this.yPos, this.width, this.height, this.round);
         }
 
         if(this.highlightStroke !== undefined)
@@ -1299,7 +1308,7 @@ var Button = function(xPos, yPos, width, height, colorVal, message, _round, _tex
             strokeWeight(1.5);
             stroke(this.highlightStroke);
             noFill();
-            rect(this.xPos, this.yPos, this.width, this.height, this.round);
+            $pjs.rect(this.xPos, this.yPos, this.width, this.height, this.round);
             noStroke();
         }
     };
@@ -1759,13 +1768,13 @@ var Slider = function(xPos, yPos, width, height, colorValue, message)
     {
         noStroke();
         fill(this.color);
-        rect(this.xPos, this.yPos, this.width, this.height, this.round);
+        $pjs.rect(this.xPos, this.yPos, this.width, this.height, this.round);
         
         noStroke();
         fill(this.color);
         if(this.width > this.height)
         {
-            rect(this.notch.xPos, this.notch.yPos,
+            $pjs.rect(this.notch.xPos, this.notch.yPos,
             this.notch.width, this.height, this.round * 1.5);
             if(!this.using)
             {
@@ -1773,7 +1782,7 @@ var Slider = function(xPos, yPos, width, height, colorValue, message)
                 this.xDiv = this.width * this.notchSize * 2;
             }
         }else{
-            rect(this.notch.xPos, this.notch.yPos, 
+            $pjs.rect(this.notch.xPos, this.notch.yPos, 
             this.width, this.notch.height, this.round * 1.5);
             if(!this.using)
             {
@@ -1887,10 +1896,10 @@ var Bar = function(xPos, yPos, width, height, colorValue, inRound, barColor, str
             fill(this.barColor);
         }
 
-        rect(this.xPos, this.yPos, this.width, this.height, (inRound || 0));
+        $pjs.rect(this.xPos, this.yPos, this.width, this.height, (inRound || 0));
 
         fill(this.color);
-        rect(this.xPos, this.yPos, (amt !== undefined) ? ((this.width * amt) / max) : this.input, this.height, (inRound || 0));
+        $pjs.rect(this.xPos, this.yPos, (amt !== undefined) ? ((this.width * amt) / max) : this.input, this.height, (inRound || 0));
         noFill();
 
         if(!this.noStroke) 
@@ -1904,7 +1913,7 @@ var Bar = function(xPos, yPos, width, height, colorValue, inRound, barColor, str
             }
         }
 
-        rect(this.xPos, this.yPos, this.width, this.height, (inRound || 0));
+        $pjs.rect(this.xPos, this.yPos, this.width, this.height, (inRound || 0));
         noStroke();
     };
 };
@@ -1952,7 +1961,7 @@ var TextBox = function(xPos, yPos, width, height, colorVal, secondColorValue, te
     this.draw = function()
     {
         fill(this.color);
-        rect(this.xPos, this.yPos, this.width, this.height, this.round);
+        $pjs.rect(this.xPos, this.yPos, this.width, this.height, this.round);
         fill(0, 0, 0);
         textAlign(NORMAL, NORMAL);
 
@@ -2058,7 +2067,7 @@ var MessageBox = function(xPos, yPos, width, height, colorValue)
     {
         noStroke();
         fill(this.color);
-        rect(this.xPos, this.yPos, this.width, this.height, 5);
+        $pjs.rect(this.xPos, this.yPos, this.width, this.height, 5);
         fill(this.textColor || color(255, 255, 255, 175));
         if(this.font !== undefined)
         {
@@ -2305,7 +2314,7 @@ var messageHandler = {
         if(this.choiceAmt > 1)
         {
             fill(0, 0, 0, alphaAmt + 20);
-            rect(this.planXPos, this.planYPos, this.planWidth, this.planHeight, 5);
+            $pjs.rect(this.planXPos, this.planYPos, this.planWidth, this.planHeight, 5);
         }
 
         var j = 0;
@@ -2640,7 +2649,7 @@ var trees = {
         for(var i = 0; i < branchAmt; i++)
         {
             endingPoints.push([round(random(endRangeX[0], endRangeX[1])), 
-                              round(random(endRangeY[0], endRangeY[1]))]);
+                              Math.round(random(endRangeY[0], endRangeY[1]))]);
         }
     },
     render : function(inputArray)
@@ -2772,10 +2781,10 @@ var trees = {
         this.createArray(width, height, unitWidth, unitHeight);
         
         var end0 = (this.treesArray[0].length - 1);
-        var rootLine = round(random(end0 * 0.7, end0 * 0.90));
+        var rootLine = Math.round(random(end0 * 0.7, end0 * 0.90));
         var midX = ((this.treesArray.length - 1) / 2);
         
-        var thickness = min((this.treesArray.length - 1), round(random(1, 4)));
+        var thickness = min((this.treesArray.length - 1), Math.round(random(1, 4)));
         
         var rootConnections = [];
         var halfThickness = floor(thickness / 2);
@@ -2787,19 +2796,19 @@ var trees = {
         for(var i = 0; i < rootConnections.length; i++)
         {
             this.genLine(this.treesArray, rootConnections[i][0], rootConnections[i][1], 
-            round(random(0, this.treesArray.length - 1)), end0, 'b', 5);
+            Math.round(random(0, this.treesArray.length - 1)), end0, 'b', 5);
         }
         
         var range = [midX - halfThickness, midX + halfThickness];
         var startingPoints = [];
-        var branchAmt = round(random(3, 8));
+        var branchAmt = Math.round(random(3, 8));
         
         //min, max
         var end = (this.treesArray.length - 1);
         var endRangeX = [round(random(end * 0.2, end * 0.4)),
-                         round(random(end * 0.6, end * 0.9))];
+                         Math.round(random(end * 0.6, end * 0.9))];
         var endRangeY = [round(random(rootLine, rootLine + 2)), 
-                         round(random(end0 * 0.0, end0 * 0.4))];
+                         Math.round(random(end0 * 0.0, end0 * 0.4))];
         endRangeY[0] = constrain(endRangeY[0], 0, end0);
         
         var endingPoints = [];
@@ -2897,7 +2906,7 @@ graphics.inClouds = [];
 graphics.inClouds.getSpeed = function()
 {
     var speed = 0;
-    var dir = round(random(-1, 1));
+    var dir = Math.round(random(-1, 1));
     if(dir === -1)
     {
         speed = -random(0.25, 0.5)/1.5;
@@ -2918,15 +2927,15 @@ graphics.inClouds.create = function(amt)
     var n = 0;
     while(n < amt)
     {
-        var x = round(random(0, width));
-        var y = round(random(130, 250));
+        var x = Math.round(random(0, width));
+        var y = Math.round(random(130, 250));
         var speed = this.getSpeed();
-        for(var i = 0; i < round(random(1, 3)); i++)
+        for(var i = 0; i < Math.round(random(1, 3)); i++)
         {
-            var w = round(random(30, 70));
-            var h = round(random(10, 25));
-            var offX = (w / round(random(2, 4))) * ((random(0, 100) > 50) ? 1 : -1);
-            var offY = (h / round(random(2, 4))) * ((random(0, 100) > 50) ? 1 : -1);
+            var w = Math.round(random(30, 70));
+            var h = Math.round(random(10, 25));
+            var offX = (w / Math.round(random(2, 4))) * ((random(0, 100) > 50) ? 1 : -1);
+            var offY = (h / Math.round(random(2, 4))) * ((random(0, 100) > 50) ? 1 : -1);
             this.push([x + offX, y + offY, w, h, {
                 speed : speed,
                 type : ((random(0, 100) <= 70) ? "rect" : "ellipse"),
@@ -2949,7 +2958,7 @@ graphics.inClouds.draw = function()
         fill(255, 255, 255, 70);
         if(this[i][4].type === "rect")
         {
-            rect(this[i][0], this[i][1], this[i][2], this[i][3], 5);
+            $pjs.rect(this[i][0], this[i][1], this[i][2], this[i][3], 5);
             if(this[i][0] + this[i][2] < 0)
             {
                 this[i][0] = width;
@@ -2997,21 +3006,21 @@ var shapes = {
     {
         for(var i = 0; i < width / 3; i += 70)
         {
-            pushMatrix();
+            $pjs.pushMatrix();
             translate(x + i, y);
             rotate(150);
             fill(35, 153, 98);
             ellipse(0, 0, w, h);
-            popMatrix();
+            $pjs.popMatrix();
         }
         for(var i = 0; i < width / 3; i += 70)
         {
-            pushMatrix();
+            $pjs.pushMatrix();
             translate(x + 10 + i, y);
             rotate(150);
             fill(16, 128, 62);
             ellipse(0, 0, w - 23, h - 23);
-            popMatrix();
+            $pjs.popMatrix();
         }
     },
     grass : function(x, y, w, h)
@@ -3033,9 +3042,9 @@ var shapes = {
     sun : function(x, y)
     {
         fill(210, 210, 35);
-        rect(x, y, 50, 50, 10);
+        $pjs.rect(x, y, 50, 50, 10);
         fill(210, 200, 40);
-        rect(x + 5, y + 5, 40, 40, 10);
+        $pjs.rect(x + 5, y + 5, 40, 40, 10);
     },
     key : function(x, y, w, h)
     {
@@ -3074,25 +3083,25 @@ var backgrounds = {
                 fill(0, 0, 0, 100);
                 for(var x = 5; x < width; x += 40)
                 {
-                    rect(x, 5, 30, 30);
-                    rect(x, 375, 30, 30);
+                    $pjs.rect(x, 5, 30, 30);
+                    $pjs.rect(x, 375, 30, 30);
 
                     if(x > 30 && x < 370)
                     {
-                        rect(x, 5 + 35, 30, 30);
-                        rect(x, 375 - 35, 30, 30);
+                        $pjs.rect(x, 5 + 35, 30, 30);
+                        $pjs.rect(x, 375 - 35, 30, 30);
                     }
                 }
 
                 for(var y = 5 + 40; y < height - 50; y += 30)
                 {
-                    rect(5, y, 30, 30);
-                    rect(365, y, 30, 30);
+                    $pjs.rect(5, y, 30, 30);
+                    $pjs.rect(365, y, 30, 30);
 
                     if(y > 30 && y < 370)
                     {
-                        rect(5 + 35, y, 30, 30);
-                        rect(375 - 35, y, 30, 30);
+                        $pjs.rect(5 + 35, y, 30, 30);
+                        $pjs.rect(375 - 35, y, 30, 30);
                     }
                 }
 
@@ -3123,7 +3132,7 @@ var backgrounds = {
                 }
 
                 fill(255, 255, 255, 60);
-                rect(0, 0, width, height);
+                $pjs.rect(0, 0, width, height);
             },
             drawBackground : function()
             {
@@ -3162,7 +3171,7 @@ var backgrounds = {
                     }
 
                     fill(0, 0, 0, 100);
-                    rect(streaks[i].xPos, streaks[i].yPos, streaks[i].width, streaks[i].height, 5);
+                    $pjs.rect(streaks[i].xPos, streaks[i].yPos, streaks[i].width, streaks[i].height, 5);
                 }
             },
         },
@@ -3344,7 +3353,7 @@ var backgrounds = {
                     var start = 360 - 40;
                     var end = 313 - 40;
 
-                    pushMatrix();
+                    $pjs.pushMatrix();
                         translate(0, 10);
                         beginShape();
                             curveVertex(p_width + extra, 400);
@@ -3357,12 +3366,12 @@ var backgrounds = {
                             curveVertex(p_width + extra, 400);
                             curveVertex(-extra, 400);
                         endShape();
-                    popMatrix();
+                    $pjs.popMatrix();
 
                     var start = 40 + 20;
                     var end = 0 + 20;
 
-                    pushMatrix();
+                    $pjs.pushMatrix();
                         translate(0, -10);
                         beginShape();
                             curveVertex(p_width + extra, 0);
@@ -3375,7 +3384,7 @@ var backgrounds = {
                             curveVertex(p_width + extra, 0);
                             curveVertex(-extra, 0);
                         endShape();
-                    popMatrix();
+                    $pjs.popMatrix();
 
                     return get(-extra, 0, p_width + extra * 2, p_height);
                 }
@@ -3429,11 +3438,11 @@ var backgrounds = {
                     {
                         k++;
 
-                        pushMatrix();
+                        $pjs.pushMatrix();
                             translate(i, p_height - random(7, 19) * 3);
                             fill(34, 165, 80, 100);
-                            rect(0, 0, 18, 90, 10);
-                        popMatrix();
+                            $pjs.rect(0, 0, 18, 90, 10);
+                        $pjs.popMatrix();
                     }
 
                     var k = 0;
@@ -3441,11 +3450,11 @@ var backgrounds = {
                     {
                         k++;
 
-                        pushMatrix();
+                        $pjs.pushMatrix();
                             translate(i, -30);
                             fill(34, 165, 80, 100);
-                            rect(0, 0, 18, random(7, 19) * 2 + 30, 10);
-                        popMatrix();
+                            $pjs.rect(0, 0, 18, random(7, 19) * 2 + 30, 10);
+                        $pjs.popMatrix();
                     }
                     
                     return get(0, 0, p_width, p_height);
@@ -3480,7 +3489,7 @@ var backgrounds = {
         "winter" : {
             primeLoad : function()
             {
-                pushMatrix();
+                $pjs.pushMatrix();
                 scale(screen.width / 400, screen.height / 400);
 
                 noStroke();
@@ -3497,7 +3506,7 @@ var backgrounds = {
                 fill(red(backColor) - 10, green(backColor) - 10, blue(backColor) - 10);
                 ellipse(160, 300, 350, 350);
 
-                var starAmt = round(random(60, 80));
+                var starAmt = Math.round(random(60, 80));
 
                 var stars = 0;
 
@@ -3506,8 +3515,8 @@ var backgrounds = {
                 var j = 0;
                 while(stars < starAmt)
                 {
-                    var x = round(random(5, 395)),
-                        y = round(random(2, 225));
+                    var x = Math.round(random(5, 395)),
+                        y = Math.round(random(2, 225));
 
                     if(Math.pow(abs(160 - x), 2) + Math.pow(abs(300 - y), 2) > Math.pow(230, 2))
                     {
@@ -3526,7 +3535,7 @@ var backgrounds = {
                 }
 
                 //Moon
-                pushMatrix();
+                $pjs.pushMatrix();
                 beginShape();
                     translate(270, -20);
                     scale(0.34, 0.34);
@@ -3536,11 +3545,11 @@ var backgrounds = {
                     bezierVertex(254, 239, 228, 207, 226, 183);
                     bezierVertex(242, 145, 269, 170, 279, 169);
                 endShape();
-                popMatrix();
+                $pjs.popMatrix();
 
                 function mountain(x, y, sx, sy, cap)
                 {
-                    pushMatrix();
+                    $pjs.pushMatrix();
                         translate(x || 0, y || 0);
                         scale(sx || 1, sy || 1);
 
@@ -3554,10 +3563,10 @@ var backgrounds = {
                             fill(255, 255, 255, 200);
                             triangle(70, 240, 55, 264, 84, 264);
                         }
-                    popMatrix();
+                    $pjs.popMatrix();
                 }   
 
-                pushMatrix();
+                $pjs.pushMatrix();
                     //Adjustments
                     scale(1, 1.08);
                     translate(0, -30);
@@ -3628,13 +3637,13 @@ var backgrounds = {
 
                     //Shading
                     fill(112, 64, 31, 20);
-                    rect(0, 387, 400, 14, 100);
-                popMatrix();
+                    $pjs.rect(0, 387, 400, 14, 100);
+                $pjs.popMatrix();
 
                 backgrounds.backgrounds.winter.img = get(0, 0, screen.width, screen.height);
                 // screenUtils.speedUpImage(backgrounds.backgrounds.winter.img);
                 accelerateImg(backgrounds.backgrounds.winter.img);
-                popMatrix();
+                $pjs.popMatrix();
             },
             load : function()
             {
@@ -3660,7 +3669,7 @@ var backgrounds = {
                 graphics.stars.create(round(random(54, 80)) + 3);
                 background(255, 255, 255);
 
-                pushMatrix();
+                $pjs.pushMatrix();
                     scale(screen.width / 400, screen.height / 400);
                     noStroke();
                     var backColor = color(147 - 30, 221 - 30, 250 - 30);
@@ -3672,7 +3681,7 @@ var backgrounds = {
 
                     // screenUtils.speedUpImage(spaceFromEarth);
                     accelerateImg(spaceFromEarth);
-                popMatrix();
+                $pjs.popMatrix();
                 backgrounds.backgrounds.spaceFromEarth.drawBackground = function()
                 {
                     ctx.drawImage(spaceFromEarth.sourceImg, 0, 0, width, height);
@@ -3701,12 +3710,12 @@ var backgrounds = {
                 fill(red(backColor) - 80, green(backColor) - 80, blue(backColor) - 80);
                 fastRect(0, 90, 400, 40);
                 fill(red(backColor) - 130, green(backColor) - 130, blue(backColor) - 130);
-                rect(0, 0, 400, 90, 0);
+                $pjs.rect(0, 0, 400, 90, 0);
                 graphics.stars.draw();
                 
                 //Moon
                 fill(220, 222, 124);
-                pushMatrix();
+                $pjs.pushMatrix();
                 scale(0.3, 0.3);
                 translate(-17, -63);
                 beginShape();
@@ -3716,7 +3725,7 @@ var backgrounds = {
                 bezierVertex(254, 239, 228, 207, 226, 183);
                 bezierVertex(242, 145, 269, 170, 279, 169);
                 endShape();
-                popMatrix();
+                $pjs.popMatrix();
                 
                 //Mountains
                 fill(13, 93, 204);
@@ -3742,7 +3751,7 @@ var backgrounds = {
                 var ox = 129;
                 var oy = 291;
                 fill(130, 130, 130);
-                pushMatrix();
+                $pjs.pushMatrix();
                 translate(ox, oy);
                 scale(1.2, 1.2);
                 rotate(208);
@@ -3750,7 +3759,7 @@ var backgrounds = {
                 fastRect(-2.5, 5, 5, 28);
                 fill(24, 92, 161);
                 fastRect(-4.5, 16, 10, 10);
-                popMatrix();
+                $pjs.popMatrix();
                 
                 //Hills and grass
                 fill(23, 71, 161);
@@ -3776,18 +3785,18 @@ var backgrounds = {
                 
                 //Ground
                 fill(56, 158, 25);
-                rect(0, 350, 400, 100, 10);
+                $pjs.rect(0, 350, 400, 100, 10);
                 
                 fill(76, 184, 33);
                 for(var x = 0; x < width; x += 40)
                 {
-                    rect(x, 350, 20, 100, 15);
+                    $pjs.rect(x, 350, 20, 100, 15);
                 }
                 
                 fill(0, 0, 0, 60);
                 for(var x = 0; x < width; x += 70)
                 {
-                    rect(x, 375, 70, 100, 10);
+                    $pjs.rect(x, 375, 70, 100, 10);
                 }
             },
         },
@@ -3800,7 +3809,7 @@ var backgrounds = {
                     {
                         function mountain(x, y, sx, sy, cap)
                         {
-                            pushMatrix();
+                            $pjs.pushMatrix();
                                 translate(x || 0, y || 0);
                                 scale(sx || 1, sy || 1);
 
@@ -3814,7 +3823,7 @@ var backgrounds = {
                                     fill(255, 255, 255, 170);
                                     triangle(70, 240, 55, 264, 84, 264);
                                 }
-                            popMatrix();
+                            $pjs.popMatrix();
                         }   
 
                         var high = backgrounds.backgrounds.high;
@@ -3875,7 +3884,7 @@ var backgrounds = {
                             this.updatePixels();
                             noStroke();
                         
-                            pushMatrix();
+                            $pjs.pushMatrix();
                                 translate(0, -5);
 
                                 //Adjustments
@@ -3888,7 +3897,7 @@ var backgrounds = {
                                 mountain(512, 96, 1.24, 1.3, true);
                                 mountain(400, -15, 1.5, 1.6, true);
                                 
-                                pushMatrix();
+                                $pjs.pushMatrix();
                                     fill(20, 164, 200);
                                     ellipse(190, 600, 300, 100);  
 
@@ -3902,7 +3911,7 @@ var backgrounds = {
                                     {
                                         ellipse(190 + i * 200, 600 + ((i % 2 === 0) ? 6 : 0), 300, 100);
                                     }   
-                                popMatrix();
+                                $pjs.popMatrix();
 
                                 translate(0, 20);
                                 fill(6, 177, 234);
@@ -3920,9 +3929,9 @@ var backgrounds = {
                                 }
 
                                 
-                            popMatrix();
+                            $pjs.popMatrix();
 
-                            pushMatrix()
+                            $pjs.pushMatrix()
                                 translate(0, 10);
                                 scale(6/4, 6/4);
                                 fill(10, 187+12, 240);
@@ -3939,9 +3948,9 @@ var backgrounds = {
                                     vertex(400, 330+10);
                                     vertex(400, 400);
                                 endShape();
-                            popMatrix();
+                            $pjs.popMatrix();
 
-                            pushMatrix();
+                            $pjs.pushMatrix();
                                 scale(1, 1.08);
                                 translate(0, 200);
                                 fill(0, 146, 194, 160);
@@ -3958,7 +3967,7 @@ var backgrounds = {
                                     vertex(600, 330);
                                     vertex(600, 400);
                                 endShape();
-                            popMatrix();
+                            $pjs.popMatrix();
 
                             noStroke();
                             noLoop();
@@ -4026,7 +4035,7 @@ var backgrounds = {
                     var clouds = backgrounds.backgrounds.high.clouds;
                     for(var i = 0; i < clouds.length; i++)
                     {
-                        rect(clouds[i].x, clouds[i].y, clouds[i].width, clouds[i].height, clouds[i].round);
+                        $pjs.rect(clouds[i].x, clouds[i].y, clouds[i].width, clouds[i].height, clouds[i].round);
 
                         if(clouds[i].xVel)
                         {
@@ -4101,10 +4110,10 @@ var backgrounds = {
                     return;
                 }
 
-                pushMatrix();
+                $pjs.pushMatrix();
                 function sand(x, y, xs, ys, c)
                 {
-                    pushMatrix();
+                    $pjs.pushMatrix();
                         translate(x || 0, y || 0);
                         scale(xs || 1, ys || 1);
                         fill(c || color(237-12, 201, 175-19));
@@ -4112,7 +4121,7 @@ var backgrounds = {
                         fill(0, 0, 0, 12);
                         var amt = 5;
                         triangle(0 + amt * Math.SQRT2, 30, 40, 0 + amt, 80 - amt * Math.SQRT2, 30);
-                    popMatrix();
+                    $pjs.popMatrix();
                 }
 
                 background(117, 191, 220);
@@ -4127,7 +4136,7 @@ var backgrounds = {
                         var b = ((365 + 40 + y - ((x + y) % 14 <= 4 ? 110 : -20)) * 260 / 600) + 120 - y * 0.4;
 
                         fill(r, g, b);
-                        rect(x, y, 2, 2);
+                        $pjs.rect(x, y, 2, 2);
                     }
                 }
                 
@@ -4138,7 +4147,7 @@ var backgrounds = {
                 fill(255-30, 229, 40);
                 ellipse(90-12+234, 60, 38, 38);
 
-                pushMatrix();
+                $pjs.pushMatrix();
                     translate(0, -70);
                    
                     sand(90, 280, 2, 2.1);
@@ -4148,13 +4157,13 @@ var backgrounds = {
                     sand(330, 320);
 
                     fill(246-40+12, 194, 69+40);
-                    rect(0, 340, 400, 45);
+                    $pjs.rect(0, 340, 400, 45);
 
                     fill(246+12, 192, 69+40);
-                    rect(0, 380, 400, 300);
-                popMatrix();
+                    $pjs.rect(0, 380, 400, 300);
+                $pjs.popMatrix();
 
-                popMatrix();
+                $pjs.popMatrix();
 
                 backgrounds.backgrounds.sand.img = get(0, 0, 400, 400);
                 accelerateImg(backgrounds.backgrounds.sand.img);
@@ -4168,10 +4177,10 @@ var backgrounds = {
 
                 if(game.dropRate)
                 {
-                    pushMatrix();
+                    $pjs.pushMatrix();
                     function sand(x, y, xs, ys, c)
                     {
-                        pushMatrix();
+                        $pjs.pushMatrix();
                             translate(x || 0, y || 0);
                             scale(xs || 1, ys || 1);
                             fill(c || color(237-12, 201, 175-19));
@@ -4179,7 +4188,7 @@ var backgrounds = {
                             fill(0, 0, 0, 12);
                             var amt = 5;
                             triangle(0 + amt * Math.SQRT2, 30, 40, 0 + amt, 80 - amt * Math.SQRT2, 30);
-                        popMatrix();
+                        $pjs.popMatrix();
                     }
 
                     ctx.drawImage(this.behindSky.sourceImg, 0, 0, width, height);
@@ -4188,7 +4197,7 @@ var backgrounds = {
                     fill(255-30, 229, 40);
                     circle(312, 60 + (game.dropRate || 0) * 0.5, 38);
 
-                    pushMatrix();
+                    $pjs.pushMatrix();
                         translate(0, -70 + game.dropRate);
                        
                         sand(90, 280, 2, 2.1);
@@ -4198,18 +4207,18 @@ var backgrounds = {
                         sand(330, 320);
 
                         fill(218, 194, 109);
-                        rect(0, 340, 400, 45);
+                        $pjs.rect(0, 340, 400, 45);
 
                         fill(258, 192, 109);
-                        rect(0, 380, 400, 300);
-                    popMatrix();
+                        $pjs.rect(0, 380, 400, 300);
+                    $pjs.popMatrix();
 
-                    popMatrix();
+                    $pjs.popMatrix();
                 }else{
                     ctx.drawImage(backgrounds.backgrounds.sand.img.sourceImg, 0, 0, width, height);
                 }
 
-                pushMatrix();
+                $pjs.pushMatrix();
                     translate(0, game.dropRate || 0);
 
                     graphics.inClouds.draw();
@@ -4217,7 +4226,7 @@ var backgrounds = {
                     {
                         graphics.inClouds.update();
                     }
-                popMatrix();
+                $pjs.popMatrix();
             }
         },
         "ship" : {
@@ -4293,7 +4302,7 @@ var backgrounds = {
                 fill(225, 229, 40);
                 circle(312, 60 + (game.dropRate || 0) * 0.55, 38);
 
-                pushMatrix();
+                $pjs.pushMatrix();
                     translate(0, game.dropRate || 0);
 
                     graphics.inClouds.draw();
@@ -4301,7 +4310,7 @@ var backgrounds = {
                     {
                         graphics.inClouds.update();
                     }
-                popMatrix();
+                $pjs.popMatrix();
             }
         },
         "space" : {
@@ -5809,10 +5818,10 @@ var inventoryMenu = {
 
         var scene = this.scenes[this.scene];
 
-        pushMatrix();
+        $pjs.pushMatrix();
             translate(this.slideX, this.slideY);
             fill(0, 0, 0, 120);
-            rect(0, 0, width, height - 120, 10);
+            $pjs.rect(0, 0, width, height - 120, 10);
 
             textFont(this.font);
             textSize(14);
@@ -5820,7 +5829,7 @@ var inventoryMenu = {
             fill(240, 240, 240, 200);
             text("Inventory", 12, 10);
 
-            pushMatrix();
+            $pjs.pushMatrix();
                 translate(this.scenes.slideX, this.scenes.slideY);
                 switch(this.scene)
                 {
@@ -5870,7 +5879,7 @@ var inventoryMenu = {
                         textSize(10);
                         text("[Arrow keys]", 10, 30);
 
-                        pushMatrix();
+                        $pjs.pushMatrix();
                             translate(170, 100);
 
                             if(this.autoAngle === undefined)
@@ -5985,7 +5994,7 @@ var inventoryMenu = {
                                 this.autoAngle += this.rDir;
                             }
 
-                        popMatrix();
+                        $pjs.popMatrix();
 
                         fill(red(toFill), green(toFill), blue(toFill), 120);
                         textSize(14);
@@ -6053,7 +6062,7 @@ var inventoryMenu = {
                 if(scene.buttons && !scene.noBar)
                 {
                     fill(0, 0, 0, 100);
-                    rect(78, -35, (scene.width || this.scenes.width) - 18, 30, 6);
+                    $pjs.rect(78, -35, (scene.width || this.scenes.width) - 18, 30, 6);
 
                     textSize(10);
                     fill(240, 240, 240, 180);
@@ -6073,8 +6082,8 @@ var inventoryMenu = {
                         text(scene.onHover, 84, -31.5, (scene.width || this.scenes.width) - 5, 30);
                     }
                 }
-            popMatrix();
-        popMatrix();
+            $pjs.popMatrix();
+        $pjs.popMatrix();
 
         if(this.state === "opened")
         {
@@ -6125,20 +6134,20 @@ var controlPanel = {
     },
     draw : function()
     {
-        pushMatrix();
+        $pjs.pushMatrix();
             translate(this.slideX, this.slideY);
             fill(0, 0, 60, 120);
-            rect(0, 0, width, height - 120, 10);
+            $pjs.rect(0, 0, width, height - 120, 10);
 
             fill(0, 0, 0, 120);
-            rect(20, 20, width - 40, height - 160, 10);
+            $pjs.rect(20, 20, width - 40, height - 160, 10);
 
             textFont(this.font);
             textSize(14);
             textAlign(LEFT, TOP);
             fill(240, 240, 240, 200);
             text("Ship Control Panel", 12, 10);
-        popMatrix(); 
+        $pjs.popMatrix(); 
 
         if(!this.drawInit)
         {
@@ -6164,7 +6173,7 @@ var controlPanel = {
                 if(this.buttons[i].disabled)
                 {
                     fill(0, 0, 0, 100);
-                    rect(this.buttons[i].xPos, this.buttons[i].yPos, this.buttons[i].width, this.buttons[i].height, this.buttons[i].round);
+                    $pjs.rect(this.buttons[i].xPos, this.buttons[i].yPos, this.buttons[i].width, this.buttons[i].height, this.buttons[i].round);
                 }
             }
         }
@@ -6508,7 +6517,7 @@ var screenUtils = {
                     if((millis() + 400) % 40 > 22 || between || !airMeter.msg)
                     {
                         airMeter.set(round(player.air), player.maxAir);
-                        airMeter.msg = ("Oxygen " + round(player.air) + "/" + player.maxAir);
+                        airMeter.msg = ("Oxygen " + Math.round(player.air) + "/" + player.maxAir);
                     }
 
                     airMeter.draw();
@@ -6531,7 +6540,7 @@ var screenUtils = {
             textSize(11);
             
             fill(0, 12, 12, 50);
-            rect(1, 0, 70, screenUtils.infoBar.height, 10);
+            $pjs.rect(1, 0, 70, screenUtils.infoBar.height, 10);
 
             /* Inject font */
             textFont(inventoryMenu.font);
@@ -6558,7 +6567,7 @@ var screenUtils = {
 
             var csText = "Coins " + (player.coins || 0) + sp + "Score " + (player.score || 0);
 
-            rect(125, 0, textWidth(csText) + 12, screenUtils.infoBar.height, 10);
+            $pjs.rect(125, 0, textWidth(csText) + 12, screenUtils.infoBar.height, 10);
             fill(230, 230, 230, 100);
 
             text(csText, 130, screenUtils.infoBar.height - 8);
@@ -6566,7 +6575,7 @@ var screenUtils = {
             var lvl = screenUtils.filterLevel(levelInfo.level);
 
             fill(0, 12, 12, 150);
-            rect(281, 0, max(/*85*/ 55, textWidth("Level " + (lvl || 0) + 10)), screenUtils.infoBar.height, 10);
+            $pjs.rect(281, 0, max(/*85*/ 55, textWidth("Level " + (lvl || 0) + 10)), screenUtils.infoBar.height, 10);
             fill(230, 230, 230, 100);
             textAlign(LEFT, CENTER);
             text("Level " + (lvl || 0), 286, screenUtils.infoBar.height - 8);
@@ -6604,26 +6613,26 @@ var screenUtils = {
 
                 if(this.showThis)
                 {
-                    rect(316, 340, flashLightUpgrade.timer * 70 / flashLightUpgrade.maxTime, 14);
+                    $pjs.rect(316, 340, flashLightUpgrade.timer * 70 / flashLightUpgrade.maxTime, 14);
                 }
                 noFill();
                 stroke(0, 0, 0, 150);
                 strokeWeight(2);
-                rect(316, 340, 70, 14);
+                $pjs.rect(316, 340, 70, 14);
 
                 noStroke();
             }
 
             if(player.defense > 0)
             {
-                pushMatrix();
+                $pjs.pushMatrix();
                     translate(0, this.padY);
                     this.defenseMeter.draw();
 
                     fill(255, 255, 255, 105);
                     textAlign(LEFT, TOP);
                     text(player.defense + "/" + player.maxDefense + "% defense", 5, height - 12);
-                popMatrix();
+                $pjs.popMatrix();
 
                 if(this.padding)
                 {
@@ -6652,7 +6661,7 @@ var screenUtils = {
                     var txt = boss.hp + "/" + boss.maxHp + " hp " + boss.outArrayName;
 
                     fill(0, 0, 0, 100);
-                    rect(0, 385, 5 + textWidth(txt) + 12, 400, 7);
+                    $pjs.rect(0, 385, 5 + textWidth(txt) + 12, 400, 7);
                     fill(255, 255, 255, 200);
                     textAlign(LEFT, DOWN);
                     /* Inject font */
@@ -6671,7 +6680,7 @@ var screenUtils = {
                     textFont(inventoryMenu.font);
 
                     fill(0, 0, 0, 130);
-                    rect(-6, height - 15, 25 + textWidth(configs[levelInfo.theme].name), 30, 5);
+                    $pjs.rect(-6, height - 15, 25 + textWidth(configs[levelInfo.theme].name), 30, 5);
                     fill(240, 240, 240, 145);
                     text(configs[levelInfo.theme].name, 8, height - 3);
                 }
@@ -6679,7 +6688,7 @@ var screenUtils = {
                  /* Inject font */
                 textFont(inventoryMenu.font);
 
-                pushMatrix();
+                $pjs.pushMatrix();
                     translate(20, 0);
 
                     var powerKeys = [];
@@ -6698,7 +6707,7 @@ var screenUtils = {
                     powerKeys.reverse();
 
                     fill(0, 0, 0, 130);
-                    rect(width + 2 - textWidth(txt + "   E") - 40, height - 15, 100, 30, 5);
+                    $pjs.rect(width + 2 - textWidth(txt + "   E") - 40, height - 15, 100, 30, 5);
 
                     var powerString = player.discoveredPowersHandler.currentPower;
 
@@ -6737,7 +6746,7 @@ var screenUtils = {
                             break;
                         }
                     }
-                popMatrix();
+                $pjs.popMatrix();
             }
         
 
@@ -6764,7 +6773,7 @@ var screenUtils = {
                     var xOff2 = -(textWidth(inputText) - 35);
 
 
-                     rect(330 + xOff + xOff2, 290 + yOff + x, textWidth(inputText) + 27, 31, 10);
+                     $pjs.rect(330 + xOff + xOff2, 290 + yOff + x, textWidth(inputText) + 27, 31, 10);
                     if(player.goto.keysHolding[i].style === "boss")
                     {   
                         (function(x, y, w, h)
@@ -7009,10 +7018,10 @@ var screenUtils = {
             if(this.noB < 20)
             {
                 this.loadingScreenBar.set(loader.loops, loader.estLoops);
-                pushMatrix();
+                $pjs.pushMatrix();
                     translate(this.noB * 20, this.noB / 3);
                     this.loadingScreenBar.draw();
-                popMatrix();
+                $pjs.popMatrix();
                 this.loadingScreenBar.noStroke = true;
 
                 if(loader.loops >= loader.estLoops)
@@ -7246,7 +7255,7 @@ var screenUtils = {
             var msgText = messageArray.join("");
 
             fill(rectColor);
-            rect(msg.xPos, msg.yPos, msg.width, msg.height, 10);
+            $pjs.rect(msg.xPos, msg.yPos, msg.width, msg.height, 10);
 
             fill(red(textColor), green(textColor), blue(textColor), min(180, alpha(textColor)));
             textSize(msg.textSize);
@@ -8704,6 +8713,9 @@ cameraGrid.setup = function(xPos, yPos, cols, rows, cellWidth, cellHeight)
 
         levelInfo.width = 800 * cols;
         levelInfo.height = 800 * rows;
+    }else{
+        levelInfo.cellWidth = levelInfo.lastCellWidth || levelInfo.cellWidth;
+        levelInfo.cellHeight = levelInfo.lastCellHeight || levelInfo.cellHeight;
     }
 
     this.cellWidth = cellWidth;
@@ -8716,6 +8728,8 @@ cameraGrid.setup = function(xPos, yPos, cols, rows, cellWidth, cellHeight)
 cameraGrid.create = function(cols, rows)
 {
     this.length = 0;
+    this.length = 0;
+
     for(var col = 0; col < cols; col++)
     {
         this.push([]);
@@ -8736,7 +8750,7 @@ cameraGrid.create = function(cols, rows)
 
     if(levels[levelInfo.level].createStars)
     {
-        var _stars = [];
+        let _stars = [];
         
         var col, row, i;
 
@@ -8760,6 +8774,8 @@ cameraGrid.create = function(cols, rows)
                 });  
             }
         }
+
+        stars = null;
     }
 
     this._length = this.length - 1;
@@ -8770,6 +8786,10 @@ cameraGrid.addLight = function(xPos, yPos, name, value)
     var place = this.getPlace(xPos, yPos);
     this[place.col][place.row]._lights[name] = value;
 };
+cameraGrid.free = function()
+{
+    // I wonder if I'll ever manage to figure out what to put here.
+};         
 cameraGrid.reset = function()
 {
     this.create(this.rows, this.cols);
@@ -8843,7 +8863,7 @@ cameraGrid.draw = function()
     {
         for(var row = cam.upperLeft.row; row <= cam.lowerRight.row; row++)
         {  
-            rect(this.xPos + col * this.cellWidth, this.yPos + row * this.cellHeight, this.cellWidth, this.cellHeight);
+            $pjs.rect(this.xPos + col * this.cellWidth, this.yPos + row * this.cellHeight, this.cellWidth, this.cellHeight);
         }
     }
 };
@@ -8879,7 +8899,7 @@ gameObjects.drawBoundingBoxes = function()
             if(this[this.toOrder[i]][array[j]])
             {
                 shape = this[this.toOrder[i]][array[j]].boundingBox;
-                rect(shape.xPos, shape.yPos, shape.width, shape.height);
+                $pjs.rect(shape.xPos, shape.yPos, shape.width, shape.height);
             }
         }
     }
@@ -9756,37 +9776,6 @@ var GameObject = function(xPos, yPos)
     {
         this.hideDelete = true;
     };
-
-    this.enterFunc = function(name, begin, end)
-    {
-        var suffix = name + millis() + round(random(100, 0));
-
-        var lastBeginKey = "begin" + suffix;
-        this[lastBeginKey] = begin || function() {};
-
-        var lastEndKey = "end" + suffix;
-        this[lastEndKey] = end || function() {};
-
-        var lastNameKey = "last" + suffix;
-        this[lastNameKey] = this[name];
-
-        var self = this;
-
-        this[name] = function()
-        {
-            var r = this[lastBeginKey].apply(this, arguments);
-
-            if(r === undefined || r > 0)
-            {
-                r = this[lastNameKey].apply(this, arguments) || r;
-            }
-
-            if(r === undefined || r > 1)
-            {
-                this[lastEndKey].apply(this, arguments);
-            }
-        };
-    };
 };
 
 var Rect = function(xPos, yPos, width, height)
@@ -9838,12 +9827,12 @@ var Circle = function(xPos, yPos, diameter)
 
         if(this.showRotation)
         {
-            pushMatrix();
+            $pjs.pushMatrix();
                 translate(this.xPos, this.yPos);
                 rotate(this.rotation);
                 stroke(0, 0, 0);
                 line(0, 0, this.radius * 0.7, this.radius * 0.7);
-            popMatrix();
+            $pjs.popMatrix();
         }
     };
 };
@@ -10377,13 +10366,13 @@ var Pillar = function(xPos, yPos, width, height, colorValue, pillarBlock)
 
         if(!this.pillarBlock)
         {
-            pushMatrix();
+            $pjs.pushMatrix();
                 translate(this.xPos, this.yPos);
                 for(var x = 0; x < this.width; x += (this.width / 5))
                 {
                     line(x, 3, x, this.height);
                 }
-            popMatrix();
+            $pjs.popMatrix();
 
             strokeWeight(0.3);
             stroke(255, 255, 255);
@@ -10399,13 +10388,13 @@ var Pillar = function(xPos, yPos, width, height, colorValue, pillarBlock)
             fill(85, 85, 85);
             fastRect(this.xPos - wVert, this.yPos, this.width + wVert * 2, 3);
         }else{
-            pushMatrix();
+            $pjs.pushMatrix();
                 translate(this.xPos, this.yPos);
                 for(var x = 0; x < this.width; x += (this.width / 5))
                 {
                     line(x, 0, x, this.height);
                 }
-            popMatrix();
+            $pjs.popMatrix();
             
             noStroke();
         }
@@ -10578,7 +10567,7 @@ var OneWay = function(xPos, yPos, width, height, colorValue, direction, inHerita
         var symbol = "L";
         var textXPos = this.width * 0.2;
 
-        pushMatrix();
+        $pjs.pushMatrix();
         translate(this.xPos, this.yPos);
         switch(this.direction)
         {
@@ -10608,7 +10597,7 @@ var OneWay = function(xPos, yPos, width, height, colorValue, direction, inHerita
             text(symbol, 0 + textXPos, 0 + this.height * 0.10 + 10 * i);
         }
         textAlign(NORMAL, NORMAL);
-        popMatrix();
+        $pjs.popMatrix();
     };
 
     if(!inHeritance)
@@ -10757,7 +10746,7 @@ var MovingPlatform = function(xPos, yPos, width, height, colorValue, direction, 
 
         this.draw = function()
         {
-            ctx.drawImage(img.sourceImg, 0, 0, img.sourceImg.width, img.sourceImg.height, round(this.xPos), round(this.yPos), this.width, this.height);
+            ctx.drawImage(img.sourceImg, 0, 0, img.sourceImg.width, img.sourceImg.height, Math.round(this.xPos), Math.round(this.yPos), this.width, this.height);
         };
     }
 
@@ -11007,7 +10996,7 @@ var Lava = function(xPos, yPos, width, height, colorValue, damage)
         this.update = this.lastUpdate1;
     };
 
-    this.num = round(random(0, 1000));
+    this.num = Math.round(random(0, 1000));
     screenUtils.loadImage(this, true, "lava" + this.num);
 
     this.damage = damage || 0.1;
@@ -11167,7 +11156,7 @@ var Ring = function(xPos, yPos, diameter, colorValue)
     this.type = "collision";
 
     this.angle = 0;
-    this.bladeSpeed = round(random(3, 8)) * ((random(0, 100) > 50) ? 1  : -1) * 0.75;
+    this.bladeSpeed = Math.round(random(3, 8)) * ((random(0, 100) > 50) ? 1  : -1) * 0.75;
     this.bladeColor = color(0, 100, 230);
 
     this.arcSize = this.diameter * 2 / 3;
@@ -11193,13 +11182,13 @@ var Ring = function(xPos, yPos, diameter, colorValue)
         fill(this.color);
         circle(this.xPos, this.yPos, this.diameter);
        
-        pushMatrix();
+        $pjs.pushMatrix();
         translate(this.xPos, this.yPos);
         rotate(this.angle);
         fill(this.bladeColor);
         arc(0, 0, this.arcSize, this.arcSize, this.bladeRanges[1][0], this.bladeRanges[1][1]);
         arc(0, 0, this.arcSize, this.arcSize, this.bladeRanges[3][0], this.bladeRanges[3][1]);
-        popMatrix();
+        $pjs.popMatrix();
     };
 
     this.lastUpdate = this.update;
@@ -11252,7 +11241,7 @@ var HelixShip = function(xPos, yPos, width, height)
             diameter : ((random() < 0.5) ? 6 : 7),
             color : color(9, 100, 170, 210),
             life : random(5, 20) * (_this.speed / _this.maxSpeed),
-            length : round(random(1, 3)) * 8
+            length : Math.round(random(1, 3)) * 8
         });
     };
     this.flames.draw = function()
@@ -11262,7 +11251,7 @@ var HelixShip = function(xPos, yPos, width, height)
         for(var i = 0; i < this.length; i++)
         {
             fill(this[i].color);
-            fastRect(this[i].x, this[i].y, round(random(2, 4)), this[i].length);
+            fastRect(this[i].x, this[i].y, Math.round(random(2, 4)), this[i].length);
         }
     };
     this.flames.update = function()
@@ -11324,7 +11313,7 @@ var HelixShip = function(xPos, yPos, width, height)
             this.nextTime = random(20, 50);
         }
 
-        pushMatrix();
+        $pjs.pushMatrix();
             translate(this.middleXPos, this.middleYPos);
             rotate(this.angle);
 
@@ -11342,7 +11331,7 @@ var HelixShip = function(xPos, yPos, width, height)
 
             fastImage(loadedImages[this.imageName], -this.halfWidth, -this.halfHeight, this.width, this.height);
  
-        popMatrix();
+        $pjs.popMatrix();
     };
 
     this.lastChangeTime = 0;
@@ -11629,7 +11618,7 @@ var ImageBlock = function(xPos, yPos, width, height, imageName)
         // }
         // catch(e) { }
 
-        ctx.drawImage(img.sourceImg, 0, 0, img.sourceImg.width, img.sourceImg.height, round(this.xPos), round(this.yPos), this.width, this.height);
+        ctx.drawImage(img.sourceImg, 0, 0, img.sourceImg.width, img.sourceImg.height, Math.round(this.xPos), Math.round(this.yPos), this.width, this.height);
     };
 
     this.notExplosive = true;
@@ -11775,11 +11764,11 @@ var Ice = function(xPos, yPos, width, height, colorValue, slipFactor, override)
             }
 
             fill(shape.color);
-            pushMatrix();
+            $pjs.pushMatrix();
                 translate(shape.xPos, shape.yPos);
                 rotate(shape.rotation);
                 fastRect(-shape.halfWidth, -shape.halfHeight, shape.width, shape.height);
-            popMatrix();
+            $pjs.popMatrix();
         }
     };
 
@@ -11871,7 +11860,7 @@ var UndergroundBlock = function(xPos, yPos, width, height)
 
     this.draw = function()
     {
-        pushMatrix();
+        $pjs.pushMatrix();
             translate(xPos + this.halfWidth, yPos + this.halfHeight);
             rotate(this.rotation);
             translate(-xPos - this.halfWidth, -yPos - this.halfHeight);
@@ -11880,8 +11869,8 @@ var UndergroundBlock = function(xPos, yPos, width, height)
             fill(245, 245, 245, 90);
             triangle(left, down, right, up, right, down);
             fill(0, 0, 0, 70);
-            rect(xPos + 6, yPos + 6, width - 12, height - 12, 5);
-        popMatrix();
+            $pjs.rect(xPos + 6, yPos + 6, width - 12, height - 12, 5);
+        $pjs.popMatrix();
     };
 
     this.lastTwistTime = 0;
@@ -12250,7 +12239,7 @@ var LaserBlock = function(xPos, yPos, width, height, direction)
 
     this.draw = function()
     {
-        pushMatrix();
+        $pjs.pushMatrix();
             translate(this.middleXPos, this.middleYPos);
             rotate(this.rotation);
             translate(-this.middleXPos, -this.middleYPos);
@@ -12267,7 +12256,7 @@ var LaserBlock = function(xPos, yPos, width, height, direction)
             var h = this.height * 0.2;
             fastRect(this.xPos + this.halfWidth, this.yPos, this.halfWidth, h);
             fastRect(this.xPos + this.halfWidth, this.yPos + this.height - h, this.halfWidth, h);
-        popMatrix();
+        $pjs.popMatrix();
     };
 
     this.lastTwistTime = 0;
@@ -12391,9 +12380,9 @@ var ExclamationBlock = function(xPos, yPos, width, height)
     this.draw = function()
     {
         fill(7, 45, 151, 146);
-        rect(this.xPos, this.yPos, this.width, this.height, 6);
+        $pjs.rect(this.xPos, this.yPos, this.width, this.height, 6);
 
-        pushMatrix();
+        $pjs.pushMatrix();
             translate(this.middleXPos, this.middleYPos);
             scale(this.xScale, 1.0);
 
@@ -12404,7 +12393,7 @@ var ExclamationBlock = function(xPos, yPos, width, height)
 
             // text(this.message, 0, 0);
             text('!', 0, 0);
-        popMatrix();
+        $pjs.popMatrix();
     };
 
     this.update = function()
@@ -12471,13 +12460,13 @@ var ExclamationBlock = function(xPos, yPos, width, height)
 
                 if(cs > 0)
                 {
-                    pushMatrix();
+                    $pjs.pushMatrix();
                         translate(this.middleXPos, this.middleYPos);
                         scale(cs, cs);
                         translate(-this.middleXPos, -this.middleYPos);
 
                         _lastDraw.apply(this, arguments); 
-                    popMatrix();
+                    $pjs.popMatrix();
                 }
             }
         };
@@ -12496,7 +12485,7 @@ var BehindBlock = function(xPos, yPos, width, height)
     this.draw = function()
     {
         fill(0, 0, 0, 130);
-        rect(xPos, yPos, width, height);
+        $pjs.rect(xPos, yPos, width, height);
     };
 };
 gameObjects.addObject("behindBlock", createArray(BehindBlock));
@@ -12573,7 +12562,7 @@ var FilterBlock = function(xPos, yPos, width, height, colorValue)
     this.draw = function()
     {
         fill(this.color);
-        rect(this.xPos, this.yPos, this.width, this.height, 5);
+        $pjs.rect(this.xPos, this.yPos, this.width, this.height, 5);
 
         fill(0, 0, 70, 100);
         triangle(this.xPos, this.yPos, this.xPos + this.width, this.yPos, this.xPos, this.yPos + this.height);
@@ -12840,11 +12829,11 @@ var Door = function(xPos, yPos, width, height, colorValue)
             self.particles.push({
                 xPos : self.middleXPos,
                 yPos : self.middleYPos,
-                radius : round(random(2, 7)),
+                radius : Math.round(random(2, 7)),
                 life : 100,
                 maxLife : 100,
-                xVel : round(random(-2, 2)),
-                yVel : round(random(-2, 2)),
+                xVel : Math.round(random(-2, 2)),
+                yVel : Math.round(random(-2, 2)),
                 color : ((random(0, 1) < 0.35) ? color(0, 170, 126) : color(0, 50, 200)),
                 angle : 0,
                 angleVel : random(-this.angleVel, this.angleVel),
@@ -13056,12 +13045,12 @@ var Crate = function(xPos, yPos, width, height, colorValue, noBreak)
 
     this.addDrops = function()
     {
-        for(var i = 0; i < round(random(1, 4)); i++)
+        for(var i = 0; i < Math.round(random(1, 4)); i++)
         {
             var item = (random(0, 100) <= 60) ? "coin" : "hpCoin";
             var array = gameObjects.getObject(item);
-            array.add(this.xPos - round(random(-this.width * 0.4, this.width * 0.4)),
-            this.yPos - round(random(-this.height * 0.4, this.height * 0.4)), this.halfWidth);  
+            array.add(this.xPos - Math.round(random(-this.width * 0.4, this.width * 0.4)),
+            this.yPos - Math.round(random(-this.height * 0.4, this.height * 0.4)), this.halfWidth);  
             cameraGrid.addReference(array.getLast());
         }
     };
@@ -13225,7 +13214,7 @@ var Key = function(xPos, yPos, width, height, colorValue)
         }
 
         fill(0, 0, 0, 100);
-        rect(this.xPos + this.halfWidth - this.msgWidth / 2, this.yPos - this.height * 0.75, this.msgWidth, this.halfHeight, 5);
+        $pjs.rect(this.xPos + this.halfWidth - this.msgWidth / 2, this.yPos - this.height * 0.75, this.msgWidth, this.halfHeight, 5);
         fill(200, 200, 200, 170);
         textAlign(CENTER, CENTER);
         textSize(11);
@@ -13417,21 +13406,21 @@ var Chest = function(xPos, yPos, width, height)
                 pY = this.yPos - eY / 2 + this.halfHeight;
 
                 fill(0, 0, 0, 50);
-                rect(pX, this.yPos - eY * 10, eX, eY * 20, 10);
-                rect(this.xPos - eX * 10, pY, eX * 20, eY, 10);
+                $pjs.rect(pX, this.yPos - eY * 10, eX, eY * 20, 10);
+                $pjs.rect(this.xPos - eX * 10, pY, eX * 20, eY, 10);
 
                 image(storedImages[this.img], pX, pY, eX, eY);
 
                 fill(0, 0, 0, 60);
-                rect(this.xPos + random(-this.halfWidth, this.halfWidth) + this.halfWidth, this.yPos + random(-this.halfHeight, this.halfHeight) + this.halfHeight, this.width * 0.2, this.height * 0.2);
+                $pjs.rect(this.xPos + random(-this.halfWidth, this.halfWidth) + this.halfWidth, this.yPos + random(-this.halfHeight, this.halfHeight) + this.halfHeight, this.width * 0.2, this.height * 0.2);
             }
 
             return;
         }
 
         fill(0, 0, 0, 50);
-        rect(pX, this.yPos - eY * 10, eX, eY * 20, 10);
-        rect(this.xPos - eX * 10, pY, eX * 20, eY, 10);
+        $pjs.rect(pX, this.yPos - eY * 10, eX, eY * 20, 10);
+        $pjs.rect(this.xPos - eX * 10, pY, eX * 20, eY, 10);
 
         this.img = (this.goto.isOpen) ? "chest-open" : "chest";
         image(storedImages[this.img], this.xPos, this.yPos, this.width, this.height);
@@ -13581,13 +13570,13 @@ var ItemChest = function(xPos, yPos, width, height)
                 pY = this.yPos - eY / 2 + this.halfHeight;
 
                 fill(0, 0, 0, 50);
-                rect(pX, this.yPos - eY * 10, eX, eY * 20, 10);
-                rect(this.xPos - eX * 10, pY, eX * 20, eY, 10);
+                $pjs.rect(pX, this.yPos - eY * 10, eX, eY * 20, 10);
+                $pjs.rect(this.xPos - eX * 10, pY, eX * 20, eY, 10);
 
                 image(storedImages[this.img], pX, pY, eX, eY);
 
                 fill(0, 0, 0, 60);
-                rect(this.xPos + random(-this.halfWidth, this.halfWidth) + this.halfWidth, this.yPos + random(-this.halfHeight, this.halfHeight) + this.halfHeight, this.width * 0.2, this.height * 0.2);
+                $pjs.rect(this.xPos + random(-this.halfWidth, this.halfWidth) + this.halfWidth, this.yPos + random(-this.halfHeight, this.halfHeight) + this.halfHeight, this.width * 0.2, this.height * 0.2);
             }
 
             return;
@@ -13893,7 +13882,7 @@ var CloudMine = function(xPos, yPos, diameter)
 
     this.physics.movement = "dynamic";
 
-    this.idInput = round(random(0, 100));
+    this.idInput = Math.round(random(0, 100));
 
     this.updateBoundingBox = function()
     {
@@ -13913,8 +13902,8 @@ var CloudMine = function(xPos, yPos, diameter)
             this.push({
                 xPos : self.xPos,
                 yPos : self.yPos,
-                yVel : round(random(-5, 5)),
-                xVel : round(random(-5, 5)), 
+                yVel : Math.round(random(-5, 5)),
+                xVel : Math.round(random(-5, 5)), 
                 diameter : random(2, 7),
                 color : color(0, random(100, 200), 0, random(50, 150)),
             });
@@ -14356,9 +14345,9 @@ var Spike = function(xPos, yPos, width, height, colorValue, upSideDown)
             physics.getMiddleXPos(this);
 
             var hpCoins = gameObjects.getObject("hpCoin");
-            for(var i = 0; i < round(random(2, 5)); i++)
+            for(var i = 0; i < Math.round(random(2, 5)); i++)
             {
-                hpCoins.add(this.middleXPos + round(random(-this.halfWidth + 10, this.halfWidth - 10)), yPos + 100 + random(-30, 300), 10, 0, 1);
+                hpCoins.add(this.middleXPos + Math.round(random(-this.halfWidth + 10, this.halfWidth - 10)), yPos + 100 + random(-30, 300), 10, 0, 1);
                 cameraGrid.addReference(hpCoins.getLast());
             }
 
@@ -14575,7 +14564,7 @@ var Shooter = function(xPos, yPos, diameter, colorValue)
         fill(this.color);
         circle(this.xPos, this.yPos, this.diameter);
 
-        pushMatrix();
+        $pjs.pushMatrix();
         translate(this.xPos, this.yPos);
         if(MODE === "pjs")
         {
@@ -14583,8 +14572,8 @@ var Shooter = function(xPos, yPos, diameter, colorValue)
         }else{
             rotate(this.shootAngle);  
         }
-        rect(-this.diameter * 0.15, 0, this.diameter * 0.3, this.diameter, 2);
-        popMatrix();
+        $pjs.rect(-this.diameter * 0.15, 0, this.diameter * 0.3, this.diameter, 2);
+        $pjs.popMatrix();
         
         fill(0, 0, 90, 50);
         circle(this.xPos, this.yPos, this.diameter * 0.8);
@@ -15003,7 +14992,7 @@ var Enemy = function(xPos, yPos, width, height, colorValue, props, complexDraw, 
     this.draw = function()
     {
         fill(this.color);
-        rect(this.xPos, this.yPos, this.width, this.height, 5);
+        $pjs.rect(this.xPos, this.yPos, this.width, this.height, 5);
     };   
     
     if(this.complexDraw)
@@ -15012,13 +15001,13 @@ var Enemy = function(xPos, yPos, width, height, colorValue, props, complexDraw, 
         this.hide = 0;
         this.hideVel = 1.5;
         this.eyes = 2;
-        this.eyeSwitch = round(random(1, 2));
+        this.eyeSwitch = Math.round(random(1, 2));
         
         this.draw = function() 
         {
             noStroke();
             fill(this.color);
-            rect(this.xPos, this.yPos, this.width, this.height, 5);
+            $pjs.rect(this.xPos, this.yPos, this.width, this.height, 5);
             
             fill(255, 255, 255, 200);
             var _x = this.xPos + ((this.eyeSwitch === 1) ? this.width * 0.25 : this.width * 0.75);
@@ -15056,7 +15045,7 @@ var Enemy = function(xPos, yPos, width, height, colorValue, props, complexDraw, 
             }
             
             fill(red(this.color), green(this.color), blue(this.color), this.hide);
-            rect(this.xPos, this.yPos, this.width, this.height, 5);
+            $pjs.rect(this.xPos, this.yPos, this.width, this.height, 5);
             
             if(this.hide < 0 || this.hide > (this.maxHide || 255))
             {
@@ -15420,7 +15409,7 @@ var IceBeaker = function(xPos, yPos, width, height, colorValue)
 
     for(var i = 0; i < 4; i++)
     {
-        this.kArray.push([round(random(-5, 5)), round(random(-5, 5))]);
+        this.kArray.push([round(random(-5, 5)), Math.round(random(-5, 5))]);
     }
 
     this.update = function()
@@ -15432,7 +15421,7 @@ var IceBeaker = function(xPos, yPos, width, height, colorValue)
         {
             for(var i = 0; i < 4; i++)
             {
-                this.kArray[i] = [round(random(-5, 5)), round(random(-5, 5))];
+                this.kArray[i] = [round(random(-5, 5)), Math.round(random(-5, 5))];
             }
         }
     };
@@ -15453,17 +15442,17 @@ var IceBeaker = function(xPos, yPos, width, height, colorValue)
 
         for(i = 0; i < 4; i++)
         {
-            pushMatrix();
+            $pjs.pushMatrix();
                 translate(this.middleXPos, this.middleYPos);
                 rotate(this.angle);
                 ellipse(0, 0, this.halfWidth - this.kArray[i][0], this.halfHeight - this.kArray[i][1]);
-            popMatrix();
+            $pjs.popMatrix();
         }
 
         this.lastDraw();
 
         fill(240, 240, 240, 200);
-        rect(this.xPos, this.yPos + this.height - this.custHeight, this.width, this.custHeight, 5);
+        $pjs.rect(this.xPos, this.yPos + this.height - this.custHeight, this.width, this.custHeight, 5);
     };
 
     this._lastOnCollide1 = this.onCollide;
@@ -15685,7 +15674,7 @@ var DirtyCat = function(xPos, yPos, width, height)
 
     this.draw = function()
     {
-        pushMatrix();
+        $pjs.pushMatrix();
         translate(this.xPos, this.yPos - of);
 
         if(this.controls.right() && !this.controls.left())
@@ -15710,7 +15699,7 @@ var DirtyCat = function(xPos, yPos, width, height)
         }
 
         image(storedImages[this.imageName], 0, 0, this.width, this.height + of);
-        popMatrix();
+        $pjs.popMatrix();
     };
 
     this.lastJumpTime = millis();
@@ -16232,7 +16221,7 @@ var SonicBoomer = function(xPos, yPos, diameter, colorValue)
             var flypis = gameObjects.getObject("flypi");
             for(var i = 0; i < 56; i++)
             {
-                cameraGrid.addReference(flypis.add(xPos, yPos, round(random(4, 8)), color(0, 0, 200, 100)));
+                cameraGrid.addReference(flypis.add(xPos, yPos, Math.round(random(4, 8)), color(0, 0, 200, 100)));
             }
 
             this.onCollide = function() {};
@@ -16309,11 +16298,11 @@ var NinjaStar = function(xPos, yPos, diameter, colorValue)
     this.setAngle = 0;
     this.draw = function()
     {
-        pushMatrix();
+        $pjs.pushMatrix();
         translate(this.xPos, this.yPos);
         rotate(this.setAngle);
         image(storedImages[this.imageName], -this.radius, -this.radius, this.diameter, this.diameter);
-        popMatrix();
+        $pjs.popMatrix();
         this.setAngle += 3;
 
         //It's been gooed by the player's shield.
@@ -16753,13 +16742,44 @@ var Ninja = function(xPos, yPos, width, height, colorValue)
 
     this.damage = 1;
 
+    this.enterFunc = function(name, begin, end)
+    {
+        var suffix = name + millis() + Math.round(random(100, 0));
+
+        var lastBeginKey = "begin" + suffix;
+        this[lastBeginKey] = begin || function() {};
+
+        var lastEndKey = "end" + suffix;
+        this[lastEndKey] = end || function() {};
+
+        var lastNameKey = "last" + suffix;
+        this[lastNameKey] = this[name];
+
+        var self = this;
+
+        this[name] = function()
+        {
+            var r = this[lastBeginKey].apply(this, arguments);
+
+            if(r === undefined || r > 0)
+            {
+                r = this[lastNameKey].apply(this, arguments) || r;
+            }
+
+            if(r === undefined || r > 1)
+            {
+                this[lastEndKey].apply(this, arguments);
+            }
+        };
+    };
+
     this.getStarThrowTime = function()
     {
-        return round(random(1000, 2000)) * 1.5;
+        return Math.round(random(1000, 2000)) * 1.5;
     };
     this.getStarSpeed = function()
     {
-        return round(random(2, 5));
+        return Math.round(random(2, 5));
     };
 
     this.lastThrowTimer = millis();
@@ -17190,7 +17210,7 @@ var SpaceBreaker = function(xPos, yPos, diameter, colorValue, amt)
 
         for(var i = 0; i < this.posAmt; i++)
         {
-            launchBalls.add(this.xPos - 200, this.yPos, this.radius, this.color, 2, round(random(2.5, 5)) * this.launchBallSpeedMultiplier);
+            launchBalls.add(this.xPos - 200, this.yPos, this.radius, this.color, 2, Math.round(random(2.5, 5)) * this.launchBallSpeedMultiplier);
 
             var launchBall = launchBalls.getLast();
             launchBall.hostObject = this;
@@ -17211,7 +17231,7 @@ var SpaceBreaker = function(xPos, yPos, diameter, colorValue, amt)
     this.hitLimiter = 60;
     this.getNextHitTime = function()
     {
-        return round(random(20, 30)) / this.nextHitTimeMultiplier;
+        return Math.round(random(20, 30)) / this.nextHitTimeMultiplier;
     };
 
     this.nextHitTime = this.getNextHitTime();
@@ -17483,7 +17503,7 @@ var SpaceBreaker = function(xPos, yPos, diameter, colorValue, amt)
                         if(this.delag)
                         {
                             
-                            a = atan2(player.yPos - this.yPos, player.xPos - this.xPos) + round(random(-0.12, 0.12));
+                            a = atan2(player.yPos - this.yPos, player.xPos - this.xPos) + Math.round(random(-0.12, 0.12));
                         }else{
                             var a = atan2(this.hits[0].yVel, this.hits[0].xVel);
                         }
@@ -17622,7 +17642,7 @@ var NinjaBoss = function(xPos, yPos, width, height)
             {
                 func(this.ninjaStar, i);
             }else{
-                var speed = round(random(2, 5));
+                var speed = Math.round(random(2, 5));
 
                 this.ninjaStar.outerXVel2 = ((random(0, 100) >= 50) ? speed : -speed);
                 this.ninjaStar.outerYVel2 = 0;
@@ -18858,7 +18878,7 @@ var IceDragon = function(xPos, yPos, width, height)
         loops++;
 
 
-        pushMatrix();
+        $pjs.pushMatrix();
 
         var right = this.xPos + this.width;
 
@@ -18884,7 +18904,7 @@ var IceDragon = function(xPos, yPos, width, height)
         fill(255, 255, 255, 240);
         stroke(255, 255, 255);
 
-        rect(this.xPos, this.yPos, this.width, this.height, 5);
+        $pjs.rect(this.xPos, this.yPos, this.width, this.height, 5);
         noStroke();
 
         // Eye
@@ -18968,7 +18988,7 @@ var IceDragon = function(xPos, yPos, width, height)
             line(x, y, x, y + 10);
         }
 
-        popMatrix();
+        $pjs.popMatrix();
     };
 
     var last_loop = 0;
@@ -19775,11 +19795,11 @@ var XStar = function(xPos, yPos, diameter, colorValue)
 
     this.draw = function()
     {
-        pushMatrix();
+        $pjs.pushMatrix();
         translate(this.xPos, this.yPos);
         rotate(this.setAngle);
         image(storedImages[this.imageName], -this.radius, -this.radius, this.diameter, this.diameter);
-        popMatrix();
+        $pjs.popMatrix();
 
         this.setAngle += 3;
 
@@ -19865,7 +19885,7 @@ var Point = function(xPos, yPos, diameter)
 
         noFill();
         stroke(0, 0, 0);
-        rect(this.xPos - this.diameter / 2 - 1 + 4, this.yPos - this.diameter / 2 - 1 + 4, this.diameter - 8, this.diameter - 8);
+        $pjs.rect(this.xPos - this.diameter / 2 - 1 + 4, this.yPos - this.diameter / 2 - 1 + 4, this.diameter - 8, this.diameter - 8);
     };
 };
 
@@ -19906,7 +19926,7 @@ var Npc = function(xPos, yPos, width, height, colorValue)
         if(this.img === undefined)
         {
             fill(this.color);
-            rect(this.xPos, this.yPos, this.width, this.height, 7.5);
+            $pjs.rect(this.xPos, this.yPos, this.width, this.height, 7.5);
         }
         else if(storedImages.npcs[this.img] !== undefined)
         {
@@ -20744,7 +20764,7 @@ var Player = function(xPos, yPos, width, height, colorValue)
 
         if(!this.exploding && (!this.invincibleToLifeForm || millis() % 600 >= 300))
         {
-            ctx.drawImage(storedImages[this.imageName].sourceImg, 0, 0, width, height, round(this.xPos), round(this.yPos), this.width, this.height);
+            ctx.drawImage(storedImages[this.imageName].sourceImg, 0, 0, width, height, Math.round(this.xPos), Math.round(this.yPos), this.width, this.height);
         }
 
         this.drawExplosion();
@@ -21499,7 +21519,7 @@ var Wisp = function(xPos, yPos, diameter, colorValue)
     this.offXVel = 0;
     this.offYVel = 0;
 
-    this.between = round(random(1500, 2500));
+    this.between = Math.round(random(1500, 2500));
 
     this._lastUpdate1 = this.update;
     this.update = function()
@@ -21537,7 +21557,7 @@ var Wisp = function(xPos, yPos, diameter, colorValue)
         {
             this.launchIce(player, 5);
             this.lastLaunchTime = millis();
-            this.between = round(random(1500, 2500));
+            this.between = Math.round(random(1500, 2500));
         }
     };
 
@@ -21600,24 +21620,24 @@ var Voxelizer = function(xPos, yPos, width, height, colorValue)
         var uw, uh;
 
         noStroke();
-        pushMatrix();
+        $pjs.pushMatrix();
             translate(ux, uy);
             rotate(this.angle);
             fill(29, 18, 174, 70);
-            rect(-this.halfWidth + 1, -this.halfHeight + 1, this.width - 2, this.height - 2, 2);
-        popMatrix();
+            $pjs.rect(-this.halfWidth + 1, -this.halfHeight + 1, this.width - 2, this.height - 2, 2);
+        $pjs.popMatrix();
 
         fill(red(this.color), green(this.color), blue(this.color), 40); 
         for(var i = 0; i < 4; i++)
         {
-            pushMatrix();
+            $pjs.pushMatrix();
                 translate(ux, uy);
                 rotate(this.rot + i * 23);
 
                 uw = (this.width - i * 2.3);
                 uh = (this.height - i * 2.3);
                 fastRect(-uw / 2, -uh / 2, uw, uh);
-            popMatrix();
+            $pjs.popMatrix();
         }
 
         this.streaks.draw();
@@ -21910,11 +21930,11 @@ var Stomper = function(xPos, yPos, width, height)
         {
             image(loadedImages[this.imageName], this.xPos, this.yPos, this.width, this.height);
         }else{
-            pushMatrix();
+            $pjs.pushMatrix();
                 translate(this.xPos, this.yPos);
                 scale(-1.0, 1.0);
                 image(loadedImages[this.imageName], -this.width, 0, this.width, this.height);
-            popMatrix();
+            $pjs.popMatrix();
         }
     };
 
@@ -21963,7 +21983,7 @@ var Water = function(xPos, yPos, width, height, colorValue)
     this.freezeRate = 0.05;
     this.scoreValue = 150;
 
-    this.offMillis = round(random(-2000, 1000));
+    this.offMillis = Math.round(random(-2000, 1000));
 
     this.boundingBox.width += 2;
     this.boundingBox.height += 2;
@@ -22120,7 +22140,7 @@ var DirtyBlock = function(xPos, yPos, width, height, colorValue)
         {
             image(storedImages[this.imageName], this.xPos, this.yPos, this.width, this.height);
             fill(0, 64, 12, 103);
-            rect(this.xPos, this.yPos, this.width, this.height);
+            $pjs.rect(this.xPos, this.yPos, this.width, this.height);
         };
     }
 
@@ -22179,19 +22199,19 @@ var HardCaseBlock = function(xPos, yPos, width, height, colorValue)
         fastRect(this.xPos, this.yPos, this.width, this.height);
 
         fill(255, 255, 255, 30);
-        rect(this.xPos + 5, this.yPos + 5, this.width - 10, this.height - 10, 5);
+        $pjs.rect(this.xPos + 5, this.yPos + 5, this.width - 10, this.height - 10, 5);
 
         if(this.useCore)
         {
-            pushMatrix();
+            $pjs.pushMatrix();
                 translate(this.middleXPos, this.middleYPos);
                 rotate(this.k);
                 fill(120, 200, 0, 100);
                 ellipse(0, 0, this.halfWidth - 2, (this.halfHeight - 2) - (this.coreTimer));
-            popMatrix();
+            $pjs.popMatrix();
 
             fill(0, 0, 0, 100);
-            rect(this.xPos, this.yPos - 60 - 2, this.width, 14);
+            $pjs.rect(this.xPos, this.yPos - 60 - 2, this.width, 14);
 
             textSize(7);
             textAlign(LEFT, TOP);
@@ -22200,7 +22220,7 @@ var HardCaseBlock = function(xPos, yPos, width, height, colorValue)
         }
     };
 
-    this.k = round(random(-180, 180));
+    this.k = Math.round(random(-180, 180));
 
     this._lastUpdate = this.update;
     this.update = function()
@@ -22373,7 +22393,7 @@ var Snow = function(xPos, yPos, width, height, colorValue, collisionOff)
         {
             stroke(this.color);
             strokeWeight(1.3);
-            pushMatrix();
+            $pjs.pushMatrix();
             translate(this.xPos, this.yPos);
             rotate(this.angle);
             
@@ -22382,7 +22402,7 @@ var Snow = function(xPos, yPos, width, height, colorValue, collisionOff)
             line(-this.halfWidth, -this.halfHeight, this.halfWidth, this.halfHeight);
             line(0, -this.halfHeight, 0, this.halfHeight);
             
-            popMatrix();
+            $pjs.popMatrix();
 
             return;
         }
@@ -23147,7 +23167,7 @@ var Cloud = function(xPos, yPos, width, height, colorValue, weather, cloudType, 
         var inputSize = random(3, 8) + 3;
         w = w || inputSize;
         h = h || inputSize;
-        var inputXPos = round(random(this.xPos + this.width * 0.1, this.xPos + this.width * 0.9));
+        var inputXPos = Math.round(random(this.xPos + this.width * 0.1, this.xPos + this.width * 0.9));
         if(inputXPos > cameraGrid.xPos + (cam.upperLeft.col) * cameraGrid.cellWidth && 
            inputXPos < cameraGrid.xPos + (cam.lowerRight.col + 1) * cameraGrid.cellWidth)
         {
@@ -23303,7 +23323,7 @@ var NinjaGuard = function(xPos, yPos, diameter)
         fill(this.color);
         circle(this.xPos, this.yPos, this.diameter);
 
-        pushMatrix();
+        $pjs.pushMatrix();
             fill(70, 130, 200, 200);
             translate(this.xPos, this.yPos);
             scale(this.flip, 1);
@@ -23316,7 +23336,7 @@ var NinjaGuard = function(xPos, yPos, diameter)
             textFont(this.font);
             textAlign(CENTER, CENTER);
             text("NG", 0, 0);
-        popMatrix();
+        $pjs.popMatrix();
 
         noStroke();
 
@@ -23517,7 +23537,7 @@ var NinjaStarShooter = function(xPos, yPos, diameter)
         strokeWeight(2);
         ellipse(this.xPos, this.yPos, (this.diameter - this.xOut) * 1.5, this.diameter * 1.5);
 
-        pushMatrix();
+        $pjs.pushMatrix();
             translate(this.xPos, this.yPos);
             rotate(this.angle);
             stroke(0, 90, 30);
@@ -23526,7 +23546,7 @@ var NinjaStarShooter = function(xPos, yPos, diameter)
             {
                 arc(0, 0, this.diameter, this.diameter, radians(a), radians(a + 20));
             }
-        popMatrix();
+        $pjs.popMatrix();
 
         stroke(0, 0, 0, 100);
         strokeWeight(1);
@@ -23691,11 +23711,11 @@ var IceSplicer = function(xPos, yPos, diameter)
 
         fill(this.color);
         circle(this.xPos, this.yPos, this.halfSize * 2.3);
-        pushMatrix();
+        $pjs.pushMatrix();
         translate(this.xPos, this.yPos);
         rotate(this.rectAngle);
         fastRect(-this.halfSize, -this.halfSize, this.size, this.size);
-        popMatrix();
+        $pjs.popMatrix();
         fill(this.color2);
         circle(this.xPos, this.yPos, this.halfSize * 1.6);
 
@@ -24662,7 +24682,7 @@ var Heart = function(xPos, yPos, diameter, amt)
 
     this.draw = function()
     {
-        pushMatrix();
+        $pjs.pushMatrix();
             translate(this.xPos, this.yPos);
             scale(this.flip, 1);
             noStroke();
@@ -24673,7 +24693,7 @@ var Heart = function(xPos, yPos, diameter, amt)
             fill(255, 255, 255, 130);
             textSize(11);
             text((this.amt || amt) + " hp", 0, 0);
-        popMatrix();
+        $pjs.popMatrix();
     };
 
     this.falling = false;
@@ -24996,7 +25016,7 @@ var Lamp = function(xPos, yPos, width, height, useAlt)
 
         // Base
         noFill();
-        rect(xMiddle - 6, yPos + height * 0.7, 12, height * 0.3);
+        $pjs.rect(xMiddle - 6, yPos + height * 0.7, 12, height * 0.3);
 
         // Lamp
         line(xMiddle - 5, yPos, xMiddle + 5, yPos);
@@ -25276,8 +25296,8 @@ var Flypi = function(xPos, yPos, diameter, colorValue)
                     var miniFlypi = this.miniFlypis.getLast();
                     miniFlypi.mini = true;
 
-                    var a = degrees(atan2(this.oxVel, this.oyVel)) + round(random(-30, 30));
-                    var s = round(random(2, 4)) / 2; 
+                    var a = degrees(atan2(this.oxVel, this.oyVel)) + Math.round(random(-30, 30));
+                    var s = Math.round(random(2, 4)) / 2; 
                    
                     miniFlypi.oxVel = -cos(radians(a)) * s;
                     miniFlypi.oyVel = -sin(radians(a)) * s;
@@ -25419,7 +25439,7 @@ game.addFlypis = function()
 
     for(var i = 0; i < amt; i++)
     {   
-        var sz = round(random(5, 20)) * 1.5; 
+        var sz = Math.round(random(5, 20)) * 1.5; 
 
         flypis.add(random(tx + sz, bx - sz), random(ty + sz, by - sz), sz);
 
@@ -26107,7 +26127,7 @@ var levelScripts = {
                 text('?', this.xPos + vw / 2, this.yPos + vh / 2);
 
                 fill(levels[levelInfo.level].save.secretUnlocked ? color(10, 200, 0, 178) : color(10, 0, 200, 178));
-                rect(this.xPos, this.yPos, vw, vh, 8);
+                $pjs.rect(this.xPos, this.yPos, vw, vh, 8);
 
                 if(observer.collisionTypes.pointrect.colliding({
                     xPos : px,
@@ -27199,19 +27219,21 @@ var levelScripts = {
             {
                 back.draw = function()
                 {
-                    ctx.drawImage(loadedImages["windowSky"].sourceImg, 0, 0, img.sourceImg.width, img.sourceImg.height, round(this.xPos), round(this.yPos), this.width, this.height);
-                    ctx.drawImage(loadedImages["windowSpace"].sourceImg, 0, 0, loadedImages["windowSpace"].sourceImg.width, img.sourceImg.height, round(this.xPos), round(this.yPos), this.width, this.height);
+                    ctx.drawImage(loadedImages["windowSky"].sourceImg, 0, 0, img.sourceImg.width, img.sourceImg.height, Math.round(this.xPos), Math.round(this.yPos), this.width, this.height);
+                    ctx.drawImage(loadedImages["windowSpace"].sourceImg, 0, 0, loadedImages["windowSpace"].sourceImg.width, img.sourceImg.height, Math.round(this.xPos), Math.round(this.yPos), this.width, this.height);
                     blockSketchy.draw();
                 };
             }
 
             var exitBlock = gameObjects.getObject("imageBlock").filter(object => object.imageName === "exit")[0];
            
+            exitBlock.physics.solidObject = false;
+
             if(shipGoto.inSpace)
             {
                 cameraGrid.removeReference(exitBlock);
+                exitBlock.remove();
             }else{
-                exitBlock.physics.solidObject = false;
                 exitBlock.onCollide = function(object, info)
                 {
                     if(object.arrayName === "player" && object.yVel < 0)
@@ -27247,7 +27269,7 @@ var levelScripts = {
 
             blockSketchy.draw = function()
             {
-                ctx.drawImage(loadedImages["blockSketchy"].sourceImg, round(this.xPos), round(this.yPos), levelInfo.unitWidth, levelInfo.unitHeight);
+                ctx.drawImage(loadedImages["blockSketchy"].sourceImg, Math.round(this.xPos), Math.round(this.yPos), levelInfo.unitWidth, levelInfo.unitHeight);
             };
 
             blockSketchy.onCollide = function(object, info)
@@ -27316,9 +27338,9 @@ var levelScripts = {
                 back.draw = function()
                 {
                     ctx.drawImage(loadedImages["windowSky"].sourceImg, 0, 0, loadedImages["windowSky"].sourceImg.width, loadedImages["windowSky"].sourceImg.height, 
-                                round(this.xPos), round(this.yPos), this.width, this.height);
+                                Math.round(this.xPos), Math.round(this.yPos), this.width, this.height);
                     ctx.drawImage(loadedImages["windowSpace"].sourceImg, 0, 0, loadedImages["windowSpace"].sourceImg.width, loadedImages["windowSpace"].sourceImg.height, 
-                                round(this.xPos), round(this.yPos), this.width, this.height);
+                                Math.round(this.xPos), Math.round(this.yPos), this.width, this.height);
                 };
             }
         }
@@ -28273,22 +28295,22 @@ levels.build = function(plan)
                             case '<' :
                                 oneWay.draw = function()
                                 {
-                                    pushMatrix();
+                                    $pjs.pushMatrix();
                                     translate(this.xPos, this.yPos + this.height);
                                     rotate(270);
                                     image(loadedImages["up"], 0, 0, this.width, this.height);
-                                    popMatrix();
+                                    $pjs.popMatrix();
                                 };
                                 break;
 
                             case '>' :
                                 oneWay.draw = function()
                                 {
-                                    pushMatrix();
+                                    $pjs.pushMatrix();
                                     translate(this.xPos + this.width, this.yPos);
                                     rotate(90);
                                     image(loadedImages["up"], 0, 0, this.width, this.height);
-                                    popMatrix();
+                                    $pjs.popMatrix();
                                 };
                                 break;
 
@@ -28302,11 +28324,11 @@ levels.build = function(plan)
                             case 'v' :
                                 oneWay.draw = function()
                                 {
-                                    pushMatrix();
+                                    $pjs.pushMatrix();
                                     translate(this.xPos, this.yPos + this.height);
                                     scale(1, -1);
                                     image(loadedImages["up"], 0, 0, this.width, this.height);
-                                    popMatrix();
+                                    $pjs.popMatrix();
                                 };
                                 break;
                         }
@@ -29460,7 +29482,7 @@ game.how = function()
     fill(0, 0, 0, 60);
     fastRect(75, 0, width - 75 * 2, height);
     fill(11, 68, 153, 80);
-    rect(102, 100, 206, 230, 10);
+    $pjs.rect(102, 100, 206, 230, 10);
     fill(200, 200, 200, 150);
     textAlign(NORMAL, NORMAL);
     text("  Use the arrow keys to move or wasd." +
@@ -29505,7 +29527,7 @@ game.settings = function()
     if(buttons.info.clicked())
     {
         noStroke();
-        rect(100, 340, 200, 40, 10);
+        $pjs.rect(100, 340, 200, 40, 10);
         textAlign(CENTER, NORMAL);
         fill(200, 200, 200, 200);
         textSize(8);
@@ -29772,9 +29794,9 @@ game.selectSaveFile = function()
 
     if(saveDataHandler.saveFiles.length <= 0 || saveDataHandler.saveFiles.length >= saverInfo.maxSaves)
     {
-        rect(110, 115, 180, 30, 5);
+        $pjs.rect(110, 115, 180, 30, 5);
     }else{
-        rect(80, 115, 240, 30, 5);
+        $pjs.rect(80, 115, 240, 30, 5);
     }
 
     fill(31, 173, 88);
@@ -29789,7 +29811,7 @@ game.selectSaveFile = function()
     if(game.selectSaveFile.rename)
     {
         fill(0, 0, 0, 100);
-        rect(110, 200, 180, 100, 7);
+        $pjs.rect(110, 200, 180, 100, 7);
         fill(31, 173, 88);
         text("Renaming Save", 200, 135);  
         textBoxes.naming.draw();
@@ -29804,7 +29826,7 @@ game.selectSaveFile = function()
     else if(game.selectSaveFile.newSave)
     {
         fill(0, 0, 0, 100);
-        rect(110, 200, 180, 100, 7);
+        $pjs.rect(110, 200, 180, 100, 7);
         fill(31, 173, 88);
         text("New Save", 200, 135);  
         textBoxes.naming.draw();
@@ -29834,7 +29856,7 @@ game.selectSaveFile = function()
     }else{
         this.seSaveFile = saveDataHandler.getSelectedSaveFile();
         fill(0, 0, 0, 100);
-        rect(110, 200, 180, 70, 7);
+        $pjs.rect(110, 200, 180, 70, 7);
         fill(31, 173, 88);
         text("Erase", 200, 135);
         textSize(13);
@@ -30075,12 +30097,12 @@ game.story = function()
 
     storyHandler.show();
     textSize(12);
-    pushMatrix();
+    $pjs.pushMatrix();
     textAlign(CENTER, CENTER);
     translate(0, storyHandler.scroll);
     fill(storyHandler.color || color(31, 173, 88));
     text(storyHandler.message || (screenUtils.fade.fading ? "" : "Press any key to exit"), width * 0.5, HALF_HEIGHT);
-    popMatrix();
+    $pjs.popMatrix();
 
     if(!this.exited)
     {
@@ -30113,7 +30135,7 @@ game.drawTitle = function()
     text("Planet\nSearch 2", 200, 83);
     textSize(26);
     fill(0, 0, 0, 30);
-    rect(150, 146, 100, 30, 5);
+    $pjs.rect(150, 146, 100, 30, 5);
     fill(31, 173, 88);
     text("Amber", 200, 160);
 
@@ -30322,7 +30344,7 @@ window.game = game;
 
 game.play = function(noDraw)
 {
-    pushMatrix();
+    $pjs.pushMatrix();
         cam.view();
         screenUtils.manageShake();
         backgrounds.drawForeground();
@@ -30334,16 +30356,16 @@ game.play = function(noDraw)
         screenUtils.withCamera();
         
         levelScripts.draw();
-    popMatrix();
+    $pjs.popMatrix();
 
     daylightCycle.update();
     levelScripts.apply();
     // cam.drawOutline();
 
-    pushMatrix();
+    $pjs.pushMatrix();
         cam.scaleZoom();
         lighting.draw();
-    popMatrix();
+    $pjs.popMatrix();
 
     debugTool.apply();
 

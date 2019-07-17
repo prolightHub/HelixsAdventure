@@ -2141,7 +2141,7 @@ module.exports = function(options, undef) {
                   a[3], a[4], a[5]]);
       } else if (arguments.length === 1 && arguments[0] instanceof PMatrix2D) {
         this.elements = arguments[0].array();
-      } else if (arguments.length === 1 && arguments[0] instanceof Array) {
+      } else if (arguments.length === 1 && typeof arguments[0] === "array") {
         this.elements = arguments[0].slice();
       }
     },
@@ -11706,7 +11706,7 @@ module.exports = function setupParser(Processing, options) {
      * @returns {Object} the matrix at the top of the stack
      */
     PMatrixStack.prototype.peek = function() {
-      var tmpMatrix = drawing.$newPMatrix();
+      var tmpMatrix = new PMatrix2D();
 
       tmpMatrix.set(this.matrixStack[this.matrixStack.length - 1]);
       return tmpMatrix;
@@ -11916,7 +11916,7 @@ module.exports = function setupParser(Processing, options) {
       // the "value" elements and add one by one because
       // array.splice(index, 0, value);
       // would create a multi-dimensional array which isn't what we want.
-      if(value instanceof Array) {
+      if(typeof value === "array") {
         for(var i = 0, j = index; i < value.length; j++,i++) {
           array.splice(j, 0, value[i]);
         }
@@ -14056,7 +14056,7 @@ module.exports = function setupParser(Processing, options) {
     * @see unbinary
     */
     p.unhex = function(hex) {
-      if (hex instanceof Array) {
+      if (typeof hex === "array") {
         var arr = [];
         for (var i = 0; i < hex.length; i++) {
           arr.push(unhexScalar(hex[i]));
@@ -14209,7 +14209,7 @@ module.exports = function setupParser(Processing, options) {
     // Alphanumeric chars arguments automatically converted to numbers when
     // passed in, and will come out as numbers.
     p.str = function(val) {
-      if (val instanceof Array) {
+      if (typeof val === "array") {
         var arr = [];
         for (var i = 0; i < val.length; i++) {
           arr.push(val[i].toString() + "");
@@ -14247,7 +14247,7 @@ module.exports = function setupParser(Processing, options) {
      * @return {boolean|boolean[]} returns a boolean or an array of booleans
      */
     p.parseBoolean = function (val) {
-      if (val instanceof Array) {
+      if (typeof val === "array") {
         var ret = [];
         for (var i = 0; i < val.length; i++) {
           ret.push(booleanScalar(val[i]));
@@ -14268,7 +14268,7 @@ module.exports = function setupParser(Processing, options) {
      * @return {byte|byte[]} returns a byte or an array of bytes
      */
     p.parseByte = function(what) {
-      if (what instanceof Array) {
+      if (typeof what === "array") {
         var bytes = [];
         for (var i = 0; i < what.length; i++) {
           bytes.push((0 - (what[i] & 0x80)) | (what[i] & 0x7F));
