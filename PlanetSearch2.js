@@ -72,12 +72,12 @@ var sketch = function(processing) /*Wrapper*/
     processing.hint(processing.DISABLE_OPENGL_ERROR_REPORT);
 
     window.ctx = processing.externals.context;
-    window.gl = processing.externals.gl = processing.externals.canvas.getContext("webgl");
+    // window.gl = processing.externals.gl = processing.externals.canvas.getContext("webgl");
 
-    if(gl)
-    {
-        console.log("using webgl for images");
-    }
+    // if(gl)
+    // {
+    //     console.log("using webgl for images");
+    // }
 
     var $pjs = processing;
 
@@ -959,6 +959,14 @@ var sketch = function(processing) /*Wrapper*/
         Fixed exit block from appearing.
 
     * 0.9.8
+        Fixed minor bugs.
+        Fixed border in space.
+        Added blasters to helix's Ship
+        Fixed cam, it now can have a normal boundingBox while scaling.
+        Got rid of unnecessary camera code.
+        Fixed: when creating a new save file would result in a bluescreen because of forgotten type check on game.data.ship.
+        Imported Talon's Ship
+        Thinking about collision and movement --I'll be back for this.
 
     Next :   
         Will do:           
@@ -966,7 +974,7 @@ var sketch = function(processing) /*Wrapper*/
             Sound update.
 
     Maybe:
-        Get rid of with statement --Would give about 25% speed increase.
+        Get rid of with statement --Would give about 20% speed increase.
         More Weapons, shops.
         Add chest appearing sound effect. Enemy damage sound effect?
         Speed up image rendering by doing it directly!
@@ -8362,6 +8370,9 @@ var Camera = function(xPos, yPos, width, height)
     this.focusXPos = this.halfWidth;
     this.focusYPos = this.halfHeight;
 
+    var _halfWidth = this.halfWidth;
+    var _halfHeight = this.halfHeight;
+
     this.upperLeft = {
         col : 0,
         row : 0,
@@ -8418,10 +8429,16 @@ var Camera = function(xPos, yPos, width, height)
 
     this.scaleZoom = function(override)
     {
-        if(this.scale > 0 || override)
+        if((this.scale > 0 || override) && typeof this.scale !== "undefined")
         {
-            translate(-width * this.scale / 2, -height * this.scale / 2);
-            scale(1 + this.scale, 1 + this.scale);
+            var sc = 1 + Math.floor(this.scale * 10) / 10;
+
+            // Center ship.
+            if(levels[levelInfo.level].createStars)
+            {
+                translate(-14, -14);
+            }
+            scale(sc, sc);
         }
     };
 
@@ -8460,7 +8477,7 @@ var Camera = function(xPos, yPos, width, height)
                     this.scaleVel = abs(this.scaleVel);
                 }
             }
-       }
+        }
 
         this.scale += this.scaleVel;
         this.scale = constrain(this.scale, 0, this.maxScale);
@@ -8468,21 +8485,46 @@ var Camera = function(xPos, yPos, width, height)
         if(!this.keepInGrid || this.scaled)
         {
             this.scale = this.scaleOut || 0;
+
+            if(this.scale)
+            {
+                var c = (1 - this.scale) * (1 / -this.scale);
+
+                this.halfWidth = _halfWidth * c;
+                this.halfHeight = _halfHeight * c;
+                this.width = width * c;
+                this.height = height * c;
+
+            }else{
+                this.halfWidth = _halfWidth;
+                this.halfHeight = _halfHeight;
+                this.width = width;
+                this.height = height;
+            }
+
+        }else{
+            this.halfWidth = _halfWidth;
+            this.halfHeight = _halfHeight;
+            this.width = width;
+            this.height = height;
+        }
+
+
+        var speed = this.speed;
+
+        if(levels[levelInfo.level].createStars)
+        {
+            speed = 1;
         }
 
         this.scaleZoom(!this.keepInGrid || this.scaled);
-
-        if(!this.keepInGrid || !this.scaled)
-        {
-            this.cScale = (1 - this.scale * 0.75);
-        }
 
         // Get the camera position
         var xPos = object.boundingBox.xPos + (object.boundingBox.width / 2);
         var yPos = object.boundingBox.yPos + (object.boundingBox.height / 2);
 
         this.angle = atan2(yPos - this.focusYPos, xPos - this.focusXPos);
-        this.distance = dist(this.focusXPos, this.focusYPos, xPos, yPos) * this.speed;
+        this.distance = dist(this.focusXPos, this.focusYPos, xPos, yPos) * speed;
 
         this.focusXPos += this.distance * cos(this.angle);
         this.focusYPos += this.distance * sin(this.angle);
@@ -8490,17 +8532,17 @@ var Camera = function(xPos, yPos, width, height)
         if(this.keepInGrid)
         {
             // Keep it in the grid
-            this.focusXPos = constrain(this.focusXPos, levelInfo.xPos + (-this.headingX || this.halfWidth * this.cScale), 
-                                        levelInfo.xPos + levelInfo.width - (-this.headingX || this.halfWidth * this.cScale));
-            this.focusYPos = constrain(this.focusYPos, levelInfo.yPos + (-this.headingY || this.halfHeight * this.cScale), 
-                                        levelInfo.yPos + levelInfo.height - (-this.headingY || this.halfHeight * this.cScale + (this.yMost || 0)));
+            this.focusXPos = constrain(this.focusXPos, levelInfo.xPos + this.halfWidth, 
+                                        levelInfo.xPos + levelInfo.width - this.halfWidth);
+            this.focusYPos = constrain(this.focusYPos, levelInfo.yPos + this.halfHeight, 
+                                        levelInfo.yPos + levelInfo.height -this.halfHeight);
         }
 
-        var cs = (1 - this.scale);
-
         // Get the corners position on the grid
-        this.upperLeft = cameraGrid.getPlace(this.focusXPos + EPSILON - (this.headingX || this.halfWidth * cs), this.focusYPos + EPSILON - (this.headingY || this.halfHeight * cs));
-        this.lowerRight = cameraGrid.getPlace(this.focusXPos + (this.headingX || this.halfWidth * cs) - EPSILON, this.focusYPos + (this.headingY || this.halfHeight * cs) - EPSILON);
+        this.upperLeft = cameraGrid.getPlace(this.focusXPos + EPSILON - this.halfWidth, 
+                                             this.focusYPos + EPSILON - this.halfHeight);
+        this.lowerRight = cameraGrid.getPlace(this.focusXPos + this.halfWidth - EPSILON, 
+                                             this.focusYPos + this.halfHeight - EPSILON);
 
         translate(this.xPos, this.yPos);
 
@@ -8534,7 +8576,7 @@ var Camera = function(xPos, yPos, width, height)
     this.drawOutline = function()
     {
         noFill();
-        stroke(0, 0, 0);
+        stroke(255, 255, 255);
         fastRect(this.xPos, this.yPos, this.width, this.height);
         noStroke();
     };
@@ -8693,31 +8735,6 @@ cameraGrid.setup = function(xPos, yPos, cols, rows, cellWidth, cellHeight)
 {
     this.xPos = xPos;
     this.yPos = yPos;
-
-    if(levels[levelInfo.level].createStars)
-    {
-        if(levelInfo.cellWidth !== 800)
-        {
-            levelInfo.lastCellWidth = levelInfo.cellWidth;
-        }
-        if(levelInfo.cellHeight !== 800)
-        {
-            levelInfo.lastCellHeight = levelInfo.cellHeight;
-        }
-
-        levelInfo.cellWidth = cellWidth = 800;
-        levelInfo.cellHeight = cellHeight = 800;
-
-        cols = 30;
-        rows = 30;
-
-        levelInfo.width = 800 * cols;
-        levelInfo.height = 800 * rows;
-    }else{
-        levelInfo.cellWidth = levelInfo.lastCellWidth || levelInfo.cellWidth;
-        levelInfo.cellHeight = levelInfo.lastCellHeight || levelInfo.cellHeight;
-    }
-
     this.cellWidth = cellWidth;
     this.cellHeight = cellHeight;
     this.halfCellWidth = this.cellWidth / 2;
@@ -11200,12 +11217,73 @@ var Ring = function(xPos, yPos, diameter, colorValue)
 };
 gameObjects.addObject("ring", createArray(Ring));
 
+var PhaserBlast = function(xPos, yPos, diameter, colorValue)
+{
+    Circle.call(this, xPos, yPos, diameter);
+    
+    this.physics.solidObject = false;
+    this.physics.shape = "point";
+     
+    this.boundingBox = {};
+    this.boundingBox.off = true;
+    this.physics.movement = "dynamic";
+
+    this.color = colorValue;
+
+    this.xVel = 0;
+    this.yVel = 0;
+
+    this.life = 100;
+    this.maxVel = 22;
+    this.blastAngle = 0;
+
+    this.streakLength = 14;
+
+    this.draw = function()
+    {        
+        stroke(this.color);
+        strokeWeight(this.diameter);
+        line(this.xPos, this.yPos, this.xPos + Math.cos(this.blastAngle) * this.streakLength, 
+                                   this.yPos + Math.sin(this.blastAngle) * this.streakLength);
+        noStroke();
+    };
+
+    this.lastUpdate = this.update;
+    this.update = function()
+    {
+        this.lastUpdate();
+        
+        this.life--;
+        if(this.life < 0)
+        {
+            this.remove();
+        }
+        
+        this.acl = this.maxVel;
+        this.xVel = this.acl * cos(this.blastAngle);
+        this.xVel = constrain(this.xVel, -this.maxVel, this.maxVel);
+        this.xPos += this.xVel;
+        
+        this.yVel = this.acl * sin(this.blastAngle);
+        this.yVel = constrain(this.yVel, -this.maxVel, this.maxVel);
+        this.yPos += this.yVel;
+
+        if(Math.abs(this.xPos - cam.focusXPos) > cam.halfWidth || 
+           Math.abs(this.yPos - cam.focusYPos) > cam.halfHeight)
+        {
+            this.remove();
+        }
+    };
+};
+
+gameObjects.addObject("phaserBlast", createArray(PhaserBlast));
+
 // Helix's Space Ship
 var HelixShip = function(xPos, yPos, width, height)
 {
     DynamicRect.call(this, xPos, yPos, width, height);
 
-    this.physics.solidObject = false;
+    // this.physics.solidObject = false;
 
     if(levelInfo.level !== "desert oasis")
     {
@@ -11276,14 +11354,15 @@ var HelixShip = function(xPos, yPos, width, height)
     this.lastAddTime = 0;
     this.nextTime = random(20, 50);
 
-    this.updateBoundingBox = function()
-    {
-        this.boundingBox.xPos = this.middleXPos - this.width;
-        this.boundingBox.width = this.width * 2;
+    // this.updateBoundingBox = function()
+    // {
+    //     this.boundingBox.overSized = true;
+    //     this.boundingBox.xPos = this.middleXPos - this.width;
+    //     this.boundingBox.width = this.width * 2;
 
-        this.boundingBox.yPos = this.yPos;
-        this.boundingBox.height = this.height;
-    };
+    //     this.boundingBox.yPos = this.yPos;
+    //     this.boundingBox.height = this.height;
+    // };
 
     this.AABB = {
         left : 0,
@@ -11329,7 +11408,7 @@ var HelixShip = function(xPos, yPos, width, height)
                 this.imageName += "Open";
             }
 
-            fastImage(loadedImages[this.imageName], -this.halfWidth, -this.halfHeight, this.width, this.height);
+            ctx.drawImage(loadedImages[this.imageName].sourceImg, -this.halfWidth, -this.halfHeight, this.width, this.height);
  
         $pjs.popMatrix();
     };
@@ -11345,7 +11424,11 @@ var HelixShip = function(xPos, yPos, width, height)
         loadInterior : function()
         {
             return keys.q;
-        }
+        },
+        shoot : function()
+        {
+            return keys[" "];
+        },
     };
 
     var _lastUpdate = this.update;
@@ -11420,8 +11503,7 @@ var HelixShip = function(xPos, yPos, width, height)
                     this.angle += 1;                
                 }
 
-                cam.headingX = 600;
-                cam.headingY = 600;
+                cam.keepInGrid = true;
 
                 if(this.controls.loadInterior())
                 {
@@ -11433,6 +11515,11 @@ var HelixShip = function(xPos, yPos, width, height)
                 shipGoto.xPos = this.xPos;
                 shipGoto.yPos = this.yPos;
                 shipGoto.angle = this.angle;
+
+                if(this.controls.shoot())
+                {
+                    this.shoot();
+                }
             }else{
                 shipGoto.inSpace = false;
 
@@ -11451,11 +11538,56 @@ var HelixShip = function(xPos, yPos, width, height)
 
             if(levels[levelInfo.level].createStars)
             {
-                this.xPos = constrain(this.xPos, this.width, levelInfo.width - this.width);
-                this.yPos = constrain(this.yPos, this.height, levelInfo.height - this.height);
+                this.xPos = constrain(this.xPos, 0, levelInfo.width - this.width);
+                this.yPos = constrain(this.yPos, 0, levelInfo.height - this.height);
             }
 
             this.updateBoundingBox();
+        }
+    };
+
+    this.turrets = [];
+    this.turrets.add = function(x, y, fire)
+    {
+        this.push({
+            x: x,
+            y: y,
+            fire: fire,
+            angle : atan2(y, x),
+            length : Math.sqrt(x * x + y * y)
+        })
+    };
+
+    function shoot(turrets)
+    {
+        var angle = this.angle + self.angle * DEG_TO_RAD;
+
+        var blast = gameObjects.getObject("phaserBlast").add(
+            Math.round(self.middleXPos + Math.cos(angle) * this.length), 
+            Math.round(self.middleYPos + Math.sin(angle) * this.length), 4, color(19, 158, 192)); 
+
+        blast.blastAngle = (self.angle - 90) * DEG_TO_RAD;
+        blast.life = 200;
+
+        cameraGrid.addReference(blast);
+    }
+
+    this.turrets.add(-66, -38, shoot);
+    this.turrets.add(66, -38, shoot);
+    this.turrets.add(-86, 12, shoot);
+    this.turrets.add(86, 12, shoot);
+
+    this.lastShootTime = 0;
+    this.shoot = function()
+    {
+        if(millis() - this.lastShootTime > 500)
+        {
+            for(var i = 0; i < this.turrets.length; i++)
+            {
+                this.turrets[i].fire.call(this.turrets[i], this.turrets);
+            }
+
+            this.lastShootTime = millis();
         }
     };
 
@@ -11487,7 +11619,7 @@ var HelixShip = function(xPos, yPos, width, height)
                     this.loadInterior();
                 }
             }
-        }   
+        }
     };
 };
 gameObjects.addObject("helixShip", createArray(HelixShip));
@@ -11495,11 +11627,30 @@ gameObjects.addObject("helixShip", createArray(HelixShip));
 var TalonShip = function(xPos, yPos, width, height)
 {
     DynamicRect.call(this, xPos, yPos, width, height);
-    this.physics.solidObject = false;
+    // this.physics.solidObject = false;
+
+    this.gravity = 0;
+    this.angle = 180;
 
     this.draw = function()
     {
+        $pjs.pushMatrix();
+            translate(this.middleXPos, this.middleYPos);
+            rotate(this.angle);
 
+            this.imageName = "talonShip";
+
+            ctx.drawImage(loadedImages[this.imageName].sourceImg, -this.halfWidth, -this.halfHeight, this.width, this.height);
+        $pjs.popMatrix();
+    };
+
+    var _lastUpdate = this.update;
+    this.update = function()
+    {
+        _lastUpdate.apply(this, arguments);
+
+        physics.getMiddleXPos(this);
+        physics.getMiddleYPos(this);
     };
 };
 gameObjects.addObject("talonShip", createArray(TalonShip));
@@ -27174,6 +27325,11 @@ var levelScripts = {
             cam.keepInGrid = true;
             cam.scaled = true;
             cam.scaleOut = -0.6;
+
+            ///////////////////////////////////////////////
+
+            var talonShip = gameObjects.getObject("talonShip").add(19000, 800, 200, 300);
+            cameraGrid.addReference(talonShip);
         },
         apply : function()
         {
@@ -28663,8 +28819,6 @@ loader.loadLevel = function(level, step, levelStep)
             delete cam.yMost;
             cam.keepInGrid = true;
             delete game.dropRate;
-            delete cam.headingX;
-            delete cam.headingY;  
             break;
         
         case 1 :
@@ -28683,6 +28837,27 @@ loader.loadLevel = function(level, step, levelStep)
             break;
         
         case 2 :
+            if(levels[levelInfo.level].createStars)
+            {
+                if(levelInfo.cellWidth !== 800)
+                {
+                    levelInfo.lastCellWidth = levelInfo.cellWidth;
+                }
+                if(levelInfo.cellHeight !== 800)
+                {
+                    levelInfo.lastCellHeight = levelInfo.cellHeight;
+                }
+
+                levelInfo.cellWidth = cellWidth = 800;
+                levelInfo.cellHeight = cellHeight = 800;
+
+                levelInfo.width = 800 * 30;
+                levelInfo.height = 800 * 30;
+            }else{
+                levelInfo.cellWidth = levelInfo.lastCellWidth || levelInfo.cellWidth;
+                levelInfo.cellHeight = levelInfo.lastCellHeight || levelInfo.cellHeight;
+            }
+
             //Grids of the game (Important)
             cameraGrid.setup(levelInfo.xPos, levelInfo.yPos, levelInfo.width / levelInfo.cellWidth, levelInfo.height / levelInfo.cellHeight, levelInfo.cellWidth, levelInfo.cellHeight);
             gameObjects.addObjectsToCameraGrid();
@@ -28835,10 +29010,10 @@ loader.update = function()
             cam.focusXPos = object.boundingBox.xPos + (object.boundingBox.width / 2);
             cam.focusYPos = object.boundingBox.yPos + (object.boundingBox.height / 2);
 
-            cam.focusXPos = constrain(cam.focusXPos, levelInfo.xPos + cam.halfWidth * cam.cScale, 
-                                    levelInfo.xPos + levelInfo.width - cam.halfWidth * cam.cScale);
-            cam.focusYPos = constrain(cam.focusYPos, levelInfo.yPos + cam.halfHeight * cam.cScale, 
-                                    levelInfo.yPos + levelInfo.height - cam.halfHeight * cam.cScale);
+            cam.focusXPos = constrain(cam.focusXPos, levelInfo.xPos + cam.halfWidth, 
+                                    levelInfo.xPos + levelInfo.width - cam.halfWidth);
+            cam.focusYPos = constrain(cam.focusYPos, levelInfo.yPos + cam.halfHeight, 
+                                    levelInfo.yPos + levelInfo.height - cam.halfHeight);
         }
     }
 
@@ -28910,23 +29085,26 @@ game.loadSave = function(saveDataName)
         (configs[i] || {}).shownName = discoveredAreas[i].shownName;
     }
 
-    var _shipGoto = this.data.ship.goto || shipGoto;
+    if(typeof this.data.ship === "object")
+    {
+        var _shipGoto = this.data.ship.goto || shipGoto;
 
-    // if(_shipGoto.inSpace)
-    // {
-        for(var i in _shipGoto)
-        {
-            shipGoto[i] = _shipGoto[i];
-        }
-    // }
+        // if(_shipGoto.inSpace)
+        // {
+            for(var i in _shipGoto)
+            {
+                shipGoto[i] = _shipGoto[i];
+            }
+        // }
 
-    // if(this.data.ship && this.data.ship.goto)
-    // {
-    //     for(var i in this.data.ship.goto)
-    //     {
-    //         shipGoto[i] = this.data.ship.goto[i];
-    //     }
-    // }
+        // if(this.data.ship && this.data.ship.goto)
+        // {
+        //     for(var i in this.data.ship.goto)
+        //     {
+        //         shipGoto[i] = this.data.ship.goto[i];
+        //     }
+        // }
+    }
 
     if(player.dead)
     {
@@ -30338,6 +30516,7 @@ game.applyFps = function()
     }
 };
 window.game = game;
+
 ////////////////////////////////////////////////////////////////////\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
 /**************************************************************Final-loop******************************************************************/
 ////////////////////////////////////////////////////////////////////\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
@@ -30351,7 +30530,7 @@ game.play = function(noDraw)
         gameObjects.update();
         gameObjects.draw(noDraw);
         gameObjects.drawBoundingBoxes();
-        //cameraGrid.draw();
+        // cameraGrid.draw();
         // cam.draw();
         screenUtils.withCamera();
         
