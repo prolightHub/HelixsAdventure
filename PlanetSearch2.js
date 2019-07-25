@@ -967,9 +967,17 @@ var sketch = function(processing) /*Wrapper*/
         Fixed: when creating a new save file would result in a bluescreen because of forgotten type check on game.data.ship.
         Imported Talon's Ship
         Thinking about collision and movement --I'll be back for this.
+        Replayed Ice World
+        Fixed several things in Ice World
+        Made a boss fight place.
+        Added a barrier to it.
+        Added the boss's dialog.
+        Added hp bars.
+        Updated boss (now has ai, green flames), still not finished but at a good stopping point for now.
 
     Next :   
-        Will do:           
+        Will do:         
+            Fix goldbar item from going into the negatives.  
             Add a bunch of secrets and extra stuff you can go do, after collecting all the crystals.
             Sound update.
 
@@ -4332,16 +4340,6 @@ var backgrounds = {
             {
                 ctx.fillStyle = "rgba(0, 0, 0, 100)";
                 ctx.fillRect(0, 0, 600, 600);
-
-                // var stars = this.stars;
-
-                // stroke(255, 255, 255);
-
-                // for(var i = 0; i < stars.length; i++)
-                // {
-                //     strokeWeight(stars[i][2]);
-                //     point(stars[i][0], stars[i][1]);
-                // }
             }
         }
     },
@@ -5258,6 +5256,7 @@ var usableItems = {
         displayName : "Gold bar",
         use : function(data, useObject)
         {
+            console.log(data);
             useObject.coins += 100;
         },
     },
@@ -5592,7 +5591,12 @@ var inventoryMenu = {
                         var btn = scene.buttons["player_" + i];
                         var item = player.inventory.items[btn.index];
 
-                        if(itemsHandler.use(item, player))
+                        if(typeof item.amount !== "number")
+                        {
+                            item.amount = 1;
+                        }
+
+                        if(item.amount > 0 && itemsHandler.use(item, player))
                         {
                             if(typeof item.amount === "number")
                             {
@@ -6476,6 +6480,7 @@ var screenUtils = {
         padY : 0,
         bossBar : new Bar(0, height - 6, width, 6, color(17, 183, 40, 200), 10),
         airMeter : new Bar(150, 80, 100, graphics.infoBarProps.height - 1, color(4, 84, 172, 200), 10),
+        helixShipBar : new Bar(0, 16, width, 2, color(254, 254, 254, 100), 0),
         showBottomHud : true,
         lastShowTime : 0,
         draw : function(noLives)
@@ -6484,7 +6489,6 @@ var screenUtils = {
             noStroke();
             fastRect(0, 0, width, screenUtils.infoBar.height);
             screenUtils.infoBar.healthMeter.draw();
-            
             
             screenUtils.infoBar.healthMeter.set(player.hp, player.maxHp);
             screenUtils.infoBar.defenseMeter.set(player.defense, player.maxDefense);
@@ -6650,6 +6654,19 @@ var screenUtils = {
                 this.padY = constrain(this.padY, 0, 60);
             }
 
+            if((levelScripts[levelInfo.level] || {}).battling)
+            {
+                var helixShip = gameObjects.getObject("helixShip").input(0);
+
+                if(!helixShip.fake)
+                {
+                    this.helixShipBar.set(helixShip.hp, helixShip.maxHp);
+                    this.helixShipBar.color = color(80, 90, 201, 100);
+                    this.helixShipBar.draw();
+                    this.helixShipBar.noStroke = true;
+                }
+            }
+
             if(typeof this.bossArrayName !== "undefined")
             {
                 var boss = gameObjects.getObject(this.bossArrayName).input(0);
@@ -6756,7 +6773,6 @@ var screenUtils = {
                     }
                 $pjs.popMatrix();
             }
-        
 
             textAlign(LEFT, CENTER);
 
@@ -7375,6 +7391,33 @@ var screenUtils = {
 
 var physics = {
     formulas : {
+
+        // Of the source angle to the target angle
+        // this function tells us whether it is faster to increment (true)
+        // or decrement (false) to get to the target angle.
+        findDirection : function(sourceA, targetA)
+        {
+            console.log.apply(arguments);
+
+            if(targetA > sourceA)
+            {
+                if(targetA - sourceA < sourceA + 360 - targetA)
+                {
+                    return true;
+                }
+
+                return false;
+            }
+
+            if(targetA + 360 - sourceA < sourceA - targetA)
+            {
+                return true;
+            }
+
+            return false;
+        },
+
+        // Keeps an angle within the range between 0 and 360
         resolveAngle : function(a)
         {
             a = a % 360;
@@ -11221,6 +11264,9 @@ var PhaserBlast = function(xPos, yPos, diameter, colorValue)
 {
     Circle.call(this, xPos, yPos, diameter);
     
+    this.hp = 1;
+    this.damage = 2;
+
     this.physics.solidObject = false;
     this.physics.shape = "point";
      
@@ -11274,6 +11320,16 @@ var PhaserBlast = function(xPos, yPos, diameter, colorValue)
             this.remove();
         }
     };
+
+    this.onCollide = function(object)
+    {
+        if(object.isLifeForm && object.arrayName !== this.shooterArrayName)
+        {
+            object.takeDamage(this);
+            this.remove();
+            gameObjects.getObject("phaserBlast").applyObject(this.index);
+        }
+    };
 };
 
 gameObjects.addObject("phaserBlast", createArray(PhaserBlast));
@@ -11282,6 +11338,7 @@ gameObjects.addObject("phaserBlast", createArray(PhaserBlast));
 var HelixShip = function(xPos, yPos, width, height)
 {
     DynamicRect.call(this, xPos, yPos, width, height);
+    LifeForm.call(this, /*144*/9999);
 
     // this.physics.solidObject = false;
 
@@ -11301,12 +11358,13 @@ var HelixShip = function(xPos, yPos, width, height)
             choices : {
                 "exit" : "..."
             }
-        }               
+        }
     };
 
     var _this = this;
 
     this.maxSpeed = 12;
+    this.minSpeed = -3;
 
     this.flames = [];
     this.flames.add = function(x, y)
@@ -11351,8 +11409,8 @@ var HelixShip = function(xPos, yPos, width, height)
         }
     };
 
-    this.lastAddTime = 0;
-    this.nextTime = random(20, 50);
+    this.f_lastAddTime = 0;
+    this.f_nextTime = random(20, 50);
 
     // this.updateBoundingBox = function()
     // {
@@ -11364,12 +11422,7 @@ var HelixShip = function(xPos, yPos, width, height)
     //     this.boundingBox.height = this.height;
     // };
 
-    this.AABB = {
-        left : 0,
-        right : 0,
-        up : 0,
-        down : 0
-    };
+    this.AABB = {};
 
     this.updateAABB = function()
     {
@@ -11379,25 +11432,30 @@ var HelixShip = function(xPos, yPos, width, height)
         this.AABB.down = this.middleXPos + this.halfHeight;
     };
 
+    this.updateAABB();
+
     this.draw = function()
     {
-        if(this.flames.length < 100 && millis() - this.lastAddTime > this.nextTime)
+        if(this.flames.length < 100 && millis() - this.f_lastAddTime > this.f_nextTime)
         {
             for(var i = 0; i < random(3, 5); i++)
             {
                 this.flames.add(random(-18, 18), this.halfHeight - 20);
             }
 
-            this.lastAddTime = millis();
-            this.nextTime = random(20, 50);
+            this.f_lastAddTime = millis();
+            this.f_nextTime = random(20, 50);
         }
 
         $pjs.pushMatrix();
             translate(this.middleXPos, this.middleYPos);
             rotate(this.angle);
 
-            this.flames.draw();
-            this.flames.update();
+            if(this.hp > 0)
+            {
+                this.flames.draw();
+                this.flames.update();
+            }
             
             fill(this.color);
 
@@ -11423,7 +11481,7 @@ var HelixShip = function(xPos, yPos, width, height)
     this.controls = {
         loadInterior : function()
         {
-            return keys.q;
+            return keys.q && !(levelScripts[levelInfo.level] || {}).battling;
         },
         shoot : function()
         {
@@ -11435,6 +11493,11 @@ var HelixShip = function(xPos, yPos, width, height)
     this.update = function()
     {
         // _lastUpdate.apply(this, arguments);
+
+        if(this.hp <= 0)
+        {
+            window.location.reload();
+        }
 
         if(!levels["desert oasis"].save.messaged && loops > 200)
         {
@@ -11478,7 +11541,7 @@ var HelixShip = function(xPos, yPos, width, height)
             {
                 var angle = (this.angle - 90) % 360 + 180;
 
-                this.speed = constrain(this.speed, 0, this.maxSpeed);
+                this.speed = constrain(this.speed, this.minSpeed, this.maxSpeed);
 
                 this.xVel = sin(this.angle * DEG_TO_RAD) * this.speed;
                 this.yVel = cos(this.angle * DEG_TO_RAD) * -this.speed;
@@ -11496,11 +11559,11 @@ var HelixShip = function(xPos, yPos, width, height)
 
                 if(player.controls.left())
                 {
-                    this.angle -= 1;
+                    this.angle -= 2.5;
                 }
                 if(player.controls.right())
                 {
-                    this.angle += 1;                
+                    this.angle += 2.5;                
                 }
 
                 cam.keepInGrid = true;
@@ -11568,6 +11631,7 @@ var HelixShip = function(xPos, yPos, width, height)
 
         blast.blastAngle = (self.angle - 90) * DEG_TO_RAD;
         blast.life = 200;
+        blast.shooterArrayName = self.arrayName;
 
         cameraGrid.addReference(blast);
     }
@@ -11627,16 +11691,89 @@ gameObjects.addObject("helixShip", createArray(HelixShip));
 var TalonShip = function(xPos, yPos, width, height)
 {
     DynamicRect.call(this, xPos, yPos, width, height);
-    // this.physics.solidObject = false;
+    LifeForm.call(this, 256);
+    this.physics.solidObject = false;
+
+    this.scoreValue = 2600;
+    this.isBoss = true;
 
     this.gravity = 0;
     this.angle = 180;
 
+    var self = this;
+    var _this = this;
+
+    this.firstMiddleXPos = xPos + width / 2;
+    this.firstMiddleYPos = yPos + height / 2;
+
+    this.flames = [];
+    this.flames.add = function(x, y)
+    {
+        this.push({
+            x : x, 
+            y : y,
+            angle : 90 + random(-10, 10),
+            speed : random(1, 2) * 8,
+            diameter : ((random() < 0.5) ? 6 : 7),
+            color : color(9, 170, 100, 210),
+            life : random(5, 20) * (_this.speed / _this.maxSpeed),
+            length : Math.round(random(1, 3)) * 8
+        });
+    };
+    this.flames.draw = function()
+    {
+        noStroke();
+        strokeWeight(1);
+        for(var i = 0; i < this.length; i++)
+        {
+            fill(this[i].color);
+            fastRect(this[i].x, this[i].y, Math.round(random(2, 4)), this[i].length);
+        }
+    };
+    this.flames.update = function()
+    {
+        var a;
+        for(var i = this.length - 1; i >= 0; i--)
+        {
+            if(this[i].life < 0)
+            {
+                this.splice(i, 1);
+                continue;
+            }
+
+            this[i].life--;
+
+            a = this[i].angle * DEG_TO_RAD;
+            this[i].x += cos(a) * this[i].speed;
+            this[i].y += sin(a) * this[i].speed;
+        }
+    };
+
+    this.f_lastAddTime = 0;
+    this.f_nextTime = random(20, 50);
+
     this.draw = function()
     {
+        if(this.flames.length < 100 && millis() - this.f_lastAddTime > this.f_nextTime)
+        {
+            for(var i = 0; i < random(3, 5); i++)
+            {
+                this.flames.add(random(-18, 18), this.halfHeight - 20);
+            }
+
+            this.f_lastAddTime = millis();
+            this.f_nextTime = random(20, 50);
+        }
+
         $pjs.pushMatrix();
             translate(this.middleXPos, this.middleYPos);
-            rotate(this.angle);
+            rotate(this.angle + 90);
+
+            if(this.hp > 0)
+            {
+                this.flames.draw();
+                this.flames.update();
+            }
 
             this.imageName = "talonShip";
 
@@ -11644,13 +11781,175 @@ var TalonShip = function(xPos, yPos, width, height)
         $pjs.popMatrix();
     };
 
+    this.state = "follow";
+    this.speed = 0;
+    this.maxSpeed = 10;
+
     var _lastUpdate = this.update;
-    this.update = function()
+    this.update = function(remote)
     {
+        if(!remote)
+        {
+            return;
+        }
+
+        this.xVel = 0;
+        this.yVel = 0;
+
         _lastUpdate.apply(this, arguments);
 
         physics.getMiddleXPos(this);
         physics.getMiddleYPos(this);
+
+        var helixShip = gameObjects.getObject("helixShip")[0];
+
+        switch(this.state)
+        {
+            case "start" :
+                this.state = "follow";
+                this.speed = 0;
+                break;
+
+            case "follow" :
+                var dx = helixShip.middleXPos - this.middleXPos,
+                    dy = helixShip.middleYPos - this.middleYPos;
+
+                if(dx * dx + dy * dy > 250 * 250)
+                {
+                    var angle = atan2(dy, dx);
+                    var targetAngle = angle * RAD_TO_DEG;
+
+                    this.angle = physics.formulas.resolveAngle(this.angle);
+                    targetAngle = physics.formulas.resolveAngle(targetAngle);
+
+                    if(physics.formulas.findDirection(this.angle, targetAngle))
+                    {
+                        this.angle += 5;
+                    }else{
+                        this.angle -= 5;
+                    }
+
+                    if(Math.abs(this.angle - targetAngle) <= 10)
+                    {
+                        this.angle = targetAngle;
+                    }
+
+                    this.speed = 4;
+                    this.outXVel = cos(this.angle * DEG_TO_RAD) * this.speed;
+                    this.outYVel = sin(this.angle * DEG_TO_RAD) * this.speed;
+                }
+                break;
+
+            case "return" :
+                var dx = this.firstMiddleXPos - this.middleXPos,
+                    dy = this.firstMiddleYPos - this.middleYPos;
+
+                var tAngle = atan2(dy, dx) * RAD_TO_DEG;
+
+                this.angle = physics.formulas.resolveAngle(this.angle);
+                tAngle = physics.formulas.resolveAngle(tAngle);
+
+                if(physics.formulas.findDirection(this.angle, tAngle))
+                {
+                    this.angle += 5;
+                }else{
+                    this.angle -= 5;
+                }
+
+                if(Math.abs(this.angle - tAngle) <= 10)
+                {
+                    this.angle = tAngle;
+                }
+
+                this.speed = 6.5;
+                this.outXVel = cos(tAngle * DEG_TO_RAD) * this.speed;
+                this.outYVel = sin(tAngle * DEG_TO_RAD) * this.speed;
+
+                if(dx * dx + dy * dy < 300 * 300)
+                {
+                    this.state = "start";
+                }
+                break;
+
+            case "lowHp" :
+                break;
+
+            case "rage" :
+                break;
+
+            case "run" :
+                break;
+        }
+
+        if(this.hp * 100 / this.maxHp < 14)
+        {
+            this.state = "rage";
+        }
+
+        if(this.state !== "return")
+        {
+            var dx = this.firstMiddleXPos - this.middleXPos,
+                dy = this.firstMiddleYPos - this.middleYPos;
+
+            if(dx * dx + dy * dy > 1500 * 1500)
+            {
+                this.state = "return";
+            }
+        }
+
+        if(["follow", "return", "rage", "lowHp", "run"].indexOf(this.state) !== -1)
+        {
+            this.shoot();
+        }
+
+        this.xPos += this.outXVel;
+        this.yPos += this.outYVel;
+
+        this.updateBoundingBox();
+    };
+
+    this.turrets = [];
+    this.turrets.add = function(x, y, fire)
+    {
+        this.push({
+            x : x,
+            y : y,
+            fire : fire,
+            angle : atan2(y, x),
+            length : Math.sqrt(x * x + y * y)
+        })
+    };
+
+    function shoot(turrets)
+    {
+        var angle = this.angle + (self.angle + 90) * DEG_TO_RAD;
+
+        var blast = gameObjects.getObject("phaserBlast").add(
+            Math.round(self.middleXPos + Math.cos(angle) * this.length), 
+            Math.round(self.middleYPos + Math.sin(angle) * this.length), 4, color(19, 200, 65));
+
+        blast.blastAngle = self.angle * DEG_TO_RAD;
+        blast.life = 200;
+        blast.shooterArrayName = self.arrayName;
+
+        cameraGrid.addReference(blast);
+    }
+
+    this.turrets.add(-52, -122, shoot);
+    this.turrets.add( 52, -122, shoot);
+
+    this.lastShootTime = 0;
+    this.shoot = function()
+    {
+        if(millis() - this.lastShootTime > 500)
+        {
+            for(var i = 0; i < this.turrets.length; i++)
+            {
+                this.turrets[i].fire.call(this.turrets[i], this.turrets);
+            }
+
+            this.lastShootTime = millis();
+        }
     };
 };
 gameObjects.addObject("talonShip", createArray(TalonShip));
@@ -26548,7 +26847,7 @@ var levelScripts = {
         },
         apply : function()
         {
-            var iceDragon = gameObjects.getObject("iceDragon").input(0);
+            var iceDragon = gameObjects.getObject("iceDragon")[0];
 
             if(!this.usedIntro && iceDragon.nodes.length > 3)
             {
@@ -26582,16 +26881,24 @@ var levelScripts = {
                 this.usedIntro = true;
             }
 
+            if(iceDragon.hp <= 0)
+            {
+                iceDragon.remove();
+                gameObjects.getObject("iceDragon").applyObject(0);
+            }
+
             // Prevent game from crashing if there is no ice dragon which there should be.
-            if(iceDragon.fake)
+            if(iceDragon.fake && !game.cutScening)
             {
                 this.stop = true;
- 
+
+                game.cutScening = true;
+
                 cam.attach(function()
                 {
-                    var object = gameObjects.getObject("door")[2];
+                    var object = gameObjects.getObject("magicDoor")[0];
                     
-                    if(!game.cutScening)
+                    if(Math.abs(object.xPos - cam.focusXPos) < 80 && Math.abs(object.yPos - cam.focusYPos < 80))
                     {
                         // Set variables after defeating the room!
                         levels[levelInfo.level].doors.a.locked = false;
@@ -26602,15 +26909,26 @@ var levelScripts = {
                         levels[levelInfo.level].save.roomDefeated = true;
                     }
 
-                    game.cutScening = true;
-
                     return object;
                 },
                 false, 1600, function()
                 {
                     game.cutScening = false;
+
+                    // Set variables after defeating the room!
+                    levels[levelInfo.level].doors.a.locked = false;
+
+                    levels[levelInfo.level].doors.b.hidden = false;
+                    levels[levelInfo.level].doors.b.locked = false;  
+
+                    levels[levelInfo.level].save.roomDefeated = true;
                 });
 
+                return;
+            }
+
+            if(iceDragon.fake)
+            {
                 return;
             }
 
@@ -26622,7 +26940,6 @@ var levelScripts = {
             {
                 iceDragon.update(true);
             }
-
             
             iceDragon.applyCollision(player);
 
@@ -27353,6 +27670,140 @@ var levelScripts = {
 
                 levels[levelInfo.level].save.showedControls = true;
             }
+
+            var talonShip = gameObjects.getObject("talonShip")[0] || {};
+            var helixShip = gameObjects.getObject("helixShip")[0] || {};
+
+            var dx = talonShip.firstMiddleXPos - helixShip.middleXPos;
+            var dy = talonShip.firstMiddleYPos - helixShip.middleYPos;
+
+            if(this.startBattle !== false && dx * dx + dy * dy < 3000 * 3000)
+            {
+                this.startBattle = true;
+            }
+
+            if(this.startBattle)
+            {
+                setTimeout(function()
+                {
+                    /*talkHandler.start({
+                        up : true,
+                        "start" : {
+                            message : "<incoming interception>",
+                            choices : {
+                                "next" : "..."
+                            }
+                        },
+                        "next" : {
+                            message : "Ah ha ha! So I've found the hero at last!",
+                            choices : {
+                                "next.1" : "..."
+                            }
+                        },
+                        "next.1" : {
+                            message : "Which means you, /username have escaped\nSearch, collected all ...",
+                            choices : {
+                                "next.2" : "..."
+                            }
+                        },
+                        "next.2" : {
+                            message : "3 crystals, repaired your ship after I\nintentially sent it whirling!",
+                            choices : {
+                                "next.3" : "..."
+                            }
+                        },
+                        "next.3" : {
+                            message : "Yes, a force to be reckoned with!",
+                            choices : {
+                                "next2" : "..."
+                            }
+                        },
+                        "next2" : {
+                            message : "You have surely stood the test of time.\nAnd in doing so you have proven\nyourself worthy as a hero...",
+                            choices : {
+                                "beforeLast" : "..."
+                            }
+                        },
+                        "beforeLast" : {
+                            message : "And that is why...",
+                            choices : {
+                                "last" : "..."
+                            }
+                        },
+                        "last" : {
+                            message : "I've been watching you all this time!\nI planned for you to prove yourself.\nAnd indeed you have...",
+                            choices : {
+                                "last2" : "..."
+                            }
+                        },
+                        "last2" : {
+                            message : "Even when I sent Captain Fleep to\ndemolish you and Leopard X to \"steal\"\nyour coins.",
+                            choices : {
+                                "last3" : "..."
+                            }
+                        }   ,
+                        "last3" : {
+                            message : "And after all this, after\nstanding the test of time hero...",
+                            choices : {
+                                "final" : "..."
+                            }
+                        },
+                        "final" : {
+                            message : "You must past the final test!\nAre you ready /username?\nDo you have what it takes?",
+                            choices : {
+                                "finally" : "..."
+                            }
+                        },
+                        "finally" : {
+                            message : "If so...\n\n                        All ends now!",
+                            choices : {
+                                "exit" : "..."
+                            }
+                        }
+                    },
+                    "start", "Talon");*/
+
+                    screenUtils.infoBar.bossArrayName = "talonShip";
+                    talonShip.state = "start";
+
+                }, 1400);
+
+                this.startBattle = false;
+                this.battling = true;
+            }
+
+            if(this.battling)
+            {
+                var lengthSq = dx * dx + dy * dy;
+
+                if(lengthSq >= 1500 * 1500)
+                {
+                    var angle = atan2(dy, dx) + Math.PI;
+
+                    var length = Math.min(1500, Math.sqrt(lengthSq));
+
+                    helixShip.xPos -= (helixShip.xPos - (talonShip.firstMiddleXPos + cos(angle) * length - helixShip.halfWidth)) * 0.2;
+                    helixShip.yPos -= (helixShip.yPos - (talonShip.firstMiddleYPos + sin(angle) * length - helixShip.halfHeight)) * 0.2;
+
+                    helixShip.updateBoundingBox();
+                }
+            }
+
+            talonShip.update(true);    
+
+            cameraGrid.removeReference(talonShip);
+            cameraGrid.addReference(talonShip);            
+        },
+        draw : function()
+        {
+            var talonShip = gameObjects.getObject("talonShip")[0] || {};
+
+            noFill();
+            stroke(80, 150, 200);
+            strokeWeight(4);
+            ellipse(talonShip.firstMiddleXPos, talonShip.firstMiddleYPos, 3000, 3000);
+
+            noStroke();
         }
     },
     "helixShip" : {

@@ -1989,8 +1989,8 @@ var levels = {
             "iii                C    s            C C    s  s                        33ggg        4bbbb44                C   C                      ccc                             b11ibbbbiii         bbi   V   i   bbdd        ibbi   V  bi                  1ii1                                           iii",
             "iii                     C                   C  C                       gggddb      FFib11bb4                              c       cc          cc      gg11bbbFFF      iiiiiibb             ii        V  bbdbdi        bbi     bbV                  1ii1                                        U  iii",
             "iiia                                                                  gdddddb  cc    ib11bbgT                             S                       ggggdd1bb           i  iiibb  A           i           bddddi      bbbi     bb                   A1ii1 ccccc               cccc        cccc   U  iii",
-            "iiiD                                                                 bdddibbb        ib111bdgg                          iiii      m   bFFFb    m  bdddd11b       M    V   iibbiii           V           bddddii    bbi       b                   A1ii1V                                        U  iii",
-            "iii1111                                                             4bbbi  bb         ib11bbdd       ccc              iibbbb11m          m        iiii11b                 iibbbbbiiA                   bddddddi  bbiiV      bb                  A1ii1V   PPPPP              bbbb               U  iii",
+            "iiiD                                                                 bdddibbb        ib111bdgg                          iiii      m   bFFFb    m  bdddd11b            V   iibbiii           V           bddddii    bbi       b                   A1ii1V                                        U  iii",
+            "iii1111                                                             4bbbi  bb         ib11bbdd       ccc              iibbbb11m          m        iiii11b       FF        iibbbbbiiA                   bddddddi  bbiiV      bb                  A1ii1V   PPPPP              bbbb               U  iii",
             "iii                                                                44bbi    bggFF      ib11bbd                      iibbbbbbb11                   V ii111b                Viibbbbbbi                  bdddddddibbbi         bb      T  T  2    A1ii1V                                   PPPPP  U  iii",
             "iii                      r 1l                                      44bbi    bbb    cc   ib11bbdl 2               r ibbbbbbbbbb11                     bb11b          T      iibbbbbbi                 bdddddddddbbbbi   T   gbbbgT  gggggggggg A1ii1V                                              iii",
             "iii    E  ___       2  r 11111l          A   a         A  b        44bbi    bbb         ib11bbbdiiil     2 r iiiiiibbbbbbbbbb1 1                    bi11ib   T    ggg      iibbbbbbbi        T  gggggbbdddddddddddiggggggggbbbbdgggdddddddddddddi1              2      2                          iii",
@@ -2595,8 +2595,8 @@ var levels = {
             "wwwwwwwwWWWWww111111111111111111111WWWWWWWWWWwwwW1111111111111111111111111111111111111111",
             "1111111WWWw111111111111111111111111WWW1111111111WWW11111111111111111111111111111111111111",
             "1111wwwwwWW1111111111111111111111111     111111111111111111111111111111111111111111111111",
-            "1111cwwwwWW1111111111111111111111111         z       111111111111111111111111111111111111",
-            "1111DwwwwWW11111111111111111111111111111     ]     ' 111111111111111111111111111111111111",
+            "111c wwwwWW1111111111111111111111111         z       111111111111111111111111111111111111",
+            "111D wwwwWW11111111111111111111111111111     ]     ' 111111111111111111111111111111111111",
             "1111bbbbbbbb11111111111111111111111111111111111111111111111111111111111111111111111111111"
 
         ]
@@ -2793,9 +2793,9 @@ var levels = {
         },
         plan : [
             "9~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~9",
-            "~               4      z                                                                   I     7                           I                         ~",
-            "~               D      D                                                                   I                7                I                         ~",
-            "~           U9^^^^^^^^^^^^9U                                                               I                                 I                         ~",
+            "~               4      z                                                                    I    7                          I                          ~",
+            "~               D      D                                                                    I               7               I                          ~",
+            "~           U9^^^^^^^^^^^^9U                                                                I                               I                          ~",
             "~           U              U                                                               9~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~9UU                       ~",
             "~           U              U                             hh         cc         hh      cc  ~                   i*            ~UU                       ~",
             "~      8    U              U   8                            kk k          k      k         ~                   i*            ~UU                       ~",
