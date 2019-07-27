@@ -974,6 +974,10 @@ var sketch = function(processing) /*Wrapper*/
         Added the boss's dialog.
         Added hp bars.
         Updated boss (now has ai, green flames), still not finished but at a good stopping point for now.
+        Moved a few thing around.
+        Fixed a few things.
+        Moved fight area.
+        Updated boss to have smarter ai, and he can now drop green bombs/mines. 
 
     Next :   
         Will do:         
@@ -992,8 +996,6 @@ var sketch = function(processing) /*Wrapper*/
         
     In the future:
         --More music/sound effects utilized.
-        --Space
-        --Talon's SpaceShip
         --Final boss fight: Talon +Cutscene
         --Credits
         --The end.
@@ -8525,6 +8527,8 @@ var Camera = function(xPos, yPos, width, height)
         this.scale += this.scaleVel;
         this.scale = constrain(this.scale, 0, this.maxScale);
 
+        this._cFactor = 1;
+
         if(!this.keepInGrid || this.scaled)
         {
             this.scale = this.scaleOut || 0;
@@ -8538,13 +8542,13 @@ var Camera = function(xPos, yPos, width, height)
                 this.width = width * c;
                 this.height = height * c;
 
+                this._cFactor = c;
             }else{
                 this.halfWidth = _halfWidth;
                 this.halfHeight = _halfHeight;
                 this.width = width;
                 this.height = height;
             }
-
         }else{
             this.halfWidth = _halfWidth;
             this.halfHeight = _halfHeight;
@@ -8562,9 +8566,26 @@ var Camera = function(xPos, yPos, width, height)
 
         this.scaleZoom(!this.keepInGrid || this.scaled);
 
+        if(this.useAnotherScale)
+        {
+            translate(this.width * (1 - this.ANScaleX) / 2, this.height * (1 - this.ANScaleY) / 2);
+
+            var cfX = 1 + this.ANScaleX;
+            var cfY = 1 + this.ANScaleY;
+
+            scale(this.ANScaleX, this.ANScaleY);
+
+            translate(this.width * (1 - cfX) / 2, this.height * (1 - cfY) / 2);
+
+            this.width = width * this._cFactor * cfX;
+            this.height = height * this._cFactor * cfY;
+            this.halfWidth = _halfWidth * this._cFactor * cfX;
+            this.halfHeight = _halfHeight * this._cFactor * cfY;
+        }
+
         // Get the camera position
-        var xPos = object.boundingBox.xPos + (object.boundingBox.width / 2);
-        var yPos = object.boundingBox.yPos + (object.boundingBox.height / 2);
+        var xPos = object.overrideXMiddle || object.boundingBox.xPos + (object.boundingBox.width / 2);
+        var yPos = object.overrideYMiddle || object.boundingBox.yPos + (object.boundingBox.height / 2);
 
         this.angle = atan2(yPos - this.focusYPos, xPos - this.focusXPos);
         this.distance = dist(this.focusXPos, this.focusYPos, xPos, yPos) * speed;
@@ -10072,6 +10093,7 @@ var LifeForm = function(hp, notNormalDeath)
                 }
             }
 
+            (this.onHandleDeath || function(){})();
             this.remove();
         }
     };
@@ -11334,359 +11356,100 @@ var PhaserBlast = function(xPos, yPos, diameter, colorValue)
 
 gameObjects.addObject("phaserBlast", createArray(PhaserBlast));
 
-// Helix's Space Ship
-var HelixShip = function(xPos, yPos, width, height)
+var Bomb = function(xPos, yPos, diameter, colorValue, life)
 {
-    DynamicRect.call(this, xPos, yPos, width, height);
-    LifeForm.call(this, /*144*/9999);
+    Circle.call(this, xPos, yPos, diameter);
 
-    // this.physics.solidObject = false;
+    this.hp = 1;
+    this.damage = 10;
 
-    if(levelInfo.level !== "desert oasis")
-    {
-        this.angle = 0;
-    }else{
-        this.angle = 30;
-    }
+    this.physics.solidObject = false;
+    this.physics.shape = "point";
+     
+    this.boundingBox = {};
+    this.boundingBox.off = true;
+    this.physics.movement = "dynamic";
 
-    this.goto = shipGoto;
+    this.xVel = 0;
+    this.yVel = 0;
 
-    this.messages = {
-        up : true,
-        "start" : {
-            message : "Ship: Down to open hatch, q to enter.",
-            choices : {
-                "exit" : "..."
-            }
-        }
-    };
+    this.gravity = 0;
 
-    var _this = this;
+    this.color = colorValue;
+    this.physics.solidObject = false;
 
-    this.maxSpeed = 12;
-    this.minSpeed = -3;
+    this.driftXVel = random(-2, 2);
+    this.driftYVel = random(-2, 2);
 
-    this.flames = [];
-    this.flames.add = function(x, y)
-    {
-        this.push({
-            x : x, 
-            y : y,
-            angle : 90 + random(-10, 10),
-            speed : random(1, 2) * 8,
-            diameter : ((random() < 0.5) ? 6 : 7),
-            color : color(9, 100, 170, 210),
-            life : random(5, 20) * (_this.speed / _this.maxSpeed),
-            length : Math.round(random(1, 3)) * 8
-        });
-    };
-    this.flames.draw = function()
-    {
-        noStroke();
-        strokeWeight(1);
-        for(var i = 0; i < this.length; i++)
-        {
-            fill(this[i].color);
-            fastRect(this[i].x, this[i].y, Math.round(random(2, 4)), this[i].length);
-        }
-    };
-    this.flames.update = function()
-    {
-        var a;
-        for(var i = this.length - 1; i >= 0; i--)
-        {
-            if(this[i].life < 0)
-            {
-                this.splice(i, 1);
-                continue;
-            }
+    this.life = life || 100;
 
-            this[i].life--;
-
-            a = this[i].angle * DEG_TO_RAD;
-            this[i].x += cos(a) * this[i].speed;
-            this[i].y += sin(a) * this[i].speed;
-        }
-    };
-
-    this.f_lastAddTime = 0;
-    this.f_nextTime = random(20, 50);
-
-    // this.updateBoundingBox = function()
-    // {
-    //     this.boundingBox.overSized = true;
-    //     this.boundingBox.xPos = this.middleXPos - this.width;
-    //     this.boundingBox.width = this.width * 2;
-
-    //     this.boundingBox.yPos = this.yPos;
-    //     this.boundingBox.height = this.height;
-    // };
-
-    this.AABB = {};
-
-    this.updateAABB = function()
-    {
-        this.AABB.left = this.xPos;
-        this.AABB.right = this.xPos + this.width;
-        this.AABB.up = this.middleXPos - this.halfWidth;
-        this.AABB.down = this.middleXPos + this.halfHeight;
-    };
-
-    this.updateAABB();
+    this.diameterPercent = 1;
 
     this.draw = function()
     {
-        if(this.flames.length < 100 && millis() - this.f_lastAddTime > this.f_nextTime)
-        {
-            for(var i = 0; i < random(3, 5); i++)
-            {
-                this.flames.add(random(-18, 18), this.halfHeight - 20);
-            }
+        noStroke();
+        fill(this.color);
+        circle(this.xPos, this.yPos, this.diameter * this.diameterPercent);
 
-            this.f_lastAddTime = millis();
-            this.f_nextTime = random(20, 50);
-        }
-
-        $pjs.pushMatrix();
-            translate(this.middleXPos, this.middleYPos);
-            rotate(this.angle);
-
-            if(this.hp > 0)
-            {
-                this.flames.draw();
-                this.flames.update();
-            }
-            
-            fill(this.color);
-
-            this.imageName = "helixShip";
-
-            if(this.hatchOpen)
-            {
-                this.imageName += "Open";
-            }
-
-            ctx.drawImage(loadedImages[this.imageName].sourceImg, -this.halfWidth, -this.halfHeight, this.width, this.height);
- 
-        $pjs.popMatrix();
-    };
-
-    this.lastChangeTime = 0;
-
-    var loops = 0;
-    var self = this;
-
-    this.speed = 0;
-
-    this.controls = {
-        loadInterior : function()
-        {
-            return keys.q && !(levelScripts[levelInfo.level] || {}).battling;
-        },
-        shoot : function()
-        {
-            return keys[" "];
-        },
+        fill(0, 0, 0, 100);
+        circle(this.xPos, this.yPos, (this.diameter - 8) * this.diameterPercent);
     };
 
     var _lastUpdate = this.update;
     this.update = function()
     {
-        // _lastUpdate.apply(this, arguments);
+        this.xPos += this.driftXVel;
+        this.yPos += this.driftYVel;
 
-        if(this.hp <= 0)
+        _lastUpdate.apply(this, arguments);
+        this.life--;
+
+        if(this.life < 200)
         {
-            window.location.reload();
-        }
+            this.diameterPercent = this.life / 200;
 
-        if(!levels["desert oasis"].save.messaged && loops > 200)
-        {
-            talkHandler.start(this.messages, "start", "", true);
-            levels["desert oasis"].save.messaged = true;
-        }
-
-        loops++;
-
-        if(this.goto.launched)
-        {
-            if(!this.vInit)
+            if(this.life < 0)
             {
-                console.log("launching!");
-                cam.scaleOut = 0;
-
-                cam.attach(function()
-                {
-                    return self;
-                }, 
-                true, 1500, function()
-                {
-                    cam.attach(function()
-                    {
-                        cam.keepInGrid = false;
-
-                        return self;
-                    },
-                    true, 9999999999, function()
-                    {   
-                        cam.keepInGrid = true;
-                    });
-                });
-               
-                this.vInit = true;
+                this.kill();
             }
-
-            cam.scaleOut = max(cam.scaleOut -= 0.003, -0.6);
-
-            if(levels[levelInfo.level].createStars)
-            {
-                var angle = (this.angle - 90) % 360 + 180;
-
-                this.speed = constrain(this.speed, this.minSpeed, this.maxSpeed);
-
-                this.xVel = sin(this.angle * DEG_TO_RAD) * this.speed;
-                this.yVel = cos(this.angle * DEG_TO_RAD) * -this.speed;
-
-                if(player.controls.up())
-                {
-                    this.speed += 0.1;
-                }
-                else if(player.controls.down())
-                {
-                    this.speed -= 0.1;
-                }else{
-                    this.speed -= 0.05;
-                }
-
-                if(player.controls.left())
-                {
-                    this.angle -= 2.5;
-                }
-                if(player.controls.right())
-                {
-                    this.angle += 2.5;                
-                }
-
-                cam.keepInGrid = true;
-
-                if(this.controls.loadInterior())
-                {
-                    this.loadInterior();
-                }
-
-                shipGoto.inSpace = true;
-
-                shipGoto.xPos = this.xPos;
-                shipGoto.yPos = this.yPos;
-                shipGoto.angle = this.angle;
-
-                if(this.controls.shoot())
-                {
-                    this.shoot();
-                }
-            }else{
-                shipGoto.inSpace = false;
-
-                this.angle = 0;
-
-                this.xVel = 0;
-                this.yVel = -this.maxSpeed;
-                this.speed = 7;
-            }
-
-            this.xPos += this.xVel;
-            this.yPos += this.yVel;
-
-            physics.getMiddleXPos(this);
-            physics.getMiddleYPos(this);
-
-            if(levels[levelInfo.level].createStars)
-            {
-                this.xPos = constrain(this.xPos, 0, levelInfo.width - this.width);
-                this.yPos = constrain(this.yPos, 0, levelInfo.height - this.height);
-            }
-
-            this.updateBoundingBox();
         }
     };
 
-    this.turrets = [];
-    this.turrets.add = function(x, y, fire)
+    this.kill = function()
     {
-        this.push({
-            x: x,
-            y: y,
-            fire: fire,
-            angle : atan2(y, x),
-            length : Math.sqrt(x * x + y * y)
-        })
-    };
+        cameraGrid.removeReference(this);
 
-    function shoot(turrets)
-    {
-        var angle = this.angle + self.angle * DEG_TO_RAD;
+        this.onCollide = function() {};
+        this.draw = function() {};
+        this.update = function() {};
 
-        var blast = gameObjects.getObject("phaserBlast").add(
-            Math.round(self.middleXPos + Math.cos(angle) * this.length), 
-            Math.round(self.middleYPos + Math.sin(angle) * this.length), 4, color(19, 158, 192)); 
-
-        blast.blastAngle = (self.angle - 90) * DEG_TO_RAD;
-        blast.life = 200;
-        blast.shooterArrayName = self.arrayName;
-
-        cameraGrid.addReference(blast);
-    }
-
-    this.turrets.add(-66, -38, shoot);
-    this.turrets.add(66, -38, shoot);
-    this.turrets.add(-86, 12, shoot);
-    this.turrets.add(86, 12, shoot);
-
-    this.lastShootTime = 0;
-    this.shoot = function()
-    {
-        if(millis() - this.lastShootTime > 500)
-        {
-            for(var i = 0; i < this.turrets.length; i++)
-            {
-                this.turrets[i].fire.call(this.turrets[i], this.turrets);
-            }
-
-            this.lastShootTime = millis();
-        }
-    };
-
-    this.loadInterior = function()
-    {
-        game.gameState = "play";
-        player.goto.doorSymbol = 'a';
-        player.goto.travelType = "door";
-        loader.startLoadLevel("helixShip", "door");
-
-        cam.scaled = false;
-        cam.keepInGrid = true;
-        cam.scale = 0.3;
+        this.remove();
     };
 
     this.onCollide = function(object)
     {
-        if(object.arrayName === "player")
+        if(object.arrayName === "phaserBlast")
         {
-            if(object.yPos < this.yPos + 180 && this.angle === 30)
-            {
-                if(object.activate() && millis() - this.lastChangeTime > 500)
-                {
-                    this.hatchOpen = !this.hatchOpen;
-                    this.lastChangeTime = millis();
-                }
-                if(this.hatchOpen && object.controls.enter())
-                {
-                    this.loadInterior();
-                }
-            }
+            this.kill();
+            return;
+        }
+
+        if(object.isLifeForm && object.arrayName !== this.shooterArrayName)
+        {
+            sounds.mplaySound("hit2.mp3");
+            object.takeDamage(this);
+
+            this.kill();
         }
     };
 };
-gameObjects.addObject("helixShip", createArray(HelixShip));
+gameObjects.addObject("bomb", createArray(Bomb));
+
+var Missle = function()
+{
+
+};
+gameObjects.addObject("missle", createArray(Missle));
 
 var TalonShip = function(xPos, yPos, width, height)
 {
@@ -11781,9 +11544,33 @@ var TalonShip = function(xPos, yPos, width, height)
         $pjs.popMatrix();
     };
 
-    this.state = "follow";
+    this.state = "idle";
     this.speed = 0;
     this.maxSpeed = 10;
+
+    var lastShiftTime = millis();
+    var shiftInterval = 300;
+    var correcting = true;
+
+    var lastAddBombTime = millis();
+    var addBombInterval = 6000;
+
+    var driftTime = 1500;
+    var lastDriftMillis = millis();
+    var driftInterval = 10000;
+
+    this.outXVel = 0;
+    this.outYVel = 0;
+
+    this.updateBoundingBox = function()
+    {
+        var box = this.boundingBox;
+
+        box.xPos = this.xPos + 30;
+        box.yPos = this.yPos + 30;
+        box.width = this.width - 60;
+        box.height = this.height - 60;
+    };
 
     var _lastUpdate = this.update;
     this.update = function(remote)
@@ -11811,32 +11598,50 @@ var TalonShip = function(xPos, yPos, width, height)
                 break;
 
             case "follow" :
-                var dx = helixShip.middleXPos - this.middleXPos,
-                    dy = helixShip.middleYPos - this.middleYPos;
 
-                if(dx * dx + dy * dy > 250 * 250)
+                if(millis() - lastShiftTime > shiftInterval)
                 {
-                    var angle = atan2(dy, dx);
-                    var targetAngle = angle * RAD_TO_DEG;
+                    correcting = !correcting;
+                    lastShiftTime = millis();
+                }
 
-                    this.angle = physics.formulas.resolveAngle(this.angle);
-                    targetAngle = physics.formulas.resolveAngle(targetAngle);
+                if(correcting)
+                {
+                    var dx = helixShip.middleXPos - this.middleXPos,
+                        dy = helixShip.middleYPos - this.middleYPos;
 
-                    if(physics.formulas.findDirection(this.angle, targetAngle))
+                    if(dx * dx + dy * dy > 200 * 200)
                     {
-                        this.angle += 5;
+                        var angle = atan2(dy, dx);
+                        var targetAngle = angle * RAD_TO_DEG;
+
+                        this.angle = physics.formulas.resolveAngle(this.angle);
+                        targetAngle = physics.formulas.resolveAngle(targetAngle);
+
+                        if(physics.formulas.findDirection(this.angle, targetAngle))
+                        {
+                            this.angle += 2;
+                        }else{
+                            this.angle -= 2;
+                        }
+
+                        if(Math.abs(this.angle - targetAngle) <= 4)
+                        {
+                            this.angle = targetAngle;
+                        }
+
+                        this.speed = 9;
+                        this.outXVel = cos(this.angle * DEG_TO_RAD) * this.speed;
+                        this.outYVel = sin(this.angle * DEG_TO_RAD) * this.speed;
                     }else{
-                        this.angle -= 5;
+                        // Hmm too close to the helix's Ship.
                     }
+                }
 
-                    if(Math.abs(this.angle - targetAngle) <= 10)
-                    {
-                        this.angle = targetAngle;
-                    }
-
-                    this.speed = 4;
-                    this.outXVel = cos(this.angle * DEG_TO_RAD) * this.speed;
-                    this.outYVel = sin(this.angle * DEG_TO_RAD) * this.speed;
+                if(millis() - lastDriftMillis > driftInterval)
+                {
+                    this.state = "drift";
+                    lastDriftMillis = millis();
                 }
                 break;
 
@@ -11851,23 +11656,36 @@ var TalonShip = function(xPos, yPos, width, height)
 
                 if(physics.formulas.findDirection(this.angle, tAngle))
                 {
-                    this.angle += 5;
+                    this.angle += 2;
                 }else{
-                    this.angle -= 5;
+                    this.angle -= 2;
                 }
 
-                if(Math.abs(this.angle - tAngle) <= 10)
+                if(Math.abs(this.angle - tAngle) <= 4)
                 {
                     this.angle = tAngle;
                 }
 
-                this.speed = 6.5;
-                this.outXVel = cos(tAngle * DEG_TO_RAD) * this.speed;
-                this.outYVel = sin(tAngle * DEG_TO_RAD) * this.speed;
+                this.speed = 11;
+                this.outXVel = cos(this.angle * DEG_TO_RAD) * this.speed;
+                this.outYVel = sin(this.angle * DEG_TO_RAD) * this.speed;
 
-                if(dx * dx + dy * dy < 300 * 300)
+                if(dx * dx + dy * dy < 600 * 600)
                 {
                     this.state = "start";
+                }
+                break;
+
+            case "drift" :
+
+                this.speed = Math.max(this.speed, 9);
+                this.outXVel = cos(this.angle * DEG_TO_RAD) * this.speed;
+                this.outYVel = sin(this.angle * DEG_TO_RAD) * this.speed;
+
+                if(--driftTime < 0)
+                {
+                    this.state = "follow";
+                    driftTime = 10000;
                 }
                 break;
 
@@ -11891,21 +11709,34 @@ var TalonShip = function(xPos, yPos, width, height)
             var dx = this.firstMiddleXPos - this.middleXPos,
                 dy = this.firstMiddleYPos - this.middleYPos;
 
-            if(dx * dx + dy * dy > 1500 * 1500)
+            var radiusSq = (levelScripts[levelInfo.level] || { ring : {} }).ring.radiusSq;
+
+            if(dx * dx + dy * dy > radiusSq)
             {
                 this.state = "return";
             }
         }
 
-        if(["follow", "return", "rage", "lowHp", "run"].indexOf(this.state) !== -1)
+        if(["follow", "return", "rage", "lowHp", "run", "drift"].indexOf(this.state) !== -1)
         {
             this.shoot();
+
+            if(millis() - lastAddBombTime > addBombInterval)
+            {
+                this.addBomb();
+
+                lastAddBombTime = millis();
+                addBombInterval = round(random(4500, 7000));
+            }
         }
 
         this.xPos += this.outXVel;
         this.yPos += this.outYVel;
 
         this.updateBoundingBox();
+
+        this.xPos = constrain(this.xPos, 0, levelInfo.width - this.width);
+        this.yPos = constrain(this.yPos, 0, levelInfo.height - this.height);
     };
 
     this.turrets = [];
@@ -11931,6 +11762,7 @@ var TalonShip = function(xPos, yPos, width, height)
         blast.blastAngle = self.angle * DEG_TO_RAD;
         blast.life = 200;
         blast.shooterArrayName = self.arrayName;
+        blast.maxVel = 32;
 
         cameraGrid.addReference(blast);
     }
@@ -11939,9 +11771,11 @@ var TalonShip = function(xPos, yPos, width, height)
     this.turrets.add( 52, -122, shoot);
 
     this.lastShootTime = 0;
+    this.shootInterval = 400;
+
     this.shoot = function()
     {
-        if(millis() - this.lastShootTime > 500)
+        if(millis() - this.lastShootTime > this.shootInterval)
         {
             for(var i = 0; i < this.turrets.length; i++)
             {
@@ -11951,8 +11785,464 @@ var TalonShip = function(xPos, yPos, width, height)
             this.lastShootTime = millis();
         }
     };
+
+    this.blastMissle = function()
+    {
+
+    };
+
+    this.addBomb = function()
+    {
+        var bombs = gameObjects.getObject("bomb");
+
+        var bomb = bombs.add(this.middleXPos, this.middleYPos - 40, 30, color(19, 200, 65, 214), 400);
+        bomb.shooterArrayName = this.arrayName;
+
+        cameraGrid.addReference(bomb);
+    };
 };
 gameObjects.addObject("talonShip", createArray(TalonShip));
+
+// Helix's Space Ship
+var HelixShip = function(xPos, yPos, width, height)
+{
+    DynamicRect.call(this, xPos, yPos, width, height);
+    LifeForm.call(this, 146/*999*/);
+
+    // this.physics.solidObject = false;
+
+    if(levelInfo.level !== "desert oasis")
+    {
+        this.angle = 0;
+    }else{
+        this.angle = 30;
+    }
+
+    this.goto = shipGoto;
+
+    this.messages = {
+        up : true,
+        "start" : {
+            message : "Ship: Down to open hatch, q to enter.",
+            choices : {
+                "exit" : "..."
+            }
+        }
+    };
+
+    var _this = this;
+
+    this.maxSpeed = 14;
+    this.minSpeed = -3;
+
+    this.flames = [];
+    this.flames.add = function(x, y)
+    {
+        this.push({
+            x : x, 
+            y : y,
+            angle : 90 + random(-10, 10),
+            speed : random(1, 2) * 8,
+            diameter : ((random() < 0.5) ? 6 : 7),
+            color : color(9, 100, 170, 210),
+            life : random(5, 20) * (_this.speed / _this.maxSpeed),
+            length : Math.round(random(1, 3)) * 8
+        });
+    };
+    this.flames.draw = function()
+    {
+        noStroke();
+        strokeWeight(1);
+        for(var i = 0; i < this.length; i++)
+        {
+            fill(this[i].color);
+            fastRect(this[i].x, this[i].y, Math.round(random(2, 4)), this[i].length);
+        }
+    };
+    this.flames.update = function()
+    {
+        var a;
+        for(var i = this.length - 1; i >= 0; i--)
+        {
+            if(this[i].life < 0)
+            {
+                this.splice(i, 1);
+                continue;
+            }
+
+            this[i].life--;
+
+            a = this[i].angle * DEG_TO_RAD;
+            this[i].x += cos(a) * this[i].speed;
+            this[i].y += sin(a) * this[i].speed;
+        }
+    };
+
+    this.f_lastAddTime = 0;
+    this.f_nextTime = random(20, 50);
+
+    // this.updateBoundingBox = function()
+    // {
+    //     this.boundingBox.overSized = true;
+    //     this.boundingBox.xPos = this.middleXPos - this.width;
+    //     this.boundingBox.width = this.width * 2;
+
+    //     this.boundingBox.yPos = this.yPos;
+    //     this.boundingBox.height = this.height;
+    // };
+
+    // this.AABB = {};
+
+    // this.updateAABB = function()
+    // {
+    //     this.AABB.left = this.xPos;
+    //     this.AABB.right = this.xPos + this.width;
+    //     this.AABB.up = this.middleXPos - this.halfWidth;
+    //     this.AABB.down = this.middleXPos + this.halfHeight;
+    // };
+
+    // this.updateAABB();
+
+    this.points = [];
+    this.points.add = function(x, y)
+    {
+        this.push({
+            xPos : x, 
+            yPos : y,
+            angle : atan2(y, x),
+            length : Math.sqrt(x * x + y * y)
+        });
+    };
+    this.points.update = function()
+    {
+        var angle = self.angle * DEG_TO_RAD;
+        var a;
+
+        for(var i = this.length - 1; i >= 0; i--)
+        {
+            this[i].xPos = Math.cos(a = angle + this[i].angle) * this[i].length;
+            this[i].yPos = Math.sin(a) * this[i].length;
+        }
+    };
+    this.points.draw = function()
+    {
+        strokeWeight(2);
+        stroke(255, 23, 90, 200);
+        fill(255, 23, 90, 200);
+        for(var i = this.length - 1; i >= 0; i--)
+        {
+            point(self.middleXPos + this[i].xPos, self.middleYPos + this[i].yPos);
+        }
+        noStroke();
+    };
+
+    this.points.add(-this.halfWidth + 4, 76);
+    this.points.add(this.halfWidth - 4, 76);
+    this.points.add(0, -this.halfHeight + 3);
+    this.points.add(0, this.halfHeight - 3);
+
+    this.updateBoundingBox = function()
+    {
+        this.points.update();
+
+        // Get ready to do work
+        var left = Infinity, right = 0, up = Infinity, down = 0;
+        var i;
+
+        // Do our work
+        for(i = 0; i < this.points.length; i++)
+        {
+            if(this.points[i].xPos < left)
+            {
+                left = this.points[i].xPos;
+            }
+            if(this.points[i].xPos > right)
+            {
+                right = this.points[i].xPos;
+            }
+            if(this.points[i].yPos < up)
+            {
+                up = this.points[i].yPos;
+            }
+            if(this.points[i].yPos > down)
+            {
+                down = this.points[i].yPos;
+            }
+        }
+
+        // Finish off our work
+        left += this.middleXPos;
+        right += this.middleXPos;
+        up += this.middleYPos;
+        down += this.middleYPos;
+
+        left += 30;
+        right -= 30;
+        up += 30;
+        down -= 30;
+
+        var box = this.boundingBox;
+        box.xPos = left;
+        box.yPos = up;
+        box.width = right - left;
+        box.height = down - up;
+    };
+
+    this.draw = function()
+    {
+        if(this.flames.length < 100 && millis() - this.f_lastAddTime > this.f_nextTime)
+        {
+            for(var i = 0; i < random(3, 5); i++)
+            {
+                this.flames.add(random(-18, 18), this.halfHeight - 20);
+            }
+
+            this.f_lastAddTime = millis();
+            this.f_nextTime = random(20, 50);
+        }
+
+        $pjs.pushMatrix();
+            translate(this.middleXPos, this.middleYPos);
+            rotate(this.angle);
+
+            if(this.hp > 0)
+            {
+                this.flames.draw();
+                this.flames.update();
+            }
+
+            fill(this.color);
+
+            this.imageName = "helixShip";
+
+            if(this.hatchOpen)
+            {
+                this.imageName += "Open";
+            }
+
+            ctx.drawImage(loadedImages[this.imageName].sourceImg, -this.halfWidth, -this.halfHeight, this.width, this.height);
+        $pjs.popMatrix();
+    };
+
+    this.lastChangeTime = 0;
+
+    var loops = 0;
+    var self = this;
+
+    this.speed = 0;
+
+    this.controls = {
+        loadInterior : function()
+        {
+            return keys.q && !(levelScripts[levelInfo.level] || {}).battling;
+        },
+        shoot : function()
+        {
+            return keys[" "];
+        },
+    };
+
+    var _lastUpdate = this.update;
+    this.update = function()
+    {
+        // _lastUpdate.apply(this, arguments);
+
+        if(this.hp <= 0)
+        {
+            window.location.reload();
+        }
+
+        if(!levels["desert oasis"].save.messaged && loops > 200)
+        {
+            talkHandler.start(this.messages, "start", "", true);
+            levels["desert oasis"].save.messaged = true;
+        }
+
+        loops++;
+
+        if(this.goto.launched)
+        {
+            if(!this.vInit)
+            {
+                console.log("launching!");
+                cam.scaleOut = 0;
+
+                cam.attach(function()
+                {
+                    return self;
+                }, 
+                true, 1500, function()
+                {
+                    cam.attach(function()
+                    {
+                        cam.keepInGrid = false;
+
+                        return self;
+                    },
+                    true, 9999999999, function()
+                    {   
+                        cam.keepInGrid = true;
+                    });
+                });
+               
+                this.vInit = true;
+            }
+
+            cam.scaleOut = max(cam.scaleOut -= 0.003, -0.6);
+
+            if(levels[levelInfo.level].createStars)
+            {
+                var angle = (this.angle - 90) % 360 + 180;
+
+                this.speed = constrain(this.speed, this.minSpeed, this.maxSpeed);
+
+                this.xVel = sin(this.angle * DEG_TO_RAD) * this.speed;
+                this.yVel = cos(this.angle * DEG_TO_RAD) * -this.speed;
+
+                if(player.controls.up())
+                {
+                    this.speed += 0.1;
+                }
+                else if(player.controls.down())
+                {
+                    this.speed -= 0.1;
+                }else{
+                    this.speed -= 0.05;
+
+                    this.speed = Math.max(0, this.speed);
+                }
+
+                if(player.controls.left())
+                {
+                    this.angle -= 3;
+                }
+                if(player.controls.right())
+                {
+                    this.angle += 3;                
+                }
+
+                cam.keepInGrid = true;
+
+                if(this.controls.loadInterior())
+                {
+                    this.loadInterior();
+                }
+
+                shipGoto.inSpace = true;
+
+                shipGoto.xPos = this.xPos;
+                shipGoto.yPos = this.yPos;
+                shipGoto.angle = this.angle;
+
+                if(this.controls.shoot())
+                {
+                    this.shoot();
+                }
+            }else{
+                shipGoto.inSpace = false;
+
+                this.angle = 0;
+
+                this.xVel = 0;
+                this.yVel = -this.maxSpeed;
+                this.speed = 7;
+            }
+
+            this.xPos += this.xVel;
+            this.yPos += this.yVel;
+
+            this.overrideXMiddle = physics.getMiddleXPos(this);
+            this.overrideYMiddle = physics.getMiddleYPos(this);
+
+            if(levels[levelInfo.level].createStars)
+            {
+                this.xPos = constrain(this.xPos, 0, levelInfo.width - this.width);
+                this.yPos = constrain(this.yPos, 0, levelInfo.height - this.height);
+            }
+
+            this.updateBoundingBox();
+        }
+    };
+
+    this.turrets = [];
+    this.turrets.add = function(x, y, fire)
+    {
+        this.push({
+            x: x,
+            y: y,
+            fire: fire,
+            angle : atan2(y, x),
+            length : Math.sqrt(x * x + y * y)
+        })
+    };
+
+    function shoot(turrets)
+    {
+        var angle = this.angle + self.angle * DEG_TO_RAD;
+
+        var blast = gameObjects.getObject("phaserBlast").add(
+            Math.round(self.middleXPos + Math.cos(angle) * this.length), 
+            Math.round(self.middleYPos + Math.sin(angle) * this.length), 4, color(19, 158, 192)); 
+
+        blast.blastAngle = (self.angle - 90) * DEG_TO_RAD;
+        blast.life = 200;
+        blast.shooterArrayName = self.arrayName;
+        blast.maxVel = 28;
+
+        cameraGrid.addReference(blast);
+    }
+
+    this.turrets.add(-66, -38, shoot);
+    this.turrets.add(66, -38, shoot);
+    this.turrets.add(-86, 12, shoot);
+    this.turrets.add(86, 12, shoot);
+
+    this.lastShootTime = 0;
+    this.shoot = function()
+    {
+        if(millis() - this.lastShootTime > 240)
+        {
+            for(var i = 0; i < this.turrets.length; i++)
+            {
+                this.turrets[i].fire.call(this.turrets[i], this.turrets);
+            }
+
+            this.lastShootTime = millis();
+        }
+    };
+
+    this.loadInterior = function()
+    {
+        game.gameState = "play";
+        player.goto.doorSymbol = 'a';
+        player.goto.travelType = "door";
+        loader.startLoadLevel("helixShip", "door");
+
+        cam.scaled = false;
+        cam.keepInGrid = true;
+        cam.scale = 0.3;
+    };
+
+    this.onCollide = function(object)
+    {
+        if(object.arrayName === "player")
+        {
+            if(object.yPos < this.yPos + 180 && this.angle === 30)
+            {
+                if(object.activate() && millis() - this.lastChangeTime > 500)
+                {
+                    this.hatchOpen = !this.hatchOpen;
+                    this.lastChangeTime = millis();
+                }
+                if(this.hatchOpen && object.controls.enter())
+                {
+                    this.loadInterior();
+                }
+            }
+        }
+    };
+};
+gameObjects.addObject("helixShip", createArray(HelixShip));
 
 var Ground = function(xPos, yPos, width, height, colorValue, name, dir)
 {
@@ -27643,10 +27933,25 @@ var levelScripts = {
             cam.scaled = true;
             cam.scaleOut = -0.6;
 
+            cam.useAnotherScale = true;
+            cam.ANScaleX = 0.7;
+            cam.ANScaleY = 0.7;
+
             ///////////////////////////////////////////////
 
-            var talonShip = gameObjects.getObject("talonShip").add(19000, 800, 200, 300);
+            var talonShip = gameObjects.getObject("talonShip").add(19000, 3000, 200, 300);
             cameraGrid.addReference(talonShip);
+
+            talonShip.onHandleDeath = function()
+            {
+                // game.finish(); maybe?
+            };
+        },
+        ring : {
+            diameter : 4200,
+            radius : 2100,
+            diameterSq : 4200 * 4200,
+            radiusSq : 2100 * 2100 
         },
         apply : function()
         {
@@ -27677,13 +27982,16 @@ var levelScripts = {
             var dx = talonShip.firstMiddleXPos - helixShip.middleXPos;
             var dy = talonShip.firstMiddleYPos - helixShip.middleYPos;
 
-            if(this.startBattle !== false && dx * dx + dy * dy < 3000 * 3000)
+            var ring = levelScripts[levelInfo.level].ring;
+
+            if(this.startBattle !== false && dx * dx + dy * dy < Math.pow(ring.diameter, 2))
             {
                 this.startBattle = true;
             }
 
             if(this.startBattle)
             {
+                var _this = this;
                 setTimeout(function()
                 {
                     /*talkHandler.start({
@@ -27766,44 +28074,45 @@ var levelScripts = {
                     screenUtils.infoBar.bossArrayName = "talonShip";
                     talonShip.state = "start";
 
+                    _this.battling = true;
                 }, 1400);
 
                 this.startBattle = false;
-                this.battling = true;
             }
 
             if(this.battling)
             {
                 var lengthSq = dx * dx + dy * dy;
 
-                if(lengthSq >= 1500 * 1500)
+                if(lengthSq >= ring.radiusSq)
                 {
                     var angle = atan2(dy, dx) + Math.PI;
 
-                    var length = Math.min(1500, Math.sqrt(lengthSq));
+                    var length = Math.min(ring.radius, Math.sqrt(lengthSq));
 
-                    helixShip.xPos -= (helixShip.xPos - (talonShip.firstMiddleXPos + cos(angle) * length - helixShip.halfWidth)) * 0.2;
-                    helixShip.yPos -= (helixShip.yPos - (talonShip.firstMiddleYPos + sin(angle) * length - helixShip.halfHeight)) * 0.2;
+                    helixShip.xPos -= (helixShip.xPos - (talonShip.firstMiddleXPos + cos(angle) * length - helixShip.halfWidth))  //0.1;
+                    helixShip.yPos -= (helixShip.yPos - (talonShip.firstMiddleYPos + sin(angle) * length - helixShip.halfHeight)) //0.1;
 
                     helixShip.updateBoundingBox();
                 }
-            }
 
-            talonShip.update(true);    
-
-            cameraGrid.removeReference(talonShip);
-            cameraGrid.addReference(talonShip);            
+                talonShip.update(true);      
+            }       
         },
         draw : function()
         {
             var talonShip = gameObjects.getObject("talonShip")[0] || {};
 
-            noFill();
-            stroke(80, 150, 200);
-            strokeWeight(4);
-            ellipse(talonShip.firstMiddleXPos, talonShip.firstMiddleYPos, 3000, 3000);
+            var ring = levelScripts[levelInfo.level].ring;
+
+            // noFill();
+            // stroke(80, 150, 200);
+            // strokeWeight(4);
+            // ellipse(talonShip.firstMiddleXPos, talonShip.firstMiddleYPos, ring.diameter, ring.diameter);
 
             noStroke();
+
+            talonShip.draw();
         }
     },
     "helixShip" : {
@@ -29270,6 +29579,9 @@ loader.loadLevel = function(level, step, levelStep)
             delete cam.yMost;
             cam.keepInGrid = true;
             delete game.dropRate;
+            delete cam.useAnotherScale;
+            delete cam.ANScaleX;
+            delete cam.ANScaleY;
             break;
         
         case 1 :
