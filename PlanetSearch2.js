@@ -978,6 +978,9 @@ var sketch = function(processing) /*Wrapper*/
         Fixed a few things.
         Moved fight area.
         Updated boss to have smarter ai, and he can now drop green bombs/mines. 
+        He can now shoot homing missles and has better ai.
+        Furthed along boss.
+        Still need to make a "rage" mode.
 
     Next :   
         Will do:         
@@ -993,7 +996,7 @@ var sketch = function(processing) /*Wrapper*/
         Update sound settings.
         Make bubbleShield block all preojectils.
         Make trees not regenerate after reloading the level.
-        
+
     In the future:
         --More music/sound effects utilized.
         --Final boss fight: Talon +Cutscene
@@ -6482,7 +6485,7 @@ var screenUtils = {
         padY : 0,
         bossBar : new Bar(0, height - 6, width, 6, color(17, 183, 40, 200), 10),
         airMeter : new Bar(150, 80, 100, graphics.infoBarProps.height - 1, color(4, 84, 172, 200), 10),
-        helixShipBar : new Bar(0, 16, width, 2, color(254, 254, 254, 100), 0),
+        helixShipBar : new Bar(0, 16, width, 2, color(0, 178, 254, 100), 0),
         showBottomHud : true,
         lastShowTime : 0,
         draw : function(noLives)
@@ -6663,7 +6666,7 @@ var screenUtils = {
                 if(!helixShip.fake)
                 {
                     this.helixShipBar.set(helixShip.hp, helixShip.maxHp);
-                    this.helixShipBar.color = color(80, 90, 201, 100);
+                    this.helixShipBar.color = color(0, 178, 254, 100);
                     this.helixShipBar.draw();
                     this.helixShipBar.noStroke = true;
                 }
@@ -11361,7 +11364,7 @@ var Bomb = function(xPos, yPos, diameter, colorValue, life)
     Circle.call(this, xPos, yPos, diameter);
 
     this.hp = 1;
-    this.damage = 10;
+    this.damage = 8;
 
     this.physics.solidObject = false;
     this.physics.shape = "point";
@@ -11445,16 +11448,121 @@ var Bomb = function(xPos, yPos, diameter, colorValue, life)
 };
 gameObjects.addObject("bomb", createArray(Bomb));
 
-var Missle = function()
+var Missle = function(xPos, yPos, diameter, colorValue, targetObject, life)
 {
+    Circle.call(this, xPos, yPos, diameter);
 
+    this.hp = 1;
+    this.damage = 10;
+
+    this.physics.solidObject = false;
+    this.physics.shape = "point";
+
+    this.boundingBox = {};
+    this.boundingBox.off = true;
+    this.physics.movement = "dynamic";
+
+    this.color = colorValue;
+
+    this.xVel = 0;
+    this.yVel = 0;
+
+    this.outXVel = 0;
+    this.outYVel = 0;
+
+    this.speedAcl = 0.4;
+    this.speed = 3;
+    this.maxSpeed = 7;
+
+    this.rotation = 0;
+
+    this.targetObject = targetObject;
+
+    this.life = life || 330;
+
+    this.draw = function()
+    {
+        // strokeWeight(this.diameter * 2);
+        // stroke(255, 255, 255, 90);
+
+        // line(this.xPos, this.yPos, this.xPos + Math.cos(this.rotation) * 20, 
+        //                            this.yPos + Math.sin(this.rotation) * 20);
+
+        strokeWeight(this.diameter);
+        stroke(this.color);
+
+        line(this.xPos, this.yPos, this.xPos + Math.cos(this.rotation) * 26, 
+                                   this.yPos + Math.sin(this.rotation) * 26);
+        noStroke();
+    };
+
+    this.switchTimes = 0;
+
+    this.lastSwitchTime = millis();
+    this.switchTimeInterval = 500;
+
+    var _lastUpdate = this.update;
+    this.update = function()
+    {
+        this.xVel = 0;
+        this.yVel = 0;
+
+        _lastUpdate.apply(this, arguments);
+        this.life--;
+
+        if(this.life < 0)
+        {
+            this.kill();
+        }
+
+        this.speed = Math.min(this.speed + this.speedAcl, this.maxSpeed); 
+
+        if(typeof this.targetObject === "object" && this.switchTimes < 12 && millis() - this.lastSwitchTime > this.switchTimeInterval)
+        {
+            var obj = this.targetObject;
+            this.rotation = atan2(obj.yPos + obj.halfHeight - this.yPos, 
+                                  obj.xPos + obj.halfWidth - this.xPos);
+
+            this.outXVel = cos(this.rotation) * this.speed;
+            this.outYVel = sin(this.rotation) * this.speed;
+
+            this.switchTimes++;
+
+            this.lastSwitchTime = millis();
+        }
+
+        this.xPos += this.outXVel;
+        this.yPos += this.outYVel;
+    };
+
+    this.kill = function()
+    {
+        cameraGrid.removeReference(this);
+
+        this.onCollide = function() {};
+        this.draw = function() {};
+        this.update = function() {};
+
+        this.remove();
+    };
+
+    this.onCollide = function(object)
+    {
+        if(object.isLifeForm && object.arrayName !== this.shooterArrayName)
+        {
+            object.takeDamage(this);
+            sounds.mplaySound("hit2.mp3");
+            this.kill();
+            gameObjects.getObject("missle").applyObject(this.index);
+        }
+    };
 };
 gameObjects.addObject("missle", createArray(Missle));
 
 var TalonShip = function(xPos, yPos, width, height)
 {
     DynamicRect.call(this, xPos, yPos, width, height);
-    LifeForm.call(this, 256);
+    LifeForm.call(this, /*256*/300);
     this.physics.solidObject = false;
 
     this.scoreValue = 2600;
@@ -11544,6 +11652,28 @@ var TalonShip = function(xPos, yPos, width, height)
         $pjs.popMatrix();
     };
 
+    this.emitters = [];
+    this.stepEmitters = function()
+    {
+        for(var i = this.emitters.length - 1; i >= 0; i--)
+        {
+            if(millis() - this.emitters[i].startTime > this.emitters[i].time)
+            {
+                this.emitters[i].func.apply(this, this.emitters[i].info);
+                this.emitters.splice(i, 1);
+            }
+        }
+    };
+    this.emit = function(info, time, func)
+    {
+        this.emitters.push({
+            info : info,
+            time : time,
+            func : func,
+            startTime : millis()
+        });
+    };
+
     this.state = "idle";
     this.speed = 0;
     this.maxSpeed = 10;
@@ -11557,28 +11687,47 @@ var TalonShip = function(xPos, yPos, width, height)
 
     var driftTime = 1500;
     var lastDriftMillis = millis();
-    var driftInterval = 10000;
+    var driftInterval = 8000;
+
+    var lastAngleChangeTime = millis();
+    var angleChangeInterval = 1000;
 
     this.outXVel = 0;
     this.outYVel = 0;
 
-    this.updateBoundingBox = function()
-    {
-        var box = this.boundingBox;
+    // this.updateBoundingBox = function()
+    // {
+    //     var box = this.boundingBox;
 
-        box.xPos = this.xPos + 30;
-        box.yPos = this.yPos + 30;
-        box.width = this.width - 60;
-        box.height = this.height - 60;
+    //     box.xPos = this.xPos + 30;
+    //     box.yPos = this.yPos + 30;
+    //     box.width = this.width - 60;
+    //     box.height = this.height - 60;
+    // };
+
+    this.bail = function()
+    {
+        this.state = "run";
+
+        this.emit([], 1000, function()
+        {
+            this.state = "drift";
+        });
     };
+
+    this.runTargetAngle = 0;
 
     var _lastUpdate = this.update;
     this.update = function(remote)
     {
+        this.updateBoundingBox();
+
         if(!remote)
         {
             return;
         }
+
+        this.stepEmitters();
 
         this.xVel = 0;
         this.yVel = 0;
@@ -11599,18 +11748,20 @@ var TalonShip = function(xPos, yPos, width, height)
 
             case "follow" :
 
-                if(millis() - lastShiftTime > shiftInterval)
-                {
-                    correcting = !correcting;
-                    lastShiftTime = millis();
-                }
+                // if(millis() - lastShiftTime > shiftInterval)
+                // {
+                //     correcting = !correcting;
+                //     lastShiftTime = millis();
+                // }
+
+                correcting = true;
 
                 if(correcting)
                 {
                     var dx = helixShip.middleXPos - this.middleXPos,
                         dy = helixShip.middleYPos - this.middleYPos;
 
-                    if(dx * dx + dy * dy > 200 * 200)
+                    if(dx * dx + dy * dy > 150 * 150)
                     {
                         var angle = atan2(dy, dx);
                         var targetAngle = angle * RAD_TO_DEG;
@@ -11620,12 +11771,12 @@ var TalonShip = function(xPos, yPos, width, height)
 
                         if(physics.formulas.findDirection(this.angle, targetAngle))
                         {
-                            this.angle += 2;
+                            this.angle += 1.6;
                         }else{
-                            this.angle -= 2;
+                            this.angle -= 1.6;
                         }
 
-                        if(Math.abs(this.angle - targetAngle) <= 4)
+                        if(Math.abs(this.angle - targetAngle) <= 3.2)
                         {
                             this.angle = targetAngle;
                         }
@@ -11634,7 +11785,13 @@ var TalonShip = function(xPos, yPos, width, height)
                         this.outXVel = cos(this.angle * DEG_TO_RAD) * this.speed;
                         this.outYVel = sin(this.angle * DEG_TO_RAD) * this.speed;
                     }else{
-                        // Hmm too close to the helix's Ship.
+                        // Hmm too close to helix's Ship.
+                        // But we don't want this behavior all the time.
+                        // So add a little bit of randomness to it.
+                        if(Math.random() < 0.5)
+                        {
+                            this.bail();
+                        }
                     }
                 }
 
@@ -11656,17 +11813,17 @@ var TalonShip = function(xPos, yPos, width, height)
 
                 if(physics.formulas.findDirection(this.angle, tAngle))
                 {
-                    this.angle += 2;
+                    this.angle += 1;
                 }else{
-                    this.angle -= 2;
+                    this.angle -= 1;
                 }
 
-                if(Math.abs(this.angle - tAngle) <= 4)
+                if(Math.abs(this.angle - tAngle) <= 2)
                 {
                     this.angle = tAngle;
                 }
 
-                this.speed = 11;
+                this.speed = 7;
                 this.outXVel = cos(this.angle * DEG_TO_RAD) * this.speed;
                 this.outYVel = sin(this.angle * DEG_TO_RAD) * this.speed;
 
@@ -11674,18 +11831,24 @@ var TalonShip = function(xPos, yPos, width, height)
                 {
                     this.state = "start";
                 }
+
+                if(this.hp * 100 / this.maxHp < 20)
+                {
+                    // this.state = "rage";
+                    this.state = "run";
+                }
                 break;
 
             case "drift" :
-
-                this.speed = Math.max(this.speed, 9);
+                this.speed = 7;
                 this.outXVel = cos(this.angle * DEG_TO_RAD) * this.speed;
                 this.outYVel = sin(this.angle * DEG_TO_RAD) * this.speed;
 
                 if(--driftTime < 0)
                 {
                     this.state = "follow";
-                    driftTime = 10000;
+                    lastDriftMillis = millis() + 5000;
+                    driftTime = 1000;
                 }
                 break;
 
@@ -11696,13 +11859,50 @@ var TalonShip = function(xPos, yPos, width, height)
                 break;
 
             case "run" :
+                this.speed = 10;
+
+                if(millis() - lastAngleChangeTime > angleChangeInterval)
+                {
+                    this.runTargetAngle = random(0, 360);
+
+                    lastAngleChangeTime = millis();
+                }
+
+                if(typeof this.runTargetAngle === "number")
+                {
+                    var tAngle = this.runTargetAngle;
+
+                    this.angle = physics.formulas.resolveAngle(this.angle);
+                    tAngle = physics.formulas.resolveAngle(tAngle);
+
+                    if(physics.formulas.findDirection(this.angle, tAngle))
+                    {
+                        this.angle += 1;
+                    }else{
+                        this.angle -= 1;
+                    }
+
+                    if(Math.abs(this.angle - tAngle) <= 2)
+                    {
+                        this.angle = tAngle;
+                    } 
+                }
+
+                this.outXVel = cos(this.angle * DEG_TO_RAD) * this.speed;
+                this.outYVel = sin(this.angle * DEG_TO_RAD) * this.speed;
+
+                if(millis() - this.lastStateChangeTime > 10000)
+                {
+                    this.state = "start";
+                }
                 break;
         }
 
-        if(this.hp * 100 / this.maxHp < 14)
-        {
-            this.state = "rage";
-        }
+        // if(this.hp * 100 / this.maxHp < 14)
+        // {
+        //     // this.state = "rage";
+        //     this.state = "run";
+        // }
 
         if(this.state !== "return")
         {
@@ -11713,7 +11913,13 @@ var TalonShip = function(xPos, yPos, width, height)
 
             if(dx * dx + dy * dy > radiusSq)
             {
+                var lastState = this.state;
                 this.state = "return";
+
+                this.emit([], 1000, function()
+                {
+                    this.state = lastState;
+                });
             }
         }
 
@@ -11733,11 +11939,41 @@ var TalonShip = function(xPos, yPos, width, height)
         this.xPos += this.outXVel;
         this.yPos += this.outYVel;
 
-        this.updateBoundingBox();
-
         this.xPos = constrain(this.xPos, 0, levelInfo.width - this.width);
         this.yPos = constrain(this.yPos, 0, levelInfo.height - this.height);
+
+        this.updateBoundingBox();
+
+        if(typeof this.lastHp === "number" && this.lastHp !== this.hp)
+        {
+            if(this.lastHp > this.hp)
+            {
+                this.turnDir = (random() < 0.5) ? -1 : 1;
+
+                this.emit([], 1000, function()
+                {
+                    this.turnDir = 0;
+                });
+            }
+        }
+
+        if(this.turnDir)
+        {
+            this.angle += this.turnDir;
+            this.runTargetAngle += this.turnDir;
+        }
+
+        this.lastHp = this.hp;
+
+        if(typeof this.lastState === "string" && this.lastState !== this.state)
+        {
+            this.lastStateChangeTime = millis();
+        }
+        
+        this.lastState = this.state;
     };
+
+    this.lastStateChangeTime = 0;
 
     this.turrets = [];
     this.turrets.add = function(x, y, fire)
@@ -11786,16 +12022,30 @@ var TalonShip = function(xPos, yPos, width, height)
         }
     };
 
+    function blastMissle()
+    {
+        if(this.hp * 100 / this.maxHp < 50)
+        {
+            this.blastMissle();
+        }
+
+        this.emit([], 3000, blastMissle);
+    }
+
+    this.emit([], 3000, blastMissle)
+
     this.blastMissle = function()
     {
-
+        var missle = gameObjects.getObject("missle").add(this.middleXPos, this.middleYPos, 9, color(0, 180, 117), gameObjects.getObject("helixShip")[0]);
+        missle.shooterArrayName = this.arrayName;
+        cameraGrid.addReference(missle);
     };
 
     this.addBomb = function()
     {
         var bombs = gameObjects.getObject("bomb");
 
-        var bomb = bombs.add(this.middleXPos, this.middleYPos - 40, 30, color(19, 200, 65, 214), 400);
+        var bomb = bombs.add(this.middleXPos, this.middleYPos - 40, 30, color(19, 200, 65, 214), 300);
         bomb.shooterArrayName = this.arrayName;
 
         cameraGrid.addReference(bomb);
@@ -12021,6 +12271,20 @@ var HelixShip = function(xPos, yPos, width, height)
             }
 
             ctx.drawImage(loadedImages[this.imageName].sourceImg, -this.halfWidth, -this.halfHeight, this.width, this.height);
+
+        $pjs.popMatrix();
+
+        $pjs.pushMatrix();
+            translate(this.middleXPos, this.middleYPos);
+
+            if((levelScripts[levelInfo.level] || {}).battling)
+            {
+                fill(73, 155, 195, 150);
+                var talonShip = gameObjects.getObject("talonShip")[0];
+                rotate(atan2(talonShip.middleYPos - this.middleYPos, talonShip.middleXPos - this.middleXPos) * RAD_TO_DEG);
+                rect(this.width * 1.3, 0, 12, 60);
+            }
+
         $pjs.popMatrix();
     };
 
@@ -27948,10 +28212,10 @@ var levelScripts = {
             };
         },
         ring : {
-            diameter : 4200,
-            radius : 2100,
-            diameterSq : 4200 * 4200,
-            radiusSq : 2100 * 2100 
+            diameter : 6000,
+            radius : 6000 / 2,
+            diameterSq : 6000 * 6000,
+            radiusSq : 6000 * 6000 / 2 / 2
         },
         apply : function()
         {
@@ -28096,7 +28360,12 @@ var levelScripts = {
                     helixShip.updateBoundingBox();
                 }
 
-                talonShip.update(true);      
+                talonShip.update(true); 
+
+                if(game.fps <= 30)
+                {
+                    talonShip.update();
+                }     
             }       
         },
         draw : function()

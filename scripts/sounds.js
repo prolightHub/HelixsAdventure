@@ -155,10 +155,10 @@ sounds.addSound("Explosion5.wav");
 
  
 // This stuff einkurogane
-// sounds.addSound("planet_search_2.mp3", "song");
-// sounds.addSound("overworld.mp3", "song");
-// sounds.addSound("ninja_temple.mp3", "song");
-// sounds.addSound("icy_slopes.mp3", "song");
-// sounds.addSound("underground.mp3", "song");
-// sounds.addSound("space.mp3", "song");
+sounds.addSound("planet_search_2.mp3", "song");
+sounds.addSound("overworld.mp3", "song");
+sounds.addSound("ninja_temple.mp3", "song");
+sounds.addSound("icy_slopes.mp3", "song");
+sounds.addSound("underground.mp3", "song");
+sounds.addSound("space.mp3", "song");
 
