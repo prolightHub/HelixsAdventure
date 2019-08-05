@@ -87,7 +87,7 @@ var sketch = function(processing) /*Wrapper*/
 /**   Hybrid Game Engine (Planet Search 2)  **/
 /**
     @Author Prolight
-    @Version 0.9.9 beta (99% complete)
+    @Version 1.0.0 beta (100% complete)
 
         100+ gameObjects!
         100+ levels!
@@ -985,11 +985,19 @@ var sketch = function(processing) /*Wrapper*/
         Fixed minor bugs with the select save file game state.
 
     * 0.9.9
+        HelixShip can now shoot bombs.
+        Added Talon's end text.
+        Making credits:
+            --Enemies Section
+            --Boss Section
+            --Other
+        Finished credits!
+        Finished the end screen.
+        Got game's end done.
+        removed crash screen.
 
     Next :   
-        Will do:         
-            Fix goldbar item from going into the negatives.  
-            Add a bunch of secrets and extra stuff you can go do, after collecting all the crystals.
+        Will do:     
             Sound update.
 
     Maybe:
@@ -1000,12 +1008,6 @@ var sketch = function(processing) /*Wrapper*/
         Update sound settings.
         Make bubbleShield block all preojectils.
         Make trees not regenerate after reloading the level.
-
-    In the future:
-        --More music/sound effects utilized.
-        --Final boss fight: Talon +Cutscene
-        --Credits
-        --The end.
 
     ===========================================================================================================================================================================
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -1046,9 +1048,9 @@ var game = {
     fps : 60, 
     loadFps : 160,
     gameState : "start", // Default = "start"
-    version : "v0.9.9 beta",
+    version : "v1.0.0 beta",
     fpsType : "auto", // Default = "manual"
-    debugMode : true, // Turn this to true to see the fps
+    debugMode : false, // Turn this to true to see the fps
     showDebugPhysics : false,
     boundingBoxes : false,
     debugMenuWhite : true,
@@ -1059,7 +1061,7 @@ var game = {
     },
 
     autoCheckPoints : true,
-    globalize : true
+    globalize : false
 };
 var levelInfo = {
     level : "intro", // Default = "intro"
@@ -2412,6 +2414,7 @@ var messageHandler = {
 
 var talkHandler = {
     messagePattern : {},
+    up : true,
     timer : 0,
     start : function(messagePattern, message, name, up)
     {
@@ -4343,12 +4346,44 @@ var backgrounds = {
             load : function()
             {
                 this.stars.length = 0;
+
+                for(var i = 0; i < 164; i++)
+                {
+                    this.stars.push([random(0, 400), random(0, 400), random(0, 1.5)]);
+                }
+            },
+            drawBackground : function()
+            {
+                ctx.fillStyle = "rgba(0, 0, 0, 100)";
+                ctx.fillRect(0, 0, 600, 600);
+            }
+        },
+        "space2" : {
+            stars : [],
+            scroll : 0,
+            load : function()
+            {
+                this.scroll = 0;
+
+                this.stars.length = 0;
                 this.stars = backgrounds.backgrounds.atmosphere.stars.concat(this.stars);
             },
             drawBackground : function()
             {
                 ctx.fillStyle = "rgba(0, 0, 0, 100)";
                 ctx.fillRect(0, 0, 600, 600);
+
+                ctx.fillStyle = ("rgba(255, 255, 255, 100)");
+
+                this.scroll += 1.2;
+
+                var offset = 0;
+                for(var i = 0; i < this.stars.length; i++)
+                {
+                    offset = this.scroll * (0.1 + this.stars[i][2]);
+
+                    ctx.fillRect(this.stars[i][0], (this.stars[i][1] + offset) % 400, Math.max(this.stars[i][2] - 1), Math.max(this.stars[i][2] - 1));
+                }
             }
         }
     },
@@ -6132,7 +6167,13 @@ var inventoryMenu = {
 };
 
 // The ship's control panel
-var controlPanel = {
+var controlPanel = {    
+
+    gems : {
+        required : 10,
+        max : 20, // This value is how many gems are in the game.
+    },
+
     state : "closed",
     open : function()
     {
@@ -6178,7 +6219,7 @@ var controlPanel = {
             this.drawInit = true;
         }
 
-        this.buttons.launch.disabled = (player.gems < 10 || shipGoto.inSpace);
+        this.buttons.launch.disabled = (player.gems < this.gems.required || shipGoto.inSpace);
 
         for(var i in this.buttons)
         {
@@ -6199,7 +6240,7 @@ var controlPanel = {
             }
         }
 
-        this.buttons.launch.message = "Launch Gems " + (player.gems || 0) + " of 10 required of 20 total";
+        this.buttons.launch.message = "Launch Gems " + (player.gems || 0) + " of " + this.gems.required + " required of " + this.gems.max + " total";
     },
     mousePressed : function()
     {
@@ -7306,15 +7347,19 @@ var screenUtils = {
         }
         this.fixDisappearences();
 
-        if(game.gameState === "inventoryMenu" || game.gameState === "play" || game.gameState === "pauseMenu" || 
+        if(game.gameState === "inventoryMenu" || game.gameState === "play" || game.gameState === "credits" || game.gameState === "pauseMenu" || 
           ((game.tempState === "play" || game.tempState === "load") && game.gameState === "load" && !screenUtils.fade.full()))
         {
             messageHandler.draw();
-            this.infoBar.draw();
 
-            if(game.gameState !== "inventoryMenu")
+            if(game.gameState !== "credits")
             {
-                this.debugMode();
+                this.infoBar.draw();
+
+                if(game.gameState !== "inventoryMenu")
+                {
+                    this.debugMode();
+                }
             }
         }
 
@@ -7328,7 +7373,7 @@ var screenUtils = {
 
         this.showErrors();
 
-        if(game.gameState === "play")
+        if(game.gameState === "play" || game.gameState === "credits")
         {
             this.updateMessages();
         }
@@ -8653,7 +8698,7 @@ var Camera = function(xPos, yPos, width, height)
     };
 };
 var cam = new Camera(0, 0, width, height); //Use this as the default
-window.cam = cam;
+// window.cam = cam;
 
 /*Production createArray*/
 var createArray = function(object, inArray)
@@ -9346,7 +9391,7 @@ gameObjects.draw = function(noDraw)
 gameObjects.updateLoops = 0;
 gameObjects.counter = -100;
 var lastReleaseMemoryTime = 0;
-gameObjects.update = function()
+gameObjects.update = function(remote)
 {
     if((screenUtils.fade.fading && game.gameState === "play" && game.tempState !== "load" && 
         gameObjects.updateLoops > 120) && !game.cutScening)
@@ -9365,7 +9410,7 @@ gameObjects.update = function()
             this.delag(true);
         }
     }
-    if(game.fpsType === "auto")
+    if(game.fpsType === "auto" && !remote)
     {
         if(!this.lastCheckTime || millis() - this.lastCheckTime > ((game.fps === 60) ? 600 : 1000))
         {
@@ -11343,11 +11388,11 @@ var PhaserBlast = function(xPos, yPos, diameter, colorValue)
         this.yVel = constrain(this.yVel, -this.maxVel, this.maxVel);
         this.yPos += this.yVel;
 
-        if(Math.abs(this.xPos - cam.focusXPos) > cam.halfWidth || 
-           Math.abs(this.yPos - cam.focusYPos) > cam.halfHeight)
-        {
-            this.remove();
-        }
+        // if(Math.abs(this.xPos - cam.focusXPos) > cam.halfWidth || 
+        //    Math.abs(this.yPos - cam.focusYPos) > cam.halfHeight)
+        // {
+        //     this.remove();
+        // }
     };
 
     this.onCollide = function(object)
@@ -11407,6 +11452,9 @@ var Bomb = function(xPos, yPos, diameter, colorValue, life)
     {
         this.xPos += this.driftXVel;
         this.yPos += this.driftYVel;
+
+        this.xPos += (this.outXVel || 0);
+        this.yPos += (this.outYVel || 0);
 
         _lastUpdate.apply(this, arguments);
         this.life--;
@@ -11476,13 +11524,13 @@ var Missle = function(xPos, yPos, diameter, colorValue, targetObject, life)
 
     this.speedAcl = 0.4;
     this.speed = 3;
-    this.maxSpeed = 7;
+    this.maxSpeed = 20;
 
     this.rotation = 0;
 
     this.targetObject = targetObject;
 
-    this.life = life || 330;
+    this.life = life || 500;
 
     this.draw = function()
     {
@@ -11495,15 +11543,20 @@ var Missle = function(xPos, yPos, diameter, colorValue, targetObject, life)
         strokeWeight(this.diameter);
         stroke(this.color);
 
-        line(this.xPos, this.yPos, this.xPos + Math.cos(this.rotation) * 26, 
-                                   this.yPos + Math.sin(this.rotation) * 26);
+        line(this.xPos, this.yPos, this.xPos + Math.cos(this.rotation) * 36, 
+                                   this.yPos + Math.sin(this.rotation) * 36);
         noStroke();
     };
 
     this.switchTimes = 0;
+    this.maxSwitchTimes = 3000;//20;
 
     this.lastSwitchTime = millis();
-    this.switchTimeInterval = 500;
+    this.switchTimeInterval = 0;//500;
+
+    this.toggle = true;
+    this.lastToggleTime = millis();
+    this.toggleInterval = 500;
 
     var _lastUpdate = this.update;
     this.update = function()
@@ -11519,13 +11572,37 @@ var Missle = function(xPos, yPos, diameter, colorValue, targetObject, life)
             this.kill();
         }
 
+        if(millis() - this.lastToggleTime > this.toggleInterval)
+        {
+            this.toggle = !this.toggle;
+
+            if(this.toggle)
+            {
+                this.toggleInterval = 1400;
+            }else{
+                this.toggleInterval = 500;
+            }
+
+            this.lastToggleTime = millis(); 
+        }
+
         this.speed = Math.min(this.speed + this.speedAcl, this.maxSpeed); 
 
-        if(typeof this.targetObject === "object" && this.switchTimes < 12 && millis() - this.lastSwitchTime > this.switchTimeInterval)
+        if(this.toggle && typeof this.targetObject === "object" && this.switchTimes < this.maxSwitchTimes && millis() - this.lastSwitchTime > this.switchTimeInterval)
         {
             var obj = this.targetObject;
-            this.rotation = atan2(obj.yPos + obj.halfHeight - this.yPos, 
-                                  obj.xPos + obj.halfWidth - this.xPos);
+            var targetRotation = atan2(obj.yPos + obj.halfHeight - this.yPos, 
+                                     obj.xPos + obj.halfWidth - this.xPos);
+
+            this.angle = physics.formulas.resolveAngle(this.rotation * RAD_TO_DEG);
+            var targetAngle = physics.formulas.resolveAngle(targetRotation * RAD_TO_DEG);
+
+            if(physics.formulas.findDirection(this.angle, targetAngle))
+            {
+                this.rotation += 2 * DEG_TO_RAD;
+            }else{
+                this.rotation -= 2 * DEG_TO_RAD;
+            }
 
             this.outXVel = cos(this.rotation) * this.speed;
             this.outYVel = sin(this.rotation) * this.speed;
@@ -12035,16 +12112,16 @@ var TalonShip = function(xPos, yPos, width, height)
 
     function blastMissle()
     {
-        if(this.hp * 100 / this.maxHp < 50)
+        if(this.hp * 100 / this.maxHp < 60)
         {
             this.blastMissle();
         }
 
-        if(this.hp * 100 / this.maxHp < 20)
+        if(this.hp * 100 / this.maxHp < 30)
         {
-            this.emit([], 2500, blastMissle);
+            this.emit([], 750 + 50, blastMissle);
         }else{
-            this.emit([], 3000, blastMissle);
+            this.emit([], 1500 + 50, blastMissle);
         }
     }
 
@@ -12073,7 +12150,7 @@ gameObjects.addObject("talonShip", createArray(TalonShip));
 var HelixShip = function(xPos, yPos, width, height)
 {
     DynamicRect.call(this, xPos, yPos, width, height);
-    LifeForm.call(this, 200);
+    LifeForm.call(this, 150);
 
     // this.physics.solidObject = false;
 
@@ -12322,6 +12399,9 @@ var HelixShip = function(xPos, yPos, width, height)
         },
     };
 
+    var lastAddBombTime = millis(),
+        addBombInterval = 2000;
+
     var _lastUpdate = this.update;
     this.update = function()
     {
@@ -12406,6 +12486,12 @@ var HelixShip = function(xPos, yPos, width, height)
                 if(this.controls.loadInterior())
                 {
                     this.loadInterior();
+                }
+
+                if((player.controls.activate() || this.controls.shoot()) && millis() - lastAddBombTime > addBombInterval)
+                {
+                    this.addBomb();
+                    lastAddBombTime = millis();
                 }
 
                 shipGoto.inSpace = true;
@@ -12521,6 +12607,20 @@ var HelixShip = function(xPos, yPos, width, height)
                 }
             }
         }
+    };
+
+    this.addBomb = function()
+    {
+        var bombs = gameObjects.getObject("bomb");
+
+        var bomb = bombs.add(this.middleXPos, this.middleYPos - 40, 30, color(0, 123, 160, 200), 300);
+        bomb.shooterArrayName = this.arrayName;
+
+        // var a = (this.angle - 90) * DEG_TO_RAD;
+        // bomb.outXVel = cos(a) * 10;
+        // bomb.outYVel = sin(a) * 10;
+
+        cameraGrid.addReference(bomb);
     };
 };
 gameObjects.addObject("helixShip", createArray(HelixShip));
@@ -17992,7 +18092,7 @@ var Ninja = function(xPos, yPos, width, height, colorValue)
         this.updateNinjaStars();
         this.task = "";
 
-        if(!this.wwwSounds)
+        if(!this.wwwSounds && game.gameState !== "credits")
         {
             sounds.mplaySound("whistle1.mp3");
             this.wwwSounds = true;
@@ -18366,7 +18466,7 @@ var SpaceBreaker = function(xPos, yPos, diameter, colorValue, amt)
     {
         this.lastUpdate();
 
-        if(!this.zoomed && millis() - this.loadUpTime > 1000)
+        if(!this.zoomed && millis() - this.loadUpTime > 1000 && game.gameState !== "credits")
         {
             sounds.mplaySound("zoom1.wav");
             this.zoomed = true;
@@ -28228,19 +28328,109 @@ var levelScripts = {
             var _this = this;
             talonShip.onHandleDeath = function()
             {
-                // game.finish(); maybe?
                 _this.battling = false;
+
+                gameObjects.getObject("missle").forEach(object => {
+                    if(object.remove)
+                    {
+                        object.remove();
+                    }
+                });
+                gameObjects.getObject("bomb").forEach(object => {
+                    if(object.remove)
+                    {
+                        object.remove();
+                    }
+                });
+                gameObjects.getObject("phaserBlast").forEach(object => {
+                    if(object.remove)
+                    {
+                        object.remove();
+                    }
+                });
 
                 talkHandler.start({
                     up : true,
                     "start" : {
-                        message : "",
+                        message : "Y-\nYou have done very well.",
+                        choices : {
+                            "next" : "..."
+                        }
+                    },
+                    "next" : {
+                        message : "You're amazing, I know..",
+                        choices : {
+                            "next2" : "..."
+                        }
+                    },
+                    "next2" : {
+                        message : "... I have met my fate...",
+                        choices : {
+                            "next3" : "..."
+                        }
+                    },
+                    "next3" : {
+                        message : "Whats this? A wormhole to Dimension X?",
+                        choices : {
+                            "next4" : "..."
+                        }
+                    },
+                    "next4" : {
+                        message : "But... I'll be eternally stuck\nthere forever!",
+                        choices : {
+                            "next5" : "..."
+                        }
+                    },
+                    "next5" : {
+                        message : "But wait one moment...",
+                        choices : {
+                            "next6" : "..."
+                        }
+                    }, 
+                    "next6" : {
+                        message : "Do you know that those crystals\nbelong to Titan?",
+                        choices : {
+                            "next7" : "..."
+                        },
+                    }, 
+                    "next7" : {
+                        message : "As you should know... you should return\nthose crystals to Titan...",
+                        choices : {
+                            "next8" : "..."
+                        },
+                    },
+                    "next8" : {
+                        message : "otherwise... this galaxy might fall apart\nwithout someone powerful",
+                        choices : {
+                            "next9" : "..."
+                        },
+                    },
+                    "next9" : {
+                        message : "enough to continue controlling them.",
+                        choices : {
+                            "next10" : "..."
+                        }
+                    },
+                    "next10" : {
+                        message : "that is why this portal to\nDimension X formed!",
+                        choices : {
+                            "last" : "..."
+                        }
+                    },
+                    "last" : {
+                        message : "Now it is closing in on me\n\n...I can't believe it! Wai--(whoosh!)",
                         choices : {
                             "exit" : "..."
                         }
                     }
                 },
                 "start", "Talon");
+
+                setTimeout(function()
+                {
+                    game.finish();
+                }, 
+                4000);
             };
         },
         ring : {
@@ -28359,7 +28549,7 @@ var levelScripts = {
                             }
                         },
                         "final" : {
-                            message : "You must past the final test!\nAre you ready /username?\nDo you have what it takes?",
+                            message : "You must pass the final test!\nAre you ready /username?\nDo you have what it takes?",
                             choices : {
                                 "finally" : "..."
                             }
@@ -30068,7 +30258,7 @@ loader.update = function()
         if(!this.firstLoad && this.tempLoaded && game.tempState !== "menu")
         {
             // var player = gameObjects.getObject("player").getLast();
-            game.play(game.tempState !== "play" && player.goto.travelType !== "door");
+            game.play(game.tempState !== "play" && player.goto.travelType !== "door", true);
             screenUtils.messages.length = 0;
 
             if(!scaled)
@@ -31389,7 +31579,7 @@ game.drawTitle = function()
 {
     fill(0, 0, 0, 60);
     fastRect(75, 0, width - 75 * 2, height);
-    fill(41, 98, 213, 100);
+    fill(41, 98, 213, 100);  
     textFont(fonts.title);
     textAlign(CENTER, CENTER);
     textSize(43);
@@ -31600,17 +31790,565 @@ game.applyFps = function()
 };
 window.game = game;
 
+game.finish = function()
+{
+    var siId = setInterval(() => 
+    {
+        if(messageHandler.active)
+        {
+            return;
+        }
+
+        backgrounds.backgrounds.space2.load();
+
+        game.switchGameState(true, "credits");
+
+        clearInterval(siId);
+    }, 1000);
+};
+
+var CreditsHandler = function(credits)
+{
+    var cursive = createFont("cursive");
+
+    this.scroll = -400;
+
+    /*
+        Bosses:
+            ninjaBoss
+            iceDragon
+            captainFleep
+            talonShip
+
+        Enemies:
+            waterBeaker
+            fireBeaker
+            skyViper
+            
+            ninja
+            spaceBreaker
+            ninjaBeaker
+
+            iceBeaker
+            wisp
+            dirtyCat
+            catDogStatue
+            voxelizer
+
+            bat
+            slimeBeaker
+            poisonousSlimeBeaker
+            slasher
+            stomper
+    */
+
+    this.enemies = [
+        {   
+            message : "waterBeaker",
+        }, {
+            message : "fireBeaker",
+        }, {
+            message : "skyViper"
+        }, {////////////////////////
+            message : "ninja"
+        }, {
+            message : "spaceBreaker"
+        }, {
+            message : "ninjaBeaker"
+        }, {///////////////////////
+            message : "iceBeaker"
+        }, {
+            message : "wisp"
+        }, {
+            message : "dirtyCat"
+        }, {
+            message : "catDogStatue"
+        }, {
+            message : "voxelizer"
+        }, {///////////////////////
+            message : "bat"
+        }, {
+            message : "slimeBeaker"
+        }, {
+            message : "poisonousSlimeBeaker"
+        }, {
+            message : "slasher"
+        }, {
+            message : "stomper"
+        }
+    ];
+
+    this.bosses = [
+        {
+            message : "ninjaBoss"
+        }, {
+            message : "iceDragon"
+        }, {
+            message : "captainFleep"
+        }, {
+            message : "talonShip"
+        }
+    ];
+
+    this.draw = function()
+    {
+        textAlign(CENTER, CENTER);
+
+        pushMatrix();
+            translate(0, -this.scroll);
+
+            fill(32, 200, 67, 210);
+            textFont(cursive, 16);
+
+            if(this.scroll < 2200)
+            {   
+                text("# Credits #", 200, 100);
+
+                fill(12, 123, 145);
+                text("Enemies", 200, 200);            
+
+                fill(255, 255, 255, 210);
+                textFont(cursive, 12);
+
+                var obj;
+                for(var i = 0; i < this.enemies.length; i++)
+                {
+                    fill(255, 255, 255, 210);
+
+                    text(this.enemies[i].message.upper().match(/[A-Z][a-z]+/g).toString().replace(",", " ").replace(",", " "), 200, 250 + i * 120);
+
+                    try{
+                        if(this.enemies[i].message === "ninjaBeaker")
+                        {
+                            obj = (gameObjects[gameObjects.references["fireBeaker"]] || [])[1];
+
+                        }else{
+                            obj = (gameObjects[gameObjects.references[this.enemies[i].message]] || [])[0];
+                        }
+
+                        if(obj)
+                        {
+                            obj.xPos = 200 - (obj.halfWidth || obj.width / 2 || 0);
+                            obj.yPos = 250 + (i) * 120 + 60 - (obj.halfHeight || obj.height / 2 || obj.radius);
+
+                            if(obj.arrayName === "wisp" || obj.arrayName === "spaceBreaker")
+                            {
+                                obj.yPos += 14;
+
+                                obj.update();
+                            }
+
+                            obj.draw();
+                        }
+                    }
+                    catch(e)
+                    {
+                        console.log("ERROR: " + e.toString());
+                    }
+                }
+            }
+            if(this.scroll > 1800 && this.scroll < 3000)
+            {
+                translate(0, 400);
+                fill(32, 200, 67, 210);
+                textFont(cursive, 16);
+
+                fill(12, 123, 145);
+                text("--Bosses--\n\n", 200, 2000);
+
+                fill(255, 255, 255, 210);
+                textFont(cursive, 12);
+
+                var obj;
+
+                for(var i = 0; i < this.bosses.length; i++)
+                {
+                    fill(255, 255, 255, 210);
+
+                    text(this.bosses[i].message.upper().match(/[A-Z][a-z]+/g).toString().replace(",", " ").replace(",", " "), 200, 2020 + i * 120);
+
+                    try{
+                        if(obj = (gameObjects[gameObjects.references[this.bosses[i].message]] || [])[0])
+                        {
+                            obj.xPos = 200 - (obj.halfWidth || obj.width / 2 || 0);
+                            obj.yPos = 2030 + i * 120 + 50 - (obj.halfHeight || obj.height / 2 || obj.radius);
+
+                            obj.updateBoundingBox();
+                            physics.getMiddleXPos(obj);
+                            physics.getMiddleYPos(obj);
+
+                            obj.draw(true);
+                        }
+                    }
+                    catch(e)
+                    {
+                        console.log("ERROR: " + e.toString());
+                    }
+                }
+            }
+
+        popMatrix();
+
+        pushMatrix();
+            translate(0, -this.scroll);
+
+            translate(0, -400);
+            fill(32, 200, 67, 210);
+                textFont(cursive, 16);
+
+                fill(12, 123, 145);
+                text("Other(s)", 200, 3330);
+
+                fill(255, 255, 255, 210);
+                textFont(cursive, 12);
+                text("Helix", 200, 3380);
+
+                player.xPos = 185;
+                player.yPos = 3400;
+                player.draw();
+            translate(0, 400);
+
+            translate(0, -600);
+
+            if(this.scroll > 2200 && this.scroll < 4000)
+            {
+                fill(32, 200, 67, 210);
+                textFont(cursive, 16);
+
+                fill(12, 123, 145);
+                text("Sound effects", 200, 3820);
+
+                fill(133, 192, 217, 200);
+                textFont(cursive, 12);
+
+                text("Some sounds effects are by Khan Academy\n(they have their license for them)", 200, 3860);
+                text("All others were made using\nBfxr and Chiptone (under cc0 license)", 200, 3920);
+
+                fill(32, 200, 67, 210);
+                textFont(cursive, 16);
+
+                fill(12, 123, 145);
+                text("Libraries", 200, 4000);
+
+                fill(133, 192, 217, 200);
+                textFont(cursive, 12);
+
+                text("Modified processing js", 200, 4030);
+
+                fill(32, 200, 67, 210);
+                textFont(cursive, 16);
+
+                fill(12, 123, 145);
+                text("Websites", 200, 4090);
+
+                fill(133, 192, 217, 200);
+                textFont(cursive, 12);
+
+                text("stackoverflow, (helped a lot when I got stuck)\n  www.piskelapp.com (for making 2d sprites) \n " + 
+                     "paletton.com (for making color palettes)\n sfbgames.com/chiptone (for making sounds fx)", 200, 4140);
+
+            }
+
+            if(this.scroll > 3000)
+            {
+                fill(32, 200, 67, 210);
+                textFont(cursive, 16);
+
+                fill(12, 123, 145);
+                text("Creators", 200, 4600);
+
+                fill(133, 192, 217, 200);
+                textFont(cursive, 12);
+
+                text("Einkurogane\n (made most the music for this game)", 200, 4640);
+
+                text("silvanus1\n (A friend of mine, he made Talon's spaceship sprite)", 200, 4700);
+
+                text("(shotty) My brother\n (sprite artist)", 200, 4760);
+
+                text("ProlightHub\n (Game coder, Artist, playtester, sound fx maker etc etc.)", 200, 4820);
+
+                text("And you!\n\nBecause of " + player.name + ", they get their\nname in the credits.\n\nAnd you, " + player.name + "! ", 200, 4960);
+            }
+        popMatrix();
+
+        if(this.scroll > 4700)
+        {
+            this.done = true;
+        }
+
+        if(!this.addedObjects)
+        {
+            gameObjects.removeObjects();
+
+            var array;
+            for(var i = 0; i < this.enemies.length; i++)
+            {
+                try{
+                    array = gameObjects.getObject(this.enemies[i].message);
+
+                    switch(this.enemies[i].message)
+                    {
+                        case "ninja" :
+                            array.add(0, i * 40, 30, 60).update();
+                            break;
+
+                        case "ninjaBeaker" :
+                            var ninjaBeaker = gameObjects.getObject("fireBeaker").add(0, i * 40, 30, 30);
+
+                            ninjaBeaker.color = color(70, 10, 200, 120);
+                            ninjaBeaker.particleColor = color(30, 30, 200, 130);
+                            ninjaBeaker.update();
+                            break;
+
+                        case "spaceBreaker" :
+                            var obj = array.add(0, i * 40, 27);
+                            obj.maxXVel = 0;
+                            obj.maxYVel = 0;
+                            break;
+
+                        case "dirtyCat" :
+                            array.add(0, i * 40, 30 * 2.0, 30 * 1.28);
+                            break;
+
+                        case "wisp" :
+                            array.add(0, i * 40, 30 * 0.7);
+                            break;
+
+                        case "fireBeaker" :
+                            var obj = array.add(0, i * 40, 30, 30);
+                            obj.drawParticles = function() {};
+                            obj.draw = obj.lastDrawB;
+                            break;
+
+                        default :
+                            array.add(0, i * 40, 30, 30).update();
+                            break;
+                    }
+                }
+                catch(e)
+                {
+                    console.log("ERROR: " + e.toString());
+                    console.log(this.enemies[i].message);
+                }
+            }
+
+            gameObjects.getObject("ninjaBoss").add(0, 1 * 40, 30, 60);
+            gameObjects.getObject("iceDragon").add(0, 2 * 40, 140 * 0.6, 74 * 0.6);
+            gameObjects.getObject("captainFleep").add(0, 3 * 40, 30, 30);
+            gameObjects.getObject("talonShip").add(0, 3 * 40, 100, 150).update();
+
+            this.addedObjects = true;
+        }
+    };
+
+    this.move = function()
+    {
+        this.scroll += 0.82;
+    };
+};
+var creditHandler = new CreditsHandler();
+
+game.credits = function()
+{
+    backgrounds.backgrounds.space2.drawBackground();
+
+    if(!this.shownAfterBattle)
+    {
+        var hasAcquiredAllGems = (gameObjects.getObject("player")[0].gems >= controlPanel.gems.max);
+
+        if(hasAcquiredAllGems)
+        {
+            talkHandler.start({
+                up : true,
+                "start" : {
+                    message : "And so...\nwith Talon defeated, locked away in\nDimension X...",
+                    choices : {
+                        "next" : "..."
+                    }
+                },
+                "next" : {
+                    message : "/username had acquired all 4 crystals...\nand can now properly wield these\ncrystals.",
+                    choices : {
+                        "next2" : "..."
+                    }
+                },
+                "next2" : {
+                    message : "/username has once again restored his\nstatus as a hero... (meaning you've restored\nbalance to the universe)",
+                    choices : {
+                        "inter" : "..."
+                    }
+                },
+                "inter" : {
+                    message : "A true hero...\n\nbut Titan has yet to be found...",
+                    choices : {
+                        "next3" : "..."
+                    }
+                },
+                "next3" : {
+                    message : "But what about Talon? Will he ever show\nin person? Will he ever find a way out of\nDimension X?",
+                    choices : {
+                        "next4" : "..."
+                    }
+                },
+                "next4" : {
+                    message : "We may never know...",
+                    choices : {
+                        "next5" : "..."
+                    }
+                },
+                "next5" : {
+                    message : "And thus your journey finally\ncomes to an end...",
+                    choices : {
+                        "next6" : "..."
+                    }
+                },
+                "next6" : {
+                    message : "May we meet in another time and space",
+                    choices : {
+                        "exit" : "..."
+                    }
+                }
+            },
+            "start", "");
+        }else{
+            talkHandler.start({
+                up : true,
+                "start" : {
+                    message : "And so...\nwith Talon defeated, locked away in\nDimension X...",
+                    choices : {
+                        "next" : "..."
+                    }
+                },
+                "next" : {
+                    message : "/username had acquired all 4 crystals...\nbut was not powerful enough to\ncontain them.",
+                    choices : {
+                        "next2" : "..."
+                    }
+                },
+                "next2" : {
+                    message : "And as a result...\nthe universe became unstable,\nthus they need to be returned.",
+                    choices : {
+                        "inter0" : "..."
+                    }
+                },
+                "inter0" : {
+                    message : "Your search began...\nyou searched...\nand searched...",
+                    choices : {
+                        "inter" : "..."
+                    }
+                },
+                "inter" : {
+                    message : "Until...",
+                    choices : {
+                        "inter2" : "..."
+                    }
+                },
+                "inter2" : {
+                    message : "Titan was found! The planet we have\nbeen looking for all this time!",
+                    choices : {
+                        "inter4" : "..."
+                    }
+                },
+                "inter4" : {
+                    message : "You traveled there and returned the\ncrystals, and restored stability to\nthe universe.",
+                    choices : {
+                        "inter5" : "..."
+                    }
+                },
+                "inter5" : {
+                    message : "If you only had the power to wield\nthese crystals then you would become\na true hero!",
+                    choices : {
+                        "next3" : "..."
+                    }
+                },
+                "next3" : {
+                    message : "But what about Talon? Will he ever show\nin person? Will he ever find a way out of\nDimension X?",
+                    choices : {
+                        "next4" : "..."
+                    }
+                },
+                "next4" : {
+                    message : "We may never know...",
+                    choices : {
+                        "next5" : "..."
+                    }
+                },
+                "next5" : {
+                    message : "And thus your journey finally\ncomes to an end...",
+                    choices : {
+                        "next6" : "..."
+                    }
+                },
+                "next6" : {
+                    message : "May we meet in another time and space",
+                    choices : {
+                        "exit" : "..."
+                    }
+                }
+            },
+            "start", "");
+        }
+
+        this.shownAfterBattle = true;
+    }
+
+    if(messageHandler.active)
+    {
+        return;
+    }
+
+    game.switchGameState(creditHandler.done, "theEnd", true);
+
+    // If draw returns a truthy value move won't update.
+    // This is smart for short circuiting techniques.
+    creditHandler.draw() || creditHandler.move(); 
+};
+game.credits.mouseReleased = function()
+{
+    talkHandler.mouseReleased();
+};
+game.credits.keyPressed = function()
+{
+    talkHandler.keyPressed();
+};
+game.credits.keyReleased = function()
+{
+    talkHandler.keyReleased();
+};
+
+/*setTimeout(function()
+{
+    game.finish();
+
+    gameObjects.removeObjects();
+
+}, 500);*/
+
+game.theEnd = function()
+{
+    // backgrounds.backgrounds.space2.drawBackground();
+    
+    fastImage(loadedImages["theEnd"], 0, 0, width, height);//80, 40, 400 * 0.6, 400 * 0.6);
+
+    textAlign(CENTER, CENTER);
+    textFont(fonts.title, 16);
+    fill(255, 133, 61);
+
+    text("The End", 42, 385);
+};
+
 ////////////////////////////////////////////////////////////////////\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
 /**************************************************************Final-loop******************************************************************/
 ////////////////////////////////////////////////////////////////////\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
 
-game.play = function(noDraw)
+game.play = function(noDraw, remote)
 {
     $pjs.pushMatrix();
         cam.view();
         screenUtils.manageShake();
         backgrounds.drawForeground();
-        gameObjects.update();
+        gameObjects.update(remote);
         gameObjects.draw(noDraw);
         gameObjects.drawBoundingBoxes();
         // cameraGrid.draw();
@@ -31781,7 +32519,7 @@ inputs.load = function()
 //Load the inputs
 inputs.load();
 
-function showError(e, fatal)
+/*function showError(e, fatal)
 {
     processing.width = 600;
     processing.height = 600;
@@ -31877,7 +32615,7 @@ function initErrorHandler()
 };
 
 // Try out the error handler
-initErrorHandler();
+initErrorHandler();*/
 
 processing.scaledCondition = function()
 {
