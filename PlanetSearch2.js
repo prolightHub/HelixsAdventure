@@ -998,6 +998,7 @@ var sketch = function(processing) /*Wrapper*/
         You now get a different ending if you collect all gems!
         Fixed a glitch where your inventory is openable, when blasting off to outerspace.
         Fixed a bug where your space ship disappears when blasting off.
+        Fixed a bug where the width of a moving platform changes.
 
     Next :   
         Will do:     
@@ -10870,7 +10871,7 @@ var MovingPlatform = function(xPos, yPos, width, height, colorValue, direction, 
         triangle(this.xPos, this.yPos, this.xPos + this.width, this.yPos, this.xPos, this.yPos + this.height);
     };
     
-    screenUtils.loadImage(this, true, "movingPlatform" + this.color);
+    screenUtils.loadImage(this, true, "movingPlatform" + this.color + this.width);
 
     if(levelInfo.theme === "underground")
     {
