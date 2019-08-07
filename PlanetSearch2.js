@@ -994,7 +994,10 @@ var sketch = function(processing) /*Wrapper*/
         Finished credits!
         Finished the end screen.
         Got game's end done.
-        removed crash screen.
+        Removed crash screen.
+        You now get a different ending if you collect all gems!
+        Fixed a glitch where your inventory is openable, when blasting off to outerspace.
+        Fixed a bug where your space ship disappears when blasting off.
 
     Next :   
         Will do:     
@@ -4309,7 +4312,7 @@ var backgrounds = {
 
                 if(f < 1.0)
                 {
-                    var t = 400 * (1.0 - f);
+                    var t = (400 + 20) * (1.0 - f);
                     stroke(255, 255, 255);
 
                     var stars = this.stars;
@@ -4328,7 +4331,7 @@ var backgrounds = {
 
                 noStroke();
                 fill(225, 229, 40);
-                circle(312, 60 + (game.dropRate || 0) * 0.55, 38);
+                circle(312, 40 + (game.dropRate || 0) * 0.65, 38);
 
                 $pjs.pushMatrix();
                     translate(0, game.dropRate || 0);
@@ -12152,7 +12155,7 @@ var HelixShip = function(xPos, yPos, width, height)
     DynamicRect.call(this, xPos, yPos, width, height);
     LifeForm.call(this, 150);
 
-    // this.physics.solidObject = false;
+    this.physics.solidObject = false;
 
     if(levelInfo.level !== "desert oasis")
     {
@@ -12192,14 +12195,14 @@ var HelixShip = function(xPos, yPos, width, height)
             length : Math.round(random(1, 3)) * 8
         });
     };
-    this.flames.draw = function()
+    this.flames.draw = function(x, y)
     {
         noStroke();
         strokeWeight(1);
         for(var i = 0; i < this.length; i++)
         {
             fill(this[i].color);
-            fastRect(this[i].x, this[i].y, Math.round(random(2, 4)), this[i].length);
+            fastRect((x || 0) + this[i].x, (y || 0) + this[i].y, Math.round(random(2, 4)), this[i].length);
         }
     };
     this.flames.update = function()
@@ -12267,14 +12270,14 @@ var HelixShip = function(xPos, yPos, width, height)
             this[i].yPos = Math.sin(a) * this[i].length;
         }
     };
-    this.points.draw = function()
+    this.points.draw = function(x, y)
     {
         strokeWeight(2);
         stroke(255, 23, 90, 200);
         fill(255, 23, 90, 200);
         for(var i = this.length - 1; i >= 0; i--)
         {
-            point(self.middleXPos + this[i].xPos, self.middleYPos + this[i].yPos);
+            point(self.middleXPos + this[i].xPos + (x || 0), self.middleYPos + this[i].yPos + (y || 0));
         }
         noStroke();
     };
@@ -12284,7 +12287,7 @@ var HelixShip = function(xPos, yPos, width, height)
     this.points.add(0, -this.halfHeight + 3);
     this.points.add(0, this.halfHeight - 3);
 
-    this.updateBoundingBox = function()
+   /* this.updateBoundingBox = function()
     {
         this.points.update();
 
@@ -12313,6 +12316,9 @@ var HelixShip = function(xPos, yPos, width, height)
             }
         }
 
+        physics.getMiddleXPos(this);
+        physics.getMiddleYPos(this);
+
         // Finish off our work
         left += this.middleXPos;
         right += this.middleXPos;
@@ -12329,23 +12335,28 @@ var HelixShip = function(xPos, yPos, width, height)
         box.yPos = up;
         box.width = right - left;
         box.height = down - up;
-    };
+    };*/
 
-    this.draw = function()
+    this.addFlames = function(x, y)
     {
         if(this.flames.length < 100 && millis() - this.f_lastAddTime > this.f_nextTime)
         {
             for(var i = 0; i < random(3, 5); i++)
             {
-                this.flames.add(random(-18, 18), this.halfHeight - 20);
+                this.flames.add((x || 0) + random(-18, 18), (y || 0) + this.halfHeight - 20);
             }
 
             this.f_lastAddTime = millis();
             this.f_nextTime = random(20, 50);
         }
+    };
 
-        $pjs.pushMatrix();
-            translate(this.middleXPos, this.middleYPos);
+    this.draw = function(x, y)
+    {
+        this.addFlames();
+
+        pushMatrix();
+            translate(this.middleXPos + (x || 0), this.middleYPos + (y || 0));
             rotate(this.angle);
 
             if(this.hp > 0)
@@ -12363,22 +12374,23 @@ var HelixShip = function(xPos, yPos, width, height)
                 this.imageName += "Open";
             }
 
-            ctx.drawImage(loadedImages[this.imageName].sourceImg, -this.halfWidth, -this.halfHeight, this.width, this.height);
+            // ctx.drawImage(loadedImages[this.imageName].sourceImg, -this.halfWidth, -this.halfHeight, this.width, this.height);
+            image(loadedImages[this.imageName], -this.halfWidth, -this.halfHeight, this.width, this.height);
 
-        $pjs.popMatrix();
+        popMatrix();
 
-        $pjs.pushMatrix();
+        if((levelScripts[levelInfo.level] || {}).battling)
+        {
+            pushMatrix();
             translate(this.middleXPos, this.middleYPos);
 
-            if((levelScripts[levelInfo.level] || {}).battling)
-            {
                 fill(73, 155, 195, 150);
                 var talonShip = gameObjects.getObject("talonShip")[0];
                 rotate(atan2(talonShip.middleYPos - this.middleYPos, talonShip.middleXPos - this.middleXPos) * RAD_TO_DEG);
                 rect(this.width * 1.3, 0, 12, 60);
-            }
 
-        $pjs.popMatrix();
+            popMatrix();
+        }
     };
 
     this.lastChangeTime = 0;
@@ -28248,7 +28260,7 @@ var levelScripts = {
             {
                 helixShip.update();
 
-                // Above prymids
+                // Above pryamids
                 if(helixShip.yPos < -5000)
                 {
                     game.dropRate = (abs(helixShip.yPos) - 5000) / abs(helixShip.yVel) * 0.15;
@@ -28276,7 +28288,7 @@ var levelScripts = {
                     backgrounds.backgrounds.atmosphere.starLate = ((abs(helixShip.yPos) - 55000) * 400 / 5000) * 0.4;
                 }
 
-                if(helixShip.yPos < -60000)
+                if(helixShip.yPos < -65000)
                 {
                     shipGoto.haveNotSavedSince = true;
                     loader.startLoadLevel("space", "player", 0);
@@ -28287,6 +28299,10 @@ var levelScripts = {
                     graphics.inClouds[i].yPos += 0.1;
                 }
             }
+        },
+        draw : function()
+        {
+            var helixShip = gameObjects.getObject("helixShip")[0];
         }
     },
     "space" : {
@@ -32317,19 +32333,22 @@ game.credits.keyReleased = function()
     talkHandler.keyReleased();
 };
 
-/*setTimeout(function()
-{
-    game.finish();
-
-    gameObjects.removeObjects();
-
-}, 500);*/
-
 game.theEnd = function()
 {
-    // backgrounds.backgrounds.space2.drawBackground();
-    
-    fastImage(loadedImages["theEnd"], 0, 0, width, height);//80, 40, 400 * 0.6, 400 * 0.6);
+    if(gameObjects.getObject("player")[0].gems >= controlPanel.gems.max)
+    {
+        fastImage(loadedImages["space"], 0, 0, width, height);
+
+        textAlign(CENTER, CENTER);
+        textFont(fonts.title, 16);
+        fill(255, 133, 61);
+
+        text("The End", 42, 385);
+
+        return;
+    }
+
+    fastImage(loadedImages["theEnd"], 0, 0, width, height);
 
     textAlign(CENTER, CENTER);
     textFont(fonts.title, 16);
@@ -32362,6 +32381,31 @@ game.play = function(noDraw, remote)
     levelScripts.apply();
     // cam.drawOutline();
 
+    if(shipGoto.launched && levelInfo.level === "desert oasis")
+    {
+        var helixShip = gameObjects.getObject("helixShip")[0];
+
+        if(helixShip && helixShip.yPos + helixShip.height < -1000)
+        {
+            var shipWidth = helixShip.width * 0.6;
+                shipHeight = helixShip.height * 0.6;
+
+            if(helixShip.hp > 0)
+            {
+                pushMatrix();
+                    scale(0.6, 0.6);
+                    translate(200 * (1 / 0.6), 310);
+
+                    helixShip.flames.draw();
+                    helixShip.flames.update();
+
+                popMatrix();
+            }
+
+            image(loadedImages["helixShip"], width / 2 - shipWidth / 2, height / 2 - shipHeight / 2, shipWidth, shipHeight);
+        }
+    }
+
     $pjs.pushMatrix();
         cam.scaleZoom();
         lighting.draw();
@@ -32371,9 +32415,9 @@ game.play = function(noDraw, remote)
 
     if(!messageHandler.active && !debugTool.active && !game.disablePause)
     {
-        //Menu
-        this.switchGameState(keys[77], "menu"); //On key 'm' switch to menu
-        this.switchGameState(keys[80] || ESC_KEY, "pauseMenu", true); //On key 'p' switch to pause menu
+        // Menu
+        this.switchGameState(keys[77], "menu"); // On key 'm' switch to menu
+        this.switchGameState(keys[80] || ESC_KEY, "pauseMenu", true); // On key 'p' switch to pause menu
     }
 };
 game.play.keyPressed = function()
@@ -32437,7 +32481,7 @@ game.play.keyPressed = function()
         game.hideKeys = !game.hideKeys;
     }
 
-    game.switchGameState(inventoryMenu.tryToOpen() && (!shipGoto.launched || (levelInfo.theme !== "space")), "inventoryMenu", true); 
+    game.switchGameState(inventoryMenu.tryToOpen() && !(shipGoto.launched && !shipGoto.inSpace && levelInfo.level === "desert oasis"), "inventoryMenu", true); 
 };
 game.play.keyReleased = function()
 {
