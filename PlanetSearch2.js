@@ -1052,7 +1052,7 @@ var game = {
     fps : 60, 
     loadFps : 160,
     gameState : "start", // Default = "start"
-    version : "v1.0.0 beta",
+    version : "        v1.0.0" + /* beta*/ "",
     fpsType : "auto", // Default = "manual"
     debugMode : false, // Turn this to true to see the fps
     showDebugPhysics : false,
