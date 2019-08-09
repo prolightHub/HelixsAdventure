@@ -999,19 +999,31 @@ var sketch = function(processing) /*Wrapper*/
         Fixed a glitch where your inventory is openable, when blasting off to outerspace.
         Fixed a bug where your space ship disappears when blasting off.
         Fixed a bug where the width of a moving platform changes.
+        Fixed a bug where abby the npc wouldn't realize if you unlocked the back door for them.
+        The airmeter now won't render over the message box.
+        Cloudmines now explode underwater again.
+        The ninja boss sprite now doesn't have cracks in it.
+        Added helix's ship to the credits and named both ships.
+        Updated ice sound effect.
+        Made the locked_in level harder.
+        Made the icyPuzzles2 level harder.
+        Added sound ChestAppear.mp3
+        Added sound lasered.mp3 (for when cat dog statues want to laser you!)
+        The oxygen bar now will not render over the inventory menu like it was rendering over message boxes.
+
+    * 1.0.0
 
     Next :   
-        Will do:     
-            Sound update.
+        Test game in its entirety.
+        Make final boss fight more epic. (Add minion ships maybe?) 
+        Release this game already!
 
     Maybe:
         Get rid of with statement --Would give about 20% speed increase.
-        More Weapons, shops.
-        Add chest appearing sound effect. Enemy damage sound effect?
+        Enemy damage sound effect?
         Speed up image rendering by doing it directly!
         Update sound settings.
-        Make bubbleShield block all preojectils.
-        Make trees not regenerate after reloading the level.
+        Make bubbleShield block all projectiles.
 
     ===========================================================================================================================================================================
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -1036,11 +1048,6 @@ var sketch = function(processing) /*Wrapper*/
         All other code is by (Me) ProlightHub on Github & Phantom Falcon on Khan Academy!
 
         Some images made by Shotty
-
-    Future Updates :
-        To be added :
-            More levels
-            More Backgrounds
 **/
 
 //////////////////////////////////////////////////Feel free to look through the code!\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
@@ -1052,7 +1059,7 @@ var game = {
     fps : 60, 
     loadFps : 160,
     gameState : "start", // Default = "start"
-    version : "        v1.0.0" + /* beta*/ "",
+    version : "v1.0.0 beta",
     fpsType : "auto", // Default = "manual"
     debugMode : false, // Turn this to true to see the fps
     showDebugPhysics : false,
@@ -3203,7 +3210,7 @@ var backgrounds = {
                     }
 
                     fill(0, 0, 0, 100);
-                    $pjs.rect(streaks[i].xPos, streaks[i].yPos, streaks[i].width, streaks[i].height, 5);
+                    $pjs.fastRect(streaks[i].xPos, streaks[i].yPos, streaks[i].width, streaks[i].height);
                 }
             },
         },
@@ -4695,10 +4702,10 @@ var storedImages = {
         },
     }),
     "ninjaBoss" : pixelFuncs.createPixelImage({
-        width : 11 * 2.7, 
-        height : 28 * 2.7, 
+        width : Math.round(11 * 3), 
+        height : Math.round(28 * 3), 
         replace : true,
-        pixelSize : 2.7, 
+        pixelSize : 3, 
         pixels : [
             "aabcdddcbaa",
             "abbdcccdbba",
@@ -6576,7 +6583,7 @@ var screenUtils = {
             airMeter.xPos = HALF_WIDTH - airMeter.halfWidth;
             var between = airMeter.width > 0 && airMeter.width < airMeter.defaultWidth;
 
-            if((between || airMeter.using) && !player.bubbleShield)
+            if((between || airMeter.using) && !player.bubbleShield && !messageHandler.active && game.gameState !== "inventoryMenu")
             {
                 if(player.air > 0 || millis() % 750 >= 375)
                 {
@@ -8206,13 +8213,13 @@ var observer = {
                 var dx = ((rect1.xPos + rect1.halfWidth) - (rect2.xPos + rect2.halfWidth)),
                     dy = ((rect1.yPos + rect1.halfHeight) - (rect2.yPos + rect2.halfHeight));
                 
-                //Important for normalizing differences between our values (vx, vy)
+                // Important for normalizing differences between our values (vx, vy)
                 var hWidths = (rect1.halfWidth + rect2.halfWidth),
                     hHeights = (rect1.halfHeight + rect2.halfHeight);
 
                 var sx = 1, sy = 1;
 
-                //Based on the last decided side ignore x or y.
+                // Based on the last decided side ignore x or y.
                 if(rect1._side === "up" || rect1._side === "down" || rect1._side === "")
                 {
                     sx = 0;
@@ -8519,6 +8526,12 @@ var Camera = function(xPos, yPos, width, height)
             this.focusXPos = object.boundingBox.xPos + (object.boundingBox.width / 2);
             this.focusYPos = object.boundingBox.yPos + (object.boundingBox.height / 2);
         }
+
+        if(!directAttach && (object.arrayName === "itemChest" || object.arrayName === "chest"))
+        {
+            sounds.playSound("ChestAppear.mp3");
+        }
+
         this.getObject.attachTime = millis();
         this.getObject.time = time;
         this.getObject.endFunc = endFunc;
@@ -12916,6 +12929,8 @@ var Ice = function(xPos, yPos, width, height, colorValue, slipFactor, override)
             return;
         }
 
+        sounds.mplaySound("IceCrack.mp3");
+
         sounds.mplaySound("quickBoom.wav");
 
         this.draw = function() 
@@ -15118,10 +15133,10 @@ var CloudMine = function(xPos, yPos, diameter)
     this.update = function()
     {
         this.lastUpdate();
-        if(this.inWater)
+        /*if(this.inWater)
         {
             return;
-        }
+        }*/
 
         if(this.activated)
         {
@@ -15175,7 +15190,7 @@ var CloudMine = function(xPos, yPos, diameter)
 
     this.onCollide = function(object)
     {
-        if(object.arrayName === "water" && this.diameter <= this.lastDiameter)
+        /*if(object.arrayName === "water" && this.diameter <= this.lastDiameter)
         {
             this.timer = 0;
             this.activated = false;
@@ -15184,7 +15199,8 @@ var CloudMine = function(xPos, yPos, diameter)
             this.inWater = true;
             this.onCollide = function() {};
         }
-        else if(!this.activated)
+        else*/ 
+        if(!this.activated)
         {
             this.physics.movement = "static";
         }
@@ -17096,6 +17112,8 @@ var CatDogStatue = function(xPos, yPos, width, height)
         this.laser.active = true;
         this.laser.lengthVel = 0.05;
         this.feelingSaucy = true;
+
+        sounds.mplaySound("lasered.mp3");
     };
 
     this.deactivate = function()
@@ -17129,8 +17147,6 @@ var CatDogStatue = function(xPos, yPos, width, height)
 
         if(this.useLaser)
         {
-            
-
             if(Math.pow(Math.abs(physics.getMiddleXPos(player) - physics.getMiddleXPos(this)), 2) + 
                Math.pow(Math.abs(physics.getMiddleYPos(player) - physics.getMiddleYPos(this)), 2) < 150 * 150)
             {
@@ -24608,6 +24624,7 @@ var NinjaGuard = function(xPos, yPos, diameter)
             if(typeof object.discoveredPowers[this.arrayName] === "undefined")
             {
                 this.messages = {
+                    up : true,
                     "start" : {
                         messages : [{
                             message : "You got a new Power-up!",
@@ -26734,12 +26751,6 @@ var levelScripts = {
         {
             var npcs = gameObjects.getObject("npc");
 
-            if(!levels[levelInfo.level].doors.b.locked)
-            {
-                npcs[1].message = "thank";
-                self.stop = true;
-            }
-
             if(npcs[0].usedIntro)
             {
                 npcs[0].message = "enjoy";
@@ -26748,6 +26759,12 @@ var levelScripts = {
             if(npcs[1].usedIntro)
             {
                 npcs[1].message = "hero";
+            }
+
+            if(!levels[levelInfo.level].doors.b.locked)
+            {
+                npcs[1].message = "thank";
+                self.stop = true;
             }
 
             levels[levelInfo.level].save.npcUsedIntros = [gameObjects.getObject("npc")[0].usedIntro, gameObjects.getObject("npc")[1].usedIntro];
@@ -31982,7 +31999,7 @@ var CreditsHandler = function(credits)
                 {
                     fill(255, 255, 255, 210);
 
-                    text(this.bosses[i].message.upper().match(/[A-Z][a-z]+/g).toString().replace(",", " ").replace(",", " "), 200, 2020 + i * 120);
+                    text(this.bosses[i].message.upper().match(/[A-Z][a-z]+/g).toString().replace(",", " ").replace(",", " ") + (this.bosses[i].message === "talonShip" ? " (X-Falcon-Lite)" : ""), 200, 2020 + i * 120);
 
                     try{
                         if(obj = (gameObjects[gameObjects.references[this.bosses[i].message]] || [])[0])
@@ -32018,11 +32035,19 @@ var CreditsHandler = function(credits)
 
                 fill(255, 255, 255, 210);
                 textFont(cursive, 12);
-                text("Helix", 200, 3380);
+                text("Helix", 200, 3360);
 
                 player.xPos = 185;
-                player.yPos = 3400;
+                player.yPos = 3380;
                 player.draw();
+
+                text("Helix's Ship (tri-Nexus)", 200, 3470);
+
+                pushMatrix();
+                    translate(200, 3530);
+                    rotate(270);
+                    fastImage(loadedImages["helixShip"], -100 * 0.4, -216 * 0.4, 200 * 0.4, 432 * 0.4);
+                popMatrix();
             translate(0, 400);
 
             translate(0, -600);
@@ -32158,6 +32183,8 @@ var CreditsHandler = function(credits)
             this.addedObjects = true;
         }
     };
+
+    this.scroll = 2600;
 
     this.move = function()
     {
@@ -32685,6 +32712,7 @@ if(game.globalize)
     window.backgrounds = backgrounds;
     window.screenUtils = screenUtils;
     window.f_getArrayNamesToSave = f_getArrayNamesToSave;
+    window.talkHandler = talkHandler;
 }
 
 // Done!

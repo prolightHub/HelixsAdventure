@@ -4,7 +4,7 @@ var sounds = {
     settings : {
         off : false,
         mainVolume : 0.5,
-        song: true
+        song : true
     },
     addSound : function(str, type, volume, returnIt)
     {
@@ -57,6 +57,12 @@ var sounds = {
         {
             src1.src = "sounds/songs/" + str;
         }
+
+        if(this.settings.noSoundEffects)
+        {
+            return;
+        }
+
         snd1.type = this.sounds[str].type;
         snd1.volume = this.settings.mainVolume * (vol || this.sounds[str].volume);
         snd1.appendChild(src1);
@@ -148,9 +154,12 @@ sounds.addSound("whoo.wav");
 sounds.addSound("hit2.mp3");
 sounds.addSound("Explosion5.wav");
 // sounds.addSound("smchoof.wav");
+sounds.addSound("IceCrack.mp3");
+sounds.addSound("ChestAppear.mp3");
+sounds.addSound("lasered.mp3");
 
 // Unused :
-// soup4, smchoof, hit2
+// soup4, smchoof
 ////////////////////////////////////////////////////////
 
  

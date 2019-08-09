@@ -140,7 +140,7 @@ var levels = {
                 adjustW : 105,
             },
             'e' : {
-                message : "behindTheVillage",
+                message : "behind the village",
             },
         },
         plan : [
@@ -998,7 +998,7 @@ var levels = {
     },
     "ninjaTemple" : {
         theme : "ninjaTemple",
-        daylightCycle : true,
+        // daylightCycle : true,
         shade : {
             r : 0,
             g : 0,
@@ -2433,9 +2433,9 @@ var levels = {
             "ii                                                 i",
             "ii                7          hh                     ",
             "ii                                   7              ",
-            "ii    hh       FFFF                        FFF      ",
+            "ii             FFFF                        FFF      ",
             "ii                         FFF                      ",
-            "ii                                                  ",
+            "ii          7                                       ",
             "ii     FFF            7               FFFF          ",
             "ii                   FFF                            ",
             "ii hh        a                                hh   a",
@@ -2514,13 +2514,6 @@ var levels = {
                 symbol : 'c'
             }
         },
-        signs : {
-            'a' : {
-                message : "💣",
-                adjustW : 36,
-                adjustH : 36
-            }
-        },
         itemChests : {
             'c' : {
                 items : [{
@@ -2581,8 +2574,8 @@ var levels = {
             "                                              bPPPPPPPPPb                                ",
             "                                            PPI         IPP                              ",
             "                                             PI         IP                 i             ",
-            "                                             PI  a c    IP                 i_            ",
-            "               cccc                          PI pS ]    IP                 ii_           ",
+            "                                             PI    c    IP                 i_            ",
+            "               cccc                          PI p  ]    IP                 ii_           ",
             "                 2                          bbbbbbbbbbbbbbb                iii___        ",
             "              PPPPPP                           PWWWWWWWP                    iiiii_       ",
             "      hhh                                      PWWWWWWWP                     iiiii_      ",
@@ -2633,11 +2626,11 @@ var levels = {
             "bbbbiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
             "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
             "iiiiiiiiiiiiii          iiiiiiiiiiiiiiiiiii",
-            "iiiiiiii                        iiiiiiiiiii",
-            "iiii                              iiiiiiiii",
+            "iiiiiiii    V                   iiiiiiiiiii",
+            "iiii                            V iiiiiiiii",
             "iii                a               iiiiiiii",
             "iii                [                 iiiiii",
-            "iii       h h    PPPPP   h h           iiii",
+            "iii              PPPPP                 iiii",
             "iii                                    iiii",
             "iii       PPP            PPP           aiii",
             "iii2                                   Diii",
