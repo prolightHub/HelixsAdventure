@@ -1019,7 +1019,12 @@ var sketch = function(processing) /*Wrapper*/
         Fixed captain fleep from sticking to the ceiling in circle mode.
         Fixed a camera bug case where in cam.attach object is undefined.
         Fixed the cutscene (after defeating the boss) in DEEPBossRoom.
-        
+        Added enemy: LavaBeaker
+        Distributed enemy: LavaBeaker
+        Added LavaBeaker to credits
+        Fixed stars not rendering in credits.
+        Finished play testing game!
+
     Next :   
         Fix Light Tower energy item bugs.
 
@@ -16462,6 +16467,98 @@ var FireBeaker = function(xPos, yPos, width, height, colorValue)
 };
 gameObjects.addObject("fireBeaker", createArray(FireBeaker));
 
+var LavaBeaker = function(xPos, yPos, width, height, colorValue)
+{
+    Enemy.call(this, xPos, yPos, width, height, colorValue || color(211, 33, 0, 200), {
+        handleEdge : true,
+        charging : true
+    }, true, 6);
+
+    this.addCast(this, "lavaBeaker");
+
+    this.scoreValue = 1000;
+
+    this.damage = 2;
+
+    this.particles = [];
+    this.particleColor = this.color;
+
+    this.addParticle = function()
+    {
+        this.particles.push({
+            color : this.particleColor,
+            xPos : this.xPos + floor(random(0, this.width)),
+            yPos : this.yPos + floor(random(0, this.height)),
+            yVel : -random(0.5, 2.2)/2,
+            xVel : this.xVel * -round(random(1.5, 3))/2.3,
+            diameter : 7,
+            shrink : 0.1,
+            life : 100,
+            maxLife : 100,
+        });
+    };
+    this.updateParticles = function()
+    {
+        for(var i = 0; i < this.particles.length; i++)
+        {
+            var p = this.particles[i];
+
+            p.xPos += p.xVel;
+            p.yPos += p.yVel;
+            p.life--;
+            p.diameter -= p.shrink;
+
+            if(p.life < 0 || p.diameter < 0)
+            {
+                this.particles.splice(i, 1);
+            }
+        }
+    };
+    this.drawParticles = function()
+    {
+        for(var i = 0; i < this.particles.length; i++)
+        {
+            var p = this.particles[i];
+
+            fill(red(p.color), green(p.color), blue(p.color), 255 * p.life / p.maxLife);
+            circle(p.xPos, p.yPos, p.diameter, p.diameter);
+        }
+    };
+
+    this.lastDrawB = this.draw;
+    this.draw = function()
+    {
+        this.drawParticles();
+        this.lastDrawB();
+    };
+
+    this.lastUpdateB = this.update;
+    this.update = function()
+    {
+        this.lastUpdateB();
+
+        if(millis() % 15 >= 10)
+        {
+            this.addParticle();
+        }
+
+        this.updateParticles();
+    };
+
+    this.lavaImmune = true;
+    this.lastOnCollide = this.onCollide;
+    this.onCollide = function(object, info)
+    {
+        if(object.redHurtTime <= 0 && object.arrayName === "player" && (info.side === "left" || info.side === "right"))
+        {
+            object.redHurtTime = object.maxRedHurtTime;
+        }
+
+        this.lastOnCollide(object, info);
+    };
+};
+gameObjects.addObject("lavaBeaker", createArray(LavaBeaker));
+
 var WaterBeaker = function(xPos, yPos, width, height, colorValue)
 {
     Enemy.call(this, xPos, yPos, width, height, colorValue || color(56, 137, 161), {
@@ -29581,7 +29678,11 @@ levels.build = function(plan)
                     break;
                 
                 case 'E' :
-                    if(levelInfo.theme === "underground")
+                    if(levelInfo.theme === "surface")
+                    {
+                       gameObjects.getObject("lavaBeaker").add(xPos, yPos, levelInfo.unitWidth, levelInfo.unitHeight);
+                    }
+                    else if(levelInfo.theme === "underground")
                     {
                        gameObjects.getObject("slimeBeaker").add(xPos, yPos, levelInfo.unitWidth, levelInfo.unitHeight);
                     }else{
@@ -31990,6 +32091,8 @@ var CreditsHandler = function(credits)
             message : "slasher"
         }, {
             message : "stomper"
+        }, {
+            message : "lavaBeaker"
         }
     ];
 
@@ -32238,7 +32341,7 @@ var CreditsHandler = function(credits)
                             array.add(0, i * 40, 30 * 0.7);
                             break;
 
-                        case "fireBeaker" :
+                        case "fireBeaker" : case "lavaBeaker" : 
                             var obj = array.add(0, i * 40, 30, 30);
                             obj.drawParticles = function() {};
                             obj.draw = obj.lastDrawB;
@@ -32265,11 +32368,9 @@ var CreditsHandler = function(credits)
         }
     };
 
-    this.scroll = 2600;
-
     this.move = function()
     {
-        this.scroll += 0.82;
+        this.scroll += 0.9;
     };
 };
 var creditHandler = new CreditsHandler();
@@ -32277,6 +32378,11 @@ var creditHandler = new CreditsHandler();
 game.credits = function()
 {
     backgrounds.backgrounds.space2.drawBackground();
+
+    if(backgrounds.backgrounds.space2.stars.length <= 3)
+    {
+        backgrounds.backgrounds.space2.load();
+    }
 
     if(!this.shownAfterBattle)
     {
