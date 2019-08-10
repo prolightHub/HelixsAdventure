@@ -5378,8 +5378,8 @@ var levels = {
             "0 &&                          =  UU  =                                                                            =                                         =             0",
             "0                             =  UU  =                                                                            =                                         =             0",
             "0                             =  UU  =                                      aa                                    =b                                        =             0",
-            "0           /       /         =  UU  =        /       /        /          p DD        /       /       /           =D    /     /     /     /         5       =       5 UU 50",
-            "0  m       000000bbbbbbbbFFFFF=  UU  5=================5 UU 5===================================5=========5       5==================5======5       =       5       = UU =0",
+            "0           /       /         =  UU  5=       /       /        /          p DD        /       /       /           =D    /     /     /     /         5       =       5 UU 50",
+            "0  m       000000bbbbbbbbFFFFF=  UU   5================5 UU 5===================================5=========5       5==================5======5       =       5       = UU =0",
             "0             000b            =  UU                 UU = UU =cccc                          UU   =         =00        &    &&    &    =      =       =               = UU =0",
             "0                b            =  UU                 UU = UU =cccc                          UU   =         = 000                      =      =       =               = UU =0",
             "0 k /            bFF ^^^5=====5  UU  5============5 UU = UU ========================5====5 UU   5FFFF= UU =   000                    =      =ss   ss=ss           ss= UU =0",
@@ -5389,9 +5389,9 @@ var levels = {
             "0                b    FF=                              = UU =     b UU              = UU 5======5====5 UU =           000            =      =      ^^^^bb^^^^       = UU =0",
             "0           /  k b      =                              = UU =     bbbbbbbbbbbbbb    = UU   cccc   UU = UU =             000          =    ss=          bb           = UU =0",
             "0    m     000000b      =     5========================5 UU =     b                 = UU   cccc   UU = UU =         hhccc 000        =      =  g       bb         E = UU =0",
-            "0             000bFF    =                                   =     b      h h        = UU          UU = UU =         hhccc   000      =      =^^^^      bb       ^^^^= UU =0",
-            "0                b      =                                   =     b               ss= UU 5======5 UU = UU 5    5==============000 UU =      =          bb           = UU =0",
-            "0   /            b      =       /       /       /           =     b    bbbbbbbbbbbbb5 UU        = UU = UU                         UU =      =          bb  g        = UU =0",
+            "0             000bFF    =                                   =     b      h h        = UU          UU = UU 5         hhccc   000      =      =^^^^      bb       ^^^^= UU =0",
+            "0                b      =                                   =     b               ss= UU 5======5 UU = UU      5==============000 UU =      =          bb           = UU =0",
+            "0   /            b      =       /       /       /           =     b    bbbbbbbbbbbbb5 UU        = UU = UU                         UU =ss    =          bb  g        = UU =0",
             "000000   m       b    FF5===================================5     b                   UU        = UU = UU                         UU =      =         Ebb^^^^       = UU =0",
             "000              b                 hh                             b      h h                    = UU 5 UU 5=========5 UU 5===========5      =      ^^^^bb           = UU =0",
             "0            /   b      cc                            cc          bss                           =         =           UU                    =          bb           = UU =0",
@@ -6020,7 +6020,7 @@ var levels = {
             }
         },
         itemChests : {
-            'b' : {
+            'c' : {
                 items : [{
                     contains : "energy",
                 }],
@@ -6039,7 +6039,7 @@ var levels = {
             ">                      b<",
             ">                  b    <",
             ">*             u      * <",
-            ">a         b            <",
+            ">a         c            <",
             ">D  p   z  ]            <",
             "5000000000000000000000005",
         ]
@@ -6372,8 +6372,8 @@ var levels = {
             "00                                   %%     ii     000                     /   E  /    E /    E /    E /       D<00",
             "00                                   %%     ii     000                    5===============================5^^^5=<00",
             "00                                  U zU    ii     000               5=====ccccccccccccccccccccccccccccc        <00",
-            "00a                                 U00U  a ii   b <            5=====ccccc  a ccccccccccccccccccccccccccc     c<00",
-            "00D /      /   E  /    E /   f  /   U00U  S ii   S <       5=====     ccccc  ] ccccccccccccccccccccccccccccc   D<00",
+            "00a                               c U00U  a ii   b <            5=====ccccc  a ccccccccccccccccccccccccccc     c<00",
+            "00D /      /   E  /    E /   f  / S U00U  S ii   S <       5=====     ccccc  ] ccccccccccccccccccccccccccccc   D<00",
             "005^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^00^^^^^00^^^^50005^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^500",
             "0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
             "0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",

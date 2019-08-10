@@ -31,6 +31,7 @@ var configs = {
             cold : true,
             background : "winter",
             song: "icy_slopes.mp3",
+            regenCoinCost : 4,
             shade : {
                 r : 0,
                 g : 0,
@@ -60,7 +61,7 @@ var configs = {
             background : "underground",
             song: "underground.mp3",
             specialOneWays : true,
-            regenCoinCost : 4,
+            regenCoinCost : 7,
             table : {
                 '2' : "poisonousSlimeBeaker",
                 '_' : "cathodes",
@@ -80,7 +81,7 @@ var configs = {
         level : {
             background : "sand",
             noSong : true,
-            regenCoinCost : 3,
+            regenCoinCost : 10,
             table : {
                 '~' : "palmTree"
             },

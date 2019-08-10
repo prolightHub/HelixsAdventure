@@ -1009,11 +1009,20 @@ var sketch = function(processing) /*Wrapper*/
         Made the icyPuzzles2 level harder.
         Added sound ChestAppear.mp3
         Added sound lasered.mp3 (for when cat dog statues want to laser you!)
-        The oxygen bar now will not render over the inventory menu like it was rendering over message boxes.
 
     * 1.0.0
-
+        The oxygen bar now will not render over the inventory menu like it was rendering over message boxes.
+        Fixed the bug where you couldn't use items that have a stack amount of 0, they now work anyway...
+        Fixed fixture disappearance glitch in DEEP, had _lights in cells get deleted.
+        Fixed a bug where you could in Laser Light Tower cheat and get infinite energy.
+        Quickly fixed item duplication by disabling restoring items (that could be in another chest) still not ideal though...
+        Fixed captain fleep from sticking to the ceiling in circle mode.
+        Fixed a camera bug case where in cam.attach object is undefined.
+        Fixed the cutscene (after defeating the boss) in DEEPBossRoom.
+        
     Next :   
+        Fix Light Tower energy item bugs.
+
         Test game in its entirety.
         Make final boss fight more epic. (Add minion ships maybe?) 
         Release this game already!
@@ -1072,7 +1081,7 @@ var game = {
     },
 
     autoCheckPoints : true,
-    globalize : false
+    globalize : true
 };
 var levelInfo = {
     level : "intro", // Default = "intro"
@@ -5596,19 +5605,19 @@ var inventoryMenu = {
                             return;
                         }
 
-                        if(typeof item.amount === "number")
-                        {
-                            item.amount--;
-                        }
+                        // if(typeof item.amount === "number")
+                        // {
+                            // item.amount--;
+                        // }
 
-                        if(!item.amount)
-                        {
+                        // if(!item.amount)
+                        // {
                             item = player.inventory.items[btn.index] = {};
                             btn = scene.buttons["player_" + i] = new Button(10, 132 + i * 18, 140, 18, color(28, 28, 28, 100), " - ", undefined, 10);
-                        }
+                        // }
 
-                        btn.amount = item.amount;
-                        btn.extra = (item.amount ? " x " + item.amount : "");
+                        // btn.amount = item.amount;
+                        // btn.extra = (item.amount ? " x " + item.amount : "");
 
                         delete scene.highlightedButtonIndex;
 
@@ -5646,19 +5655,20 @@ var inventoryMenu = {
                         var btn = scene.buttons["player_" + i];
                         var item = player.inventory.items[btn.index];
 
-                        if(typeof item.amount !== "number")
+                        // This should never happen, but just in case if it set to zero but it still exists.
+                        if(item.amount === 0)
                         {
                             item.amount = 1;
                         }
 
-                        if(item.amount > 0 && itemsHandler.use(item, player))
+                        if((typeof item.amount === "undefined" || item.amount > 0) && itemsHandler.use(item, player))
                         {
                             if(typeof item.amount === "number")
                             {
                                 item.amount--;
                             }
 
-                            if(!item.amount)
+                            if(typeof item.amount === "undefined" || item.amount <= 0)
                             {
                                 item = player.inventory.items[btn.index] = {};
                                 btn = scene.buttons["player_" + i] = new Button(10, 132 + i * 18, 140, 18, color(28, 28, 28, 100), " - ", undefined, 10);
@@ -5667,6 +5677,13 @@ var inventoryMenu = {
 
                             btn.amount = item.amount;
                             btn.extra = (item.amount ? " x " + item.amount : "");
+                        }
+
+                        if(item.amount <= 0)
+                        {
+                            item = player.inventory.items[btn.index] = {};
+                            btn = scene.buttons["player_" + i] = new Button(10, 132 + i * 18, 140, 18, color(28, 28, 28, 100), " - ", undefined, 10);
+                            delete scene.highlightedButtonIndex;
                         }
 
                         this.lastClickTime = millis();
@@ -8521,13 +8538,13 @@ var Camera = function(xPos, yPos, width, height)
         this.lastGetObject = this.getObject;
         this.getObject = func;
         var object = func();
-        if(directAttach)
+        if(directAttach && object)
         {
             this.focusXPos = object.boundingBox.xPos + (object.boundingBox.width / 2);
             this.focusYPos = object.boundingBox.yPos + (object.boundingBox.height / 2);
         }
 
-        if(!directAttach && (object.arrayName === "itemChest" || object.arrayName === "chest"))
+        if(!directAttach && object && (object.arrayName === "itemChest" || object.arrayName === "chest"))
         {
             sounds.playSound("ChestAppear.mp3");
         }
@@ -9464,7 +9481,15 @@ gameObjects.update = function(remote)
         {
             for(var j = 0; j < cameraGrid[i].length; j++)
             {
+                var _lights = cameraGrid[i][j]._lights;
                 cameraGrid[i][j] = {};
+                Object.defineProperty(cameraGrid[i][j], "_lights",
+                {
+                    value : _lights,
+                    enumerable: false,
+                    writable: true,
+                    configurable: true,
+                });  
             }
         }
         gameObjects.addObjectsToCameraGrid();
@@ -19300,7 +19325,7 @@ var IceDragon = function(xPos, yPos, width, height)
     Boss.call(this, xPos, yPos, width, height, color(15, 120, 220, 220), {
         charging : true,
         handleEdge : true
-    }, false, 30);
+    }, false, 32);
 
     this.physics.solidObject = true;
 
@@ -20373,6 +20398,11 @@ var CaptainFleep = function(xPos, yPos, diameter)
             this.imageName = "captainFleep";
         }
 
+        if(this.overrideCircle)
+        {
+            this.imageName = "captainFleepAngryTeeth";
+        }
+
         image(loadedImages[this.imageName], this.xPos - this.radius * 1.5, this.yPos - this.radius * 1.5 - 1, this.diameter * 1.5, this.diameter * 1.5);
     };
 
@@ -20453,7 +20483,7 @@ var CaptainFleep = function(xPos, yPos, diameter)
         this.msTime += 40 * this.turn;
 
         this.redHp = this.maxHp * 30 / 100;
-        if(this.hp < this.redHp)
+        if(this.hp < this.redHp && !this.overrideCircle)
         {
             this.xSpeed = 4;
             this.ySpeed = 4;
@@ -20568,6 +20598,20 @@ var CaptainFleep = function(xPos, yPos, diameter)
                 {
                     this.yPos = yLineMiddle;
                     this.returnToYLine = false;
+                }
+
+                if(this.yPos < 400 && (!this.lastStayOffCeiling || millis() - this.lastStayOffCeiling > 3000))
+                {
+                    this.state = "follow";
+                    this.overrideCircle = true;
+
+                    this.emit([], 500, function()
+                    {
+                        this.state = "circle";
+                        this.overrideCircle = false;
+                    });
+
+                    this.lastStayOffCeiling = millis();
                 }
                 return;
         }
@@ -22094,7 +22138,7 @@ var Player = function(xPos, yPos, width, height, colorValue)
             }
         }
 
-        if(this.dead || (this.restart && this.controls.restart())) //or 'r'
+        if((this.dead || (this.restart && this.controls.restart())) && levelInfo.level !== "LightTowerTopFloor") //or 'r'
         {
             if(!this.dead || this.yPos >= levelInfo.yPos + levelInfo.height)
             {
@@ -26242,6 +26286,11 @@ var Lamp = function(xPos, yPos, width, height, useAlt)
             state : "static",
         };
 
+        if(this.useAlt)
+        {
+            lighting.fixtures[this.fixturePlace].range = 110;
+        }
+
         lighting.fixtures[this.fixturePlace].place = this.getPlace;
 
         var place = cameraGrid.getPlace(this.xPos, this.yPos);
@@ -28209,6 +28258,13 @@ var levelScripts = {
         {
             var captainFleep = gameObjects.getObject("captainFleep")[0];
 
+            if(captainFleep.hp <= 0)
+            {
+                captainFleep.hp = -1;
+                captainFleep.remove();
+                gameObjects.getObject("captainFleep").applyObject(0);
+            }
+
             if(!captainFleep.fake)
             {
                 captainFleep.update(true);
@@ -28219,12 +28275,19 @@ var levelScripts = {
 
                     levels[levelInfo.level].doors.b.hidden = false;
 
+                    var startTime = millis();
                     var _this = this;
                     cam.attach(function()
                     {
-                        return gameObjects.getObject("door")[2];
+                        if(millis() - startTime > 1000)
+                        {
+                            levels[levelInfo.level].doors.b.hidden = false;
+                            levels[levelInfo.level].doors.b.locked = false;
+                        }
+
+                        return gameObjects.getObject("magicDoor")[0];
                     }, 
-                    false, 1000, function()
+                    false, 2400, function()
                     {
                         game.cutScening = false;
                         _this.stop = true;
@@ -30580,11 +30643,29 @@ game.loadSaveAfterLoad = function()
         if(inventory && inventory.items && inventory.slots)
         {
             player.inventory.slots = 10;
-            player.inventory.items = Array(10).fill({});
-            for(var i = 0; i < inventory.items.length; i++)
+
+            // Commented out for now because this enables item duplication glitch
+            // Unless we restored every chest which we do not want to do yet...
+
+            if(!this.savedThis)
             {
-                player.inventory.items[i] = (inventory.items[i]);
+                player.inventory.items = Array(10).fill({});
+                for(var i = 0; i < inventory.items.length; i++)
+                {
+                    player.inventory.items[i] = (inventory.items[i]);
+                }
+
+                this.savedThis = true;
             }
+
+            // if(typeof player.inventory.items !== "array")
+            // {
+            //     player.inventory.items = Array(10).fill({});
+            // }
+            // while(player.inventory.items.length < 10)
+            // {
+            //     player.inventory.items.push({});
+            // }
         }else{
             console.warn("Could not restore item slots using last items instead...");
         }
@@ -31660,7 +31741,7 @@ game.pauseMenu = function()
     buttons.back.draw();
     this.switchGameState((buttons.back.clicked() || keys[80]) && !ENTER_KEY, "play");
     
-    var restartButtonDisabled = (shipGoto.launched && (!shipGoto.inSpace || shipGoto.haveNotSavedSince) || levelInfo.theme === "space");
+    var restartButtonDisabled = (shipGoto.launched && (!shipGoto.inSpace || shipGoto.haveNotSavedSince) || levelInfo.theme === "space" || levelInfo.level === "LightTowerTopFloor");
 
     buttons.restart.draw();
 
