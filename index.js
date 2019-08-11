@@ -1087,7 +1087,7 @@ var game = {
     },
 
     autoCheckPoints : true,
-    globalize : true
+    globalize : false
 };
 var levelInfo = {
     level : "intro", // Default = "intro"
@@ -32782,104 +32782,6 @@ inputs.load = function()
 
 //Load the inputs
 inputs.load();
-
-/*function showError(e, fatal)
-{
-    processing.width = 600;
-    processing.height = 600;
-
-    background(0, 60, 200);
-
-    resetMatrix();
-
-    if(this.sec)
-    {
-        scale(6 / 4, 6 / 4);
-    }
-
-    this.sec = true;
-
-    processing.width = 400;
-    processing.height = 400;
-
-    fill(255, 255, 255, 100);
-    textSize(width * 0.037);
-    textAlign(CENTER, CENTER)
-    text("Oops! An " + ((!fatal) ? "" : "fatal") + " error occurred!", width / 2, height * 0.35);
-
-    textSize(width * 0.026);
-    text(((!fatal) ? "Press any key to continue." : "Failure to continue,\n restarting ..."), width / 2, height * 0.55);
-
-    var crashText = e.toString();
-    var crashStack = e.stack;
-    var crashLineNumber = e.stack.toString().split("\n")[4];
-
-    console.log(crashText);
-    console.log(crashStack);
-
-    if(crashText.toString() === "TypeError: Cannot read property 'xPos' of undefined")
-    {
-        console.warn("(Player is missing!)");
-    }
-
-    console.log("Line:" + crashLineNumber);
-
-    textSize(width * 0.02);
-
-    textAlign(LEFT, CENTER);
-    text(crashText + "\n" + "Line:\n" + crashLineNumber, 1, height * 0.8);
-}
-
-function initErrorHandler()
-{
-    processing.lastDraw = draw;
-    draw = function()
-    {
-        try{
-            processing.lastDraw();
-        }
-        catch(e)
-        {
-            resetMatrix();
-            showError(e);
-            noLoop();
-
-            var time = millis();
-
-            processing["_lastKeyReleased" + time] = keyReleased;
-            keyReleased = function()
-            {
-                if(key.toString() === '-')
-                {
-                    return;
-                }
-
-                try{
-                    processing["_lastKeyReleased" + time]();
-                    processing.lastDraw();
-                    loop();
-                }
-                catch(e)
-                {
-                    showError(e, true);
-
-                    keyReleased = function() {};
-
-                    if(game.reload)
-                    {
-                        window.setInterval(function()
-                        {
-                            window.location.reload();
-                        }, 3000);
-                    }
-                }
-            };
-        }
-    };
-};
-
-// Try out the error handler
-initErrorHandler();*/
 
 processing.scaledCondition = function()
 {
