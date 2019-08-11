@@ -84,7 +84,7 @@ var sketch = function(processing) /*Wrapper*/
     with(processing)
     {
 
-/**   Hybrid Game Engine (Planet Search 2)  **/
+/**   Hybrid Game Engine (Helix's Adventure (Planet Search 2))  **/
 /**
     @Author Prolight
     @Version 1.0.0 beta (100% complete)
@@ -1024,6 +1024,7 @@ var sketch = function(processing) /*Wrapper*/
         Added LavaBeaker to credits
         Fixed stars not rendering in credits.
         Finished play testing game!
+        Changed the name from Planet Search 2 to Helix's Adventure.
 
     Next :   
         Fix Light Tower energy item bugs.
@@ -31083,7 +31084,7 @@ game.save = function(checkPoint)
 
     if(success)
     {
-        console.log("Planet Search 2: Game successfully saved!");
+        console.log("Helix's Adventure: Game successfully saved!");
     }
 
     // Set checkpoint...
@@ -31149,15 +31150,15 @@ game.how = function()
     fill(0, 0, 0, 60);
     fastRect(75, 0, width - 75 * 2, height);
     fill(11, 68, 153, 80);
-    $pjs.rect(102, 100, 206, 230, 10);
+    $pjs.rect(102, 100, 206, 238, 10);
     fill(200, 200, 200, 150);
     textAlign(NORMAL, NORMAL);
     text("  Use the arrow keys to move or wasd." +
     " Press down to go through doors or to activate checkpoints." +
     " Press 'p' to pause, 'r' to restart, 't' to print what" +
     " signs say if you can't read it and 'm' to go directly to the menu." +
-    "\n\n   This is Planet Search 2 If you haven't played the first " +
-    "one please play it right now (press '1').\n\n        Created by ProlightHub on Github & Phantom Falcon on Khan Academy (same).", 106, 115, 200, 225);
+    "\n\n   This is basically the sequel to Planet Search If you haven't played that first " +
+    "please play it right now (press '1').\n\n        Created by ProlightHub on Github & Phantom Falcon on Khan Academy (same).", 106, 110, 200, 225);
     fill(0, 0, 0, 100);
     text(game.version, 334, 394); 
     buttons.back2.draw();
@@ -31798,8 +31799,12 @@ game.drawTitle = function()
     fill(41, 98, 213, 100);  
     textFont(fonts.title);
     textAlign(CENTER, CENTER);
-    textSize(43);
-    text("Planet\nSearch 2", 200, 83);
+    // textSize(43);
+    // text("Planet\nSearch 2", 200, 83);
+    // text("Helixs\nAdventure", 200, 83);
+    textSize(34);
+    text("Helix's\nAdventure", 200, 83);
+
     textSize(26);
     fill(0, 0, 0, 30);
     $pjs.rect(150, 146, 100, 30, 5);
