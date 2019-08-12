@@ -22,3 +22,9 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+
+This License however does:
+
+All sound effects by Khan Academy are not I did not make and are not under any license but khan academy's or who ever made them.
+All other sounds effects and music are available under the CC0 license however.
