@@ -1,15 +1,13 @@
-if(typeof STORAGE === "object")
+
+localStorage.getItem = function(key)
 {
-	localStorage.getItem = function(key)
-	{
-	    return STORAGE[key];
-	};
+    return STORAGE[key];
+};
 
-	localStorage.setItem = function(key, value)
-	{
-	    STORAGE[key] = value;
+localStorage.setItem = function(key, value)
+{
+    STORAGE[key] = value;
 
-	    console.clear();
-	    console.log(JSON.stringify(STORAGE).toString());
-	};
-}
+    console.clear();
+    console.log(JSON.stringify(STORAGE).toString());
+};
