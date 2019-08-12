@@ -5,10 +5,10 @@ var saverInfo = {
     maxSaves : 8,
 };
 
-if(browserDetection.isFirefox || browserDetection.isEdge)
-{
-    window.alert("This browser may not be the fastest for this game.\nThe recommended browser for this game is Chromium.");
-}
+// if(browserDetection.isFirefox || browserDetection.isEdge)
+// {
+//     window.alert("This browser may not be the fastest for this game.\nThe recommended browser for this game is Chromium.");
+// }
 
 //Not mine but edited to fit
 var cookieHandler = {
