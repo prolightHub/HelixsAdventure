@@ -1243,6 +1243,14 @@ if(MODE === "pjs")
 
     function _load_(index)
     {
+        if(typeof STORAGE !== "undefined")
+        {
+            background(0, 0, 0, 0);
+            loadedImages[index] = loadPNGBase64(storage.base64[index], processing.externals.canvas, processing);
+
+            return;
+        }
+
         loadedImages[index] = processing.loadBase64(storage.base64[index], function(img)
         {
             loadedImages[index] = img;
