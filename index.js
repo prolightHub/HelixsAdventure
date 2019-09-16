@@ -22,7 +22,7 @@ var sketch = function(processing) /*Wrapper*/
     {
         keyIsPressed = false;
     };
-
+-
     function getImage(s)
     {
         var url = "https://www.kasandbox.org/programming-images/" + s + ".png";
@@ -8992,6 +8992,11 @@ cameraGrid.addReference = function(object)
         arrayName : object.arrayName,
         index : object.firstIndex
     };
+
+    if(!object.boundingBox)
+    {
+        return;
+    }
 
     if(!object.boundingBox.off)
     {
